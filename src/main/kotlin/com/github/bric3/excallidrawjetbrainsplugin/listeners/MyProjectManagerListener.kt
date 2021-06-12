@@ -1,6 +1,6 @@
-package com.github.bric3.excallidrawjetbrainsplugin.listeners
+package com.github.bric3.excalidrawjetbrainsplugin.listeners
 
-import com.github.bric3.excallidrawjetbrainsplugin.services.MyProjectService
+import com.github.bric3.excalidrawjetbrainsplugin.services.MyProjectService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener

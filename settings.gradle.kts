@@ -1,1 +1,1 @@
-rootProject.name = "excallidraw-jetbrains-plugin"
+rootProject.name = "excalidraw-jetbrains-plugin"

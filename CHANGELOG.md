@@ -1,6 +1,6 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 
-# excallidraw-jetbrains-plugin Changelog
+# excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
 ### Added

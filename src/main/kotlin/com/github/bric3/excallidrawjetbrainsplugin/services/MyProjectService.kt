@@ -1,6 +1,6 @@
-package com.github.bric3.excallidrawjetbrainsplugin.services
+package com.github.bric3.excalidrawjetbrainsplugin.services
 
-import com.github.bric3.excallidrawjetbrainsplugin.MyBundle
+import com.github.bric3.excalidrawjetbrainsplugin.MyBundle
 import com.intellij.openapi.project.Project
 
 class MyProjectService(project: Project) {

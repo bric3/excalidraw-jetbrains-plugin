@@ -1,4 +1,4 @@
-package com.github.bric3.excallidrawjetbrainsplugin
+package com.github.bric3.excalidrawjetbrainsplugin
 
 import com.intellij.AbstractBundle
 import org.jetbrains.annotations.NonNls

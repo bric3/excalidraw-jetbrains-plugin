@@ -1,6 +1,6 @@
 <idea-plugin>
-    <id>com.github.bric3.excallidrawjetbrainsplugin</id>
-    <name>excallidraw-jetbrains-plugin</name>
+    <id>com.github.bric3.excalidrawjetbrainsplugin</id>
+    <name>excalidraw-jetbrains-plugin</name>
     <vendor>bric3</vendor>
 
     <!-- Product and plugin compatibility requirements -->
@@ -8,12 +8,12 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.bric3.excallidrawjetbrainsplugin.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.bric3.excallidrawjetbrainsplugin.services.MyProjectService"/>
+        <applicationService serviceImplementation="com.github.bric3.excalidrawjetbrainsplugin.services.MyApplicationService"/>
+        <projectService serviceImplementation="com.github.bric3.excalidrawjetbrainsplugin.services.MyProjectService"/>
     </extensions>
 
     <applicationListeners>
-        <listener class="com.github.bric3.excallidrawjetbrainsplugin.listeners.MyProjectManagerListener"
+        <listener class="com.github.bric3.excalidrawjetbrainsplugin.listeners.MyProjectManagerListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 </idea-plugin>
