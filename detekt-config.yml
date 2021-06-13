@@ -6,3 +6,14 @@ formatting:
     continuationIndentSize: 8
   ParameterListWrapping:
     indentSize: 8
+  FinalNewline:
+    active: false
+  CommentSpacing:
+    active: false
+
+style:
+  NewLineAtEndOfFile:
+    active: false
+  ReturnCount:
+    excludeGuardClauses: true
+    max: 3

@@ -19,5 +19,4 @@ class ExcalidrawIconProvider : DumbAware, IconProvider() {
         }
         return null
     }
-
 }
