@@ -1,19 +1,27 @@
 <idea-plugin>
-    <id>com.github.bric3.excalidrawjetbrainsplugin</id>
-    <name>excalidraw-jetbrains-plugin</name>
-    <vendor>bric3</vendor>
+    <id>com.github.bric3.excalidraw</id>
+    <name>Excalidraw Jetbrains Plugin</name>
+    <vendor>Brice Dutheil</vendor>
 
     <!-- Product and plugin compatibility requirements -->
     <!-- https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.bric3.excalidrawjetbrainsplugin.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.bric3.excalidrawjetbrainsplugin.services.MyProjectService"/>
+        <fileType name="Excalidraw sketch"
+                  implementationClass="com.github.bric3.excalidraw.files.ExcalidrawFileType"
+                  fieldName="INSTANCE"
+                  language="Excalidraw"
+                  extensions="excalidraw;excalidraw.json;excalidraw.svg"
+                  />
+        <iconProvider implementation="com.github.bric3.excalidraw.files.ExcalidrawIconProvider" />
+
+        <applicationService serviceImplementation="com.github.bric3.excalidraw.services.MyApplicationService"/>
+        <projectService serviceImplementation="com.github.bric3.excalidraw.services.MyProjectService"/>
     </extensions>
 
     <applicationListeners>
-        <listener class="com.github.bric3.excalidrawjetbrainsplugin.listeners.MyProjectManagerListener"
+        <listener class="com.github.bric3.excalidraw.listeners.MyProjectManagerListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 </idea-plugin>

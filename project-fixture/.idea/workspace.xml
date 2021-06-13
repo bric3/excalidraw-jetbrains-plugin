@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="3709b917-1181-4542-a830-82fb1d7cb963" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/project-fixture.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hello-export-with-scene.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hello.excalidraw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/Excalidraw.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/files/ExcalidrawFileType.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/files/ExcalidrawIcon.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/files/ExcalidrawIconProvider.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/resources/icons/any_type.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/resources/icons/excalidraw-file-alt-icon.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../src/main/resources/icons/excalidraw-file-icon.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excallidrawjetbrainsplugin/MyBundle.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/MyBundle.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excallidrawjetbrainsplugin/listeners/MyProjectManagerListener.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/listeners/MyProjectManagerListener.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excallidrawjetbrainsplugin/services/MyApplicationService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/services/MyApplicationService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excallidrawjetbrainsplugin/services/MyProjectService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../src/main/kotlin/com/github/bric3/excalidraw/services/MyProjectService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../src/main/resources/META-INF/plugin.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1ttZCHuOlyB7YXzxge2znn0KZPd" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3709b917-1181-4542-a830-82fb1d7cb963" name="Default Changelist" comment="" />
+      <created>1623590218119</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1623590218119</updated>
+    </task>
+    <servers />
+  </component>
+</project>

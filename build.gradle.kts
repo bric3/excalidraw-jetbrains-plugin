@@ -11,6 +11,7 @@ plugins {
     id("org.jetbrains.changelog") version "1.1.2"
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    id("com.github.ben-manes.versions") version "0.39.0"
 }
 
 group = properties("pluginGroup")
@@ -58,20 +59,19 @@ detekt {
 }
 
 tasks {
-    // Set the compatibility versions to 1.8
+    // Java 11 compat started in 2020.2
     withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = "11"
             useIR = true
         }
     }
-
     withType<Detekt> {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     patchPluginXml {

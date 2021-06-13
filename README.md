@@ -42,8 +42,12 @@ the command:
 
 This will build the plugin and start a sandboxed instance of IntelliJ with 
 the plugin already installed. You can even start this in debug mode.
+                                                 
 
----
+----
+The Logo is inspired from the actial [Excalidraw logo](https://github.com/excalidraw/excalidraw-logo/blob/afabcf3f9f5e12d6b1574bc7abd5d63466744155/logo256.svg) (MIT licensed).
+
+----
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
