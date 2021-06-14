@@ -22,6 +22,11 @@ repositories {
     mavenCentral()
 }
 dependencies {
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
+    testImplementation("org.assertj:assertj-core:3.19.0")
+
+
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
 }
 
@@ -72,6 +77,10 @@ tasks {
     }
     withType<Detekt> {
         jvmTarget = "11"
+    }
+
+    withType<Test> {
+        useJUnitPlatform()
     }
 
     patchPluginXml {

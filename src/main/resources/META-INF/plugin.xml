@@ -16,12 +16,28 @@
                   />
         <iconProvider implementation="com.github.bric3.excalidraw.files.ExcalidrawIconProvider" />
 
+        <fileEditorProvider implementation="com.github.bric3.excalidraw.editor.ExcalidrawEditorProvider" />
+
         <applicationService serviceImplementation="com.github.bric3.excalidraw.services.MyApplicationService"/>
         <projectService serviceImplementation="com.github.bric3.excalidraw.services.MyProjectService"/>
+        <!--        <applicationConfigurable id="Settings.DiagramsNet.Preview"-->
+        <!--                                 bundle="messages.MyBundle"-->
+        <!--                                 groupId="language"-->
+        <!--                                 nonDefaultProject="true"-->
+        <!--                                 key="settings.diagrams.name"-->
+        <!--                                 instance="de.docs_as_co.intellij.plugin.drawio.settings.DiagramsConfigurable" />-->
+        <!--        <applicationService serviceImplementation="de.docs_as_co.intellij.plugin.drawio.settings.DiagramsApplicationSettings" />-->
     </extensions>
 
     <applicationListeners>
-        <listener class="com.github.bric3.excalidraw.listeners.MyProjectManagerListener"
+        <listener class="com.github.bric3.excalidraw.listeners.NoOpProjectManagerListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
+
+<!--    <actions>-->
+<!--        <group id="ExcalidrawNew" text="Excalidraw">-->
+<!--            <action id="ExcalidrawNewFile" class="com.github.bric3.excalidraw.actions.DiagramCreateFileAction"/>-->
+<!--            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>-->
+<!--        </group>-->
+<!--    </actions>-->
 </idea-plugin>

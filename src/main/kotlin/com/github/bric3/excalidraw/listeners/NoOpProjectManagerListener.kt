@@ -8,7 +8,7 @@ import com.intellij.openapi.project.ProjectManagerListener
 /**
  * Empty listern for now
  */
-internal class MyProjectManagerListener : ProjectManagerListener {
+internal class NoOpProjectManagerListener : ProjectManagerListener {
 
     override fun projectOpened(project: Project) {
         project.service<MyProjectService>()
