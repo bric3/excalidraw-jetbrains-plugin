@@ -1,4 +1,6 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.changelog.closure
+import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -47,7 +49,13 @@ intellij {
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
     version = properties("pluginVersion")
+    path = "${rootProject.projectDir}/CHANGELOG.md"
+    header = closure { "[$version] - ${date()}" }
+    itemPrefix = "-"
+    keepUnreleasedSection = true
+    unreleasedTerm = "[Unreleased]"
     groups = emptyList()
+//    groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security")
 }
 
 // Configure detekt plugin.
@@ -90,7 +98,7 @@ tasks {
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         pluginDescription.set(
-            File(projectDir, "README.md").readText().lines().run {
+            File(rootProject.projectDir, "./README.md").readText().lines().run {
                 val start = "<!-- Plugin description -->"
                 val end = "<!-- Plugin description end -->"
 
