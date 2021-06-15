@@ -1,15 +1,24 @@
 {
   "name": "excalidraw-plugin-assets",
   "version": "0.1.0",
-  "main": "public/index.html",
+  "main": "src/index.js",
   "description": "",
   "keywords": [],
   "license": "MIT",
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.8.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "react-scripts": "4.0.3"
   },
+  "devDependencies": {
+    "cross-env": "^7.0.2"
+  },
   "scripts": {
-    "build": "react-scripts build"
+    "start": "BROWSER=none cross-env NODE_ENV=development react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
   },
   "browserslist": {
     "production": [

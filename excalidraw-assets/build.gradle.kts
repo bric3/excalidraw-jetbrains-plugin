@@ -1,3 +1,5 @@
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpmYarn
+
 plugins {
     id("org.siouan.frontend-jdk11") version "5.2.0"
 }
@@ -14,4 +16,17 @@ frontend {
     yarnInstallDirectory.set(rootProject.layout.buildDirectory.dir("web/yarn"))
 
     assembleScript.set("run build") // "build" script in package.json
+}
+
+tasks.register<RunNpmYarn>("start") {
+    dependsOn(tasks.named("installFrontend"))
+    script.set("run start")
+    doFirst {
+        logger.warn(
+            """
+            Unfortunately node won't be killed on ctrl+c, you to actively kill it:
+                $ kill ${'$'}(lsof -t -i :3000)
+            
+            """.trimIndent())
+    }
 }
