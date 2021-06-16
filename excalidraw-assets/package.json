@@ -12,11 +12,14 @@
     "react-scripts": "4.0.3"
   },
   "devDependencies": {
-    "cross-env": "^7.0.2"
+    "cross-env": "^7.0.2",
+    "gulp": "^4.0.2",
+    "gulp-inline-source-html": "^1.0.3",
+    "gulp-replace": "^1.0.0"
   },
   "scripts": {
     "start": "BROWSER=none cross-env NODE_ENV=development react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && npx gulp",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },

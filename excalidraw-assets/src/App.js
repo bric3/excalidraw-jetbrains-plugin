@@ -7,8 +7,6 @@ import Excalidraw from "@excalidraw/excalidraw";
 //     getSceneVersion,
 // } from "@excalidraw/excalidraw";
 
-// import "./styles.css";
-
 // placeholder for functions
 let updateApp = null;
 let toSVG = null;
