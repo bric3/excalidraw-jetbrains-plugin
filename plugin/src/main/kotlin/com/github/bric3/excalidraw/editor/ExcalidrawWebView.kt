@@ -1,7 +1,11 @@
 package com.github.bric3.excalidraw.editor
 
 import com.jetbrains.rd.util.lifetime.Lifetime
+import com.jetbrains.rd.util.lifetime.onTermination
 import org.cef.CefApp
+import org.cef.browser.CefBrowser
+import org.cef.browser.CefFrame
+import org.cef.handler.CefLoadHandlerAdapter
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
@@ -41,6 +45,21 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
 
     init {
         initializeSchemeHandler(uiTheme)
+        object : CefLoadHandlerAdapter() {
+            override fun onLoadEnd(browser: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
+//                frame?.executeJavaScript(
+//                    "window.sendMessageToHost = function(message) {" +
+//                            jsRequestHandler.inject("message") +
+//                            "};",
+//                    frame.url, 0
+//                )
+            }
+        }.also { handlerAdapter ->
+            panel.browser.jbCefClient.addLoadHandler(handlerAdapter, panel.browser.cefBrowser)
+            lifetime.onTermination {
+                panel.browser.jbCefClient.removeLoadHandler(handlerAdapter, panel.browser.cefBrowser)
+            }
+        }
     }
 
     fun reload(uiTheme: String, onThemeChanged: Runnable) {

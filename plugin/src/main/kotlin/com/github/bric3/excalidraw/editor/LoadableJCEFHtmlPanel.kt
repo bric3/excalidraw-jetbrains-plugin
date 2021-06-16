@@ -30,6 +30,7 @@ class LoadableJCEFHtmlPanel(
     var timeoutCallback: String? = EditorBundle.message("message.html.editor.timeout")
 ) : Disposable {
     private val htmlPanelComponent = JCEFHtmlPanel(null)
+    // source of memory leak ?
     private val loadingPanel = JBLoadingPanel(BorderLayout(), this).apply { setLoadingText(CommonBundle.getLoadingTreeNodeText()) }
     private val alarm = AlarmFactory.getInstance().create()
 
