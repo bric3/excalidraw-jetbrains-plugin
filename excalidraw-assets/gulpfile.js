@@ -5,9 +5,9 @@ const replace = require('gulp-replace')
 const inlineSource = require('gulp-inline-source-html');
 
 task('default', () => {
-    return src('build/*.html')
+    return src('build/react-build/*.html')
         .pipe(replace('.js"></script>', '.js" inline></script>'))
         .pipe(replace('rel="stylesheet">', 'rel="stylesheet" inline>'))
         .pipe(inlineSource({ compress: false }))
-        .pipe(dest('dist'))
+        .pipe(dest('build/dist'))
 })

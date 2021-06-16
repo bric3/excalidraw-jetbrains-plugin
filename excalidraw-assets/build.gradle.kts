@@ -26,6 +26,9 @@ tasks.register<RunNpmYarn>("start") {
             """
             Unfortunately node won't be killed on ctrl+c, you to actively kill it:
                 $ kill ${'$'}(lsof -t -i :3000)
+                
+            A better alternative would be (from the project's root folder):
+                $ yarn --cwd excalidraw-assets start
             
             """.trimIndent())
     }
