@@ -21,7 +21,7 @@ frontend {
 
 tasks.named<AssembleTask>("assembleFrontend") {
     inputs.files("package.json", "gulpfile.js", "src", "public")
-    outputs.files("build/dist/index.html")
+    outputs.files("build/gulp-dist/index.html")
 }
 
 tasks.register<RunNpmYarn>("start") {

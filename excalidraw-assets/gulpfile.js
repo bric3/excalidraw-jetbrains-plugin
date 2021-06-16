@@ -9,5 +9,5 @@ task('default', () => {
         .pipe(replace('.js"></script>', '.js" inline></script>'))
         .pipe(replace('rel="stylesheet">', 'rel="stylesheet" inline>'))
         .pipe(inlineSource({ compress: false }))
-        .pipe(dest('build/dist'))
+        .pipe(dest('build/gulp-dist'))
 })
