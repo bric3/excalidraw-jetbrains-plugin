@@ -1,3 +1,4 @@
+import org.siouan.frontendgradleplugin.infrastructure.gradle.AssembleTask
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpmYarn
 
 plugins {
@@ -16,6 +17,11 @@ frontend {
     yarnInstallDirectory.set(rootProject.layout.buildDirectory.dir("web/yarn"))
 
     assembleScript.set("run build") // "build" script in package.json
+}
+
+tasks.named<AssembleTask>("assembleFrontend") {
+    inputs.files("package.json", "gulpfile.js", "src", "public")
+    outputs.files("build/dist/index.html")
 }
 
 tasks.register<RunNpmYarn>("start") {
