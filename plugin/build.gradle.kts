@@ -91,6 +91,14 @@ tasks {
         useJUnitPlatform()
     }
 
+    processResources {
+        dependsOn(":excalidraw-assets:assemble")
+        from("${project(":excalidraw-assets").projectDir}/build/gulp-dist") {
+            include("index.html")
+            into("assets")
+        }
+    }
+
     patchPluginXml {
         version.set(properties("pluginVersion"))
         sinceBuild.set(properties("pluginSinceBuild"))

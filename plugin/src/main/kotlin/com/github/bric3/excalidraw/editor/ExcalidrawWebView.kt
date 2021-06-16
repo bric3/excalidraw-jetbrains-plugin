@@ -4,6 +4,8 @@ import com.jetbrains.rd.util.lifetime.Lifetime
 import org.cef.CefApp
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
+import java.io.BufferedInputStream
+import java.io.BufferedReader
 import java.net.URI
 
 class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
@@ -24,18 +26,17 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 "https", "excalidraw-plugin",
                 SchemeHandlerFactory { uri: URI ->
                     if (uri.path == "/index.html") {
-                        val text = ExcalidrawWebView::class.java.getResourceAsStream("/assets/index.html").reader().readText()
+                        val text = BufferedReader(ExcalidrawWebView::class.java.getResourceAsStream("/assets/index.html").reader()).readText()
                         text.byteInputStream()
                     } else {
-                        ExcalidrawWebView::class.java.getResourceAsStream("/assets" + uri.path)
+                        BufferedInputStream(ExcalidrawWebView::class.java.getResourceAsStream("/assets" + uri.path))
                     }
                 }
             ).also { successful -> assert(successful) }
         }
     }
 
-    //    private val panel = LoadableJCEFHtmlPanel("https://excalidraw-plugin/index.html", null, null)
-    private val panel = LoadableJCEFHtmlPanel("https://excalidraw.com", null, null)
+    private val panel = LoadableJCEFHtmlPanel("https://excalidraw-plugin/index.html", null, null)
     val component = panel.component
 
     init {
