@@ -32,7 +32,10 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
         }
     }
 
-    private val panel = LoadableJCEFHtmlPanel("https://excalidraw-plugin/index.html", null, null)
+    private val panel = LoadableJCEFHtmlPanel(
+        url = "https://excalidraw-plugin/index.html",
+        openDevtools = false
+    )
     val component = panel.component
 
     init {

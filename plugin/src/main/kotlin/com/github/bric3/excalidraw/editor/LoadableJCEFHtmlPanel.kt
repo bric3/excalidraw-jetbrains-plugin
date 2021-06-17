@@ -24,9 +24,11 @@ import javax.swing.JComponent
  * <a href="https://github.com/docToolchain/diagrams.net-intellij-plugin/blob/14a4c8f7da38e5e4952e7046740493994f726e57/src/main/kotlin/de/docs_as_co/intellij/plugin/drawio/utils/LoadableJCEFHtmlPanel.kt">
  *     docToolchain/diagrams.net-intellij-plugin
  * </a>.
+ *
+ * Modified to support to open devtools programmatically on load.
  */
 class LoadableJCEFHtmlPanel(
-    url: String? = null, html: String? = null,
+    url: String? = null, html: String? = null, openDevtools: Boolean = false,
     var timeoutCallback: String? = EditorBundle.message("message.html.editor.timeout")
 ) : Disposable {
     private val htmlPanelComponent = JCEFHtmlPanel(null)
@@ -62,6 +64,9 @@ class LoadableJCEFHtmlPanel(
     init {
         htmlPanelComponent.jbCefClient.addLoadHandler(object : CefLoadHandlerAdapter() {
             override fun onLoadStart(browser: CefBrowser?, frame: CefFrame?, transitionType: CefRequest.TransitionType?) {
+                if (openDevtools) {
+                    this@LoadableJCEFHtmlPanel.browser.openDevtools()
+                }
                 alarm.addRequest({ htmlPanelComponent.setHtml(timeoutCallback!!) }, Registry.intValue("html.editor.timeout", 10000))
             }
 
