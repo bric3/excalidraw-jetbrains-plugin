@@ -8,6 +8,9 @@ plugins {
 }
 
 
+val webappAssets by extra("build/assets")
+val webappFiles by extra("build/gulp-dist")
+
 frontend {
     nodeVersion.set("16.3.0")
     yarnEnabled.set(true)
@@ -28,8 +31,9 @@ tasks.named<InstallDependenciesTask>("installFrontend") {
 }
 
 tasks.named<AssembleTask>("assembleFrontend") {
+    dependsOn(tasks.named("copyProductionAssets"))
     inputs.files("package.json", "gulpfile.js", "src", "public")
-    outputs.files("build/gulp-dist/index.html")
+    outputs.dirs(webappFiles)
 }
 
 tasks.register<RunNpmYarn>("start") {
@@ -46,4 +50,15 @@ tasks.register<RunNpmYarn>("start") {
             
             """.trimIndent())
     }
+}
+
+tasks.register<Copy>("copyProductionAssets") {
+    dependsOn(tasks.named("installFrontend"))
+    val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist"
+    from(excalidrawDist)
+    include("excalidraw-assets/*")  // production assets
+    into(webappAssets)
+    
+    inputs.dir(excalidrawDist)
+    outputs.dir(webappAssets)
 }

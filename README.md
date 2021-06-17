@@ -42,7 +42,14 @@ the command:
 
 This will build the plugin and start a sandboxed instance of IntelliJ with 
 the plugin already installed. You can even start this in debug mode.
-                                                 
+
+
+**TIP**: In order to access the sources of JCEF, clone [JetBrains/jcef](https://github.com/JetBrains/jcef) repository: 
+`git clone git@github.com:JetBrains/jcef.git`. Then open a JCEF type 
+like `org.cef.CefApp`, identify the version of the jar, eg `cef-81.2.24`,
+then checkout the matching branch `git checkout cef-81.2.24`. Finally,
+point the source location to the `java/` folder at the root of the cloned
+repository.
 
 ----
 The Logo is inspired from the actial [Excalidraw logo](https://github.com/excalidraw/excalidraw-logo/blob/afabcf3f9f5e12d6b1574bc7abd5d63466744155/logo256.svg) (MIT licensed).

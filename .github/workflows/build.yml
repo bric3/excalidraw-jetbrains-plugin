@@ -144,7 +144,7 @@ jobs:
         uses: actions/upload-artifact@v2.2.3
         with:
           name: plugin-artifact
-          path: ./build/distributions/${{ steps.properties.outputs.artifact }}
+          path: ./plugin/build/distributions/${{ steps.properties.outputs.artifact }}
 
   # Verify built plugin using IntelliJ Plugin Verifier tool
   # Requires build job to be passed

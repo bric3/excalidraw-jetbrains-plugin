@@ -15,7 +15,7 @@ import java.net.URI
 class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     companion object {
         var didRegisterSchemeHandler = false
-        fun initializeSchemeHandler(uiTheme: String) {
+        fun initializeSchemeHandler() {
             didRegisterSchemeHandler = true
 
             // clear old scheme handler factories in case this is a re-initialization with an updated theme
@@ -23,10 +23,6 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
 
             // initialization ideas from docToolchain/diagrams.net-intellij-plugin
             CefApp.getInstance().registerSchemeHandlerFactory(
-                // needed to use "https" as scheme here as "drawio-plugin" scheme didn't allow for CORS requests that were needed
-                // to start the diagrams.net application in the JCEF/Chromium preview browser.
-                // Worked in previous versions, but not from IntelliJ 2021.1 onwards; maybe due to tightened security in Chromium.
-                // Error message was: "CORS policy: Cross origin requests are only supported for protocol schemes..."
                 "https", "excalidraw-plugin",
                 SchemeHandlerFactory { uri: URI ->
                     // special treatment for uri.path == /index.html ? Eg like tweaking the style.
@@ -40,7 +36,7 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     val component = panel.component
 
     init {
-        initializeSchemeHandler(uiTheme)
+        initializeSchemeHandler()
         object : CefLoadHandlerAdapter() {
             override fun onLoadStart(
                 browser: CefBrowser?,
@@ -60,6 +56,8 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
 
                 frame?.executeJavaScript(
                     """
+                    window.EXCALIDRAW_ASSET_PATH = "/"; // loads assets from plugin
+                    
                     window.initialData = {
                         "theme": "${uiTheme}",
                         "readOnly": false,
@@ -82,7 +80,7 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     fun reload(uiTheme: String, onThemeChanged: Runnable) {
         if (this.uiTheme != uiTheme) {
             this.uiTheme = uiTheme
-            initializeSchemeHandler(uiTheme)
+            initializeSchemeHandler()
             this.panel.browser.cefBrowser.reloadIgnoreCache()
             // promise needs to be reset, to that it can be listened to again when the reload is complete
             resetInitializedPromise()
