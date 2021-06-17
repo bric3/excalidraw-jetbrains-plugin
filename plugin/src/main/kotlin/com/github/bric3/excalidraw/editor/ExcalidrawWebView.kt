@@ -6,10 +6,10 @@ import org.cef.CefApp
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefLoadHandlerAdapter
+import org.cef.network.CefRequest
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
-import java.io.BufferedReader
 import java.net.URI
 
 class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
@@ -29,12 +29,8 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 // Error message was: "CORS policy: Cross origin requests are only supported for protocol schemes..."
                 "https", "excalidraw-plugin",
                 SchemeHandlerFactory { uri: URI ->
-                    if (uri.path == "/index.html") {
-                        val text = BufferedReader(ExcalidrawWebView::class.java.getResourceAsStream("/assets/index.html").reader()).readText()
-                        text.byteInputStream()
-                    } else {
-                        BufferedInputStream(ExcalidrawWebView::class.java.getResourceAsStream("/assets" + uri.path))
-                    }
+                    // special treatment for uri.path == /index.html ? Eg like tweaking the style.
+                    BufferedInputStream(ExcalidrawWebView::class.java.getResourceAsStream("/assets" + uri.path))
                 }
             ).also { successful -> assert(successful) }
         }
@@ -46,13 +42,34 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     init {
         initializeSchemeHandler(uiTheme)
         object : CefLoadHandlerAdapter() {
-            override fun onLoadEnd(browser: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
-//                frame?.executeJavaScript(
-//                    "window.sendMessageToHost = function(message) {" +
-//                            jsRequestHandler.inject("message") +
-//                            "};",
-//                    frame.url, 0
-//                )
+            override fun onLoadStart(
+                browser: CefBrowser?,
+                frame: CefFrame?,
+                transitionType: CefRequest.TransitionType?
+            ) {
+                // InitialData object {
+                //  "elements" : [],
+                //  "appState": {},
+                //  "scrollToContent": true,
+                //  libraryItems,
+                //
+                //  "readOnly"
+                //  "gridMode"
+                //  "zenMode"
+                //  "theme"
+
+                frame?.executeJavaScript(
+                    """
+                    window.initialData = {
+                        "theme": "${uiTheme}",
+                        "readOnly": false,
+                        "gridMode": true,
+                        "zenMode": false,
+                    };
+                    """.trimIndent(),
+                    frame.url,
+                    0
+                )
             }
         }.also { handlerAdapter ->
             panel.browser.jbCefClient.addLoadHandler(handlerAdapter, panel.browser.cefBrowser)

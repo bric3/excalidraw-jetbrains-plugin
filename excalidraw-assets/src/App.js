@@ -12,10 +12,20 @@ let updateApp = null;
 let toSVG = null;
 let toPNG = null;
 
-let readOnly = false
-let gridMode = true
-let zenMode = false
-let theme = "dark" // "light"
+const defaultInitialData = {
+    readOnly: false,
+    gridMode: true,
+    zenMode: false,
+    theme: "light",
+}
+const initialData = window.initialData ? window.initialData : defaultInitialData;
+
+let {
+    readOnly,
+    gridMode,
+    zenMode,
+    theme
+} = initialData
 
 export default function App() {
     const excalidrawRef = React.useRef(null);
@@ -25,7 +35,7 @@ export default function App() {
             <Excalidraw
                 ref={excalidrawRef}
                 // initialData={InitialData}
-                // initialData={{ elements: initialElements, appState: intitialAppState, libraryItems: libraryItems }}
+                // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
                 // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
                 onChange={(elements, state) =>
                     console.log("Elements :", elements, "State : ", state)
