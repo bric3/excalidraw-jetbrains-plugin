@@ -12,8 +12,10 @@ import Excalidraw, {
 // placeholder for functions
 // window.loadBlob = null; // not supported yet
 window.updateApp = null;
-window.exportAsSVG = null;
-window.exportAsPNG = null;
+window.updateAppState = null;
+window.saveAsJson = null;
+window.saveAsSVG = null;
+window.saveAsPNG = null;
 
 const defaultInitialData = {
     readOnly: false,
@@ -53,6 +55,13 @@ window.addEventListener("message", (e) => {
                     elements: elements
                 });
             }
+            break;
+
+        case "read-only":
+            readOnly = true;
+            updateAppState({
+                viewModeEnabled: readOnly
+            });
             break;
 
         case "save-as-svg":
@@ -109,6 +118,23 @@ export default function App() {
             appState: appState,
         });
     };
+
+    window.updateAppState = (appState) => {
+        excalidrawRef.current.updateScene({
+            elements: excalidrawRef.current.getSceneElements(),
+            appState: {
+                ...excalidrawRef.current.getAppState(),
+                ...appState
+            },
+        });
+    };
+
+    window.saveAsJson = () => {
+        return serializeAsJSON(
+            excalidrawRef.current.getSceneElements(),
+            excalidrawRef.current.getAppState()
+        )
+    }
 
     // exportParams
     //

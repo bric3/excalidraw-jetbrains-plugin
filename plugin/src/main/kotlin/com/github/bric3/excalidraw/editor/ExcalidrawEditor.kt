@@ -60,6 +60,9 @@ class ExcalidrawEditor(
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
                 val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
                 view.loadJsonPayload(jsonPayload)
+                if (file.isWritable.not()) {
+                    view.makeReadOnly()
+                }
             }
 
             if (file.name.endsWith("svg")) {

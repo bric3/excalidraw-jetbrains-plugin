@@ -193,4 +193,17 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
             0
         )
     }
+
+    fun makeReadOnly() {
+        lifetime.assertAlive()
+        panel.browser.cefBrowser.mainFrame.executeJavaScript(
+            """
+            window.postMessage({
+                type: "read-only"
+            })
+            """.trimIndent(),
+            panel.browser.cefBrowser.mainFrame.url,
+            0
+        )
+    }
 }
