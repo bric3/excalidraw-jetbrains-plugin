@@ -10,12 +10,15 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.lifetime.LifetimeDefinition
+import org.freedesktop.dbus.bin.DBusDaemon.saveFile
 import java.beans.PropertyChangeListener
+import java.io.BufferedReader
 import javax.swing.JComponent
 
 
@@ -34,6 +37,8 @@ class ExcalidrawEditor(
 
     private var view: ExcalidrawWebView
 
+    private var isInvalid = false
+
     init {
         //subscribe to changes of the theme
         val settingsConnection = ApplicationManager.getApplication().messageBus.connect(this)
@@ -49,36 +54,49 @@ class ExcalidrawEditor(
         else -> ExcalidrawColorScheme.LIGHT
     }
 
+
     private fun initView() {
-//        view.initialized().then {
-//            if (file.name.endsWith(".png")) {
-//                val payload = file.inputStream.readBytes()
-//                view.loadPng(payload)
-//            } else {
-//                val payload = file.inputStream.reader().readText()
-//                view.loadXmlLike(payload)
-//            }
-//        }
-//
-//        view.xmlContent.advise(lifetime) { xml ->
-//            if (xml !== null) {
-//                val isSVGFile = file.name.endsWith(".svg")
-//                val isPNGFile = file.name.endsWith(".png")
-//                if (isSVGFile) {
-//                    //ignore the xml payload and ask for an exported svg
-//                    view.exportSvg().then { data: String ->
-//                        saveFile(data.toByteArray(charset("utf-8")))
-//                    }
-//                } else if (isPNGFile) {
-//                    //ignore the xml payload and ask for an exported svg
-//                    view.exportPng().then { data: ByteArray ->
-//                        saveFile(data)
-//                    }
-//                } else {
-//                    saveFile(xml.toByteArray(charset("utf-8")))
-//                }
-//            }
-//        }
+        view.initialized().then { 
+            if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
+                val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
+                view.loadJsonPayload(jsonPayload)
+            }
+
+            if (file.name.endsWith("svg")) {
+                val builder = DialogBuilder().title("SVG edition not supported yet")
+                builder.addOkAction()
+                builder.show()
+
+                isInvalid = true
+//                val content:String = BufferedReader(file.inputStream.reader()).readText();
+//                val json:String = ExcalidrawUtil.extractScene(content);
+//                view.loadJsonPayload(json);
+            }
+        }
+
+        // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
+        view.excalidrawPayload.advise(lifetime) { content ->
+            if (content !== null) {
+                when {
+                    file.name.endsWith(".svg") -> {
+                        // ignore the xml payload and ask for an exported svg
+//                        view.exportSvg().then{ data: String ->
+//                            saveFile(data.toByteArray(charset("utf-8")))
+//                        }
+                    }
+                    file.name.endsWith(".png") -> {
+                        //ignore the xml payload and ask for an exported svg
+//                        view.exportPng().then { data: ByteArray ->
+//                            saveFile(data)
+//                        }
+                    }
+                    else -> {
+                        saveFile(content, file.canonicalPath)
+                    }
+                }
+            }
+        }
+
     }
 
     @Override
