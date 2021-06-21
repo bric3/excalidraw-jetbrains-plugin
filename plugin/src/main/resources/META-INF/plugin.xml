@@ -12,7 +12,7 @@
                   implementationClass="com.github.bric3.excalidraw.files.ExcalidrawFileType"
                   fieldName="INSTANCE"
                   language="Excalidraw"
-                  extensions="excalidraw;excalidraw.json;excalidraw.svg"
+                  extensions="excalidraw;excalidraw.json"
                   />
         <iconProvider implementation="com.github.bric3.excalidraw.files.ExcalidrawIconProvider" />
 
