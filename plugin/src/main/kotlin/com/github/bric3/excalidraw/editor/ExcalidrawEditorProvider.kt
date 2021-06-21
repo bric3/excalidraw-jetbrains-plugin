@@ -12,7 +12,7 @@ class ExcalidrawEditorProvider : AsyncFileEditorProvider, DumbAware {
     override fun accept(project: Project, file: VirtualFile): Boolean = ExcalidrawUtil.isExcalidrawFile(file)
     override fun createEditor(project: Project, file: VirtualFile): FileEditor = createEditorAsync(project, file).build()
     override fun getEditorTypeId() = "excalidraw-jcef-editor"
-    override fun getPolicy() = FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR
+    override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
     override fun createEditorAsync(project: Project, file: VirtualFile): AsyncFileEditorProvider.Builder {
         return object : AsyncFileEditorProvider.Builder() {
             override fun build(): FileEditor {
