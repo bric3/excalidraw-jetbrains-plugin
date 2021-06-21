@@ -1,5 +1,6 @@
 package com.github.bric3.excalidraw.files
 
+import com.github.bric3.excalidraw.files.ExcalidrawUtil.Companion.isExcalidrawFile
 import com.intellij.mock.MockVirtualFileSystem
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
@@ -13,7 +14,7 @@ class ExcalidrawUtilTest : BasePlatformTestCase() {
     @Disabled("disabled for now, as long as parsing the binary payload in the embedded json don't work")
     fun should_accept_svg_with_embedded_excalidraw_payload() {
         assertThat(
-            ExcalidrawUtil.isExcalidrawFile(
+            isExcalidrawFile(
                 virtualFile(
                     "embedded-excalidraw.svg",
                     """
@@ -42,7 +43,7 @@ class ExcalidrawUtilTest : BasePlatformTestCase() {
     @Test
     fun should_discard_svg_without_embedded_excalidraw_payload() {
         assertThat(
-            ExcalidrawUtil.isExcalidrawFile(
+            isExcalidrawFile(
                 virtualFile(
                     "embedded-excalidraw.svg",
                     """
@@ -67,62 +68,23 @@ class ExcalidrawUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_accept_file_with_excalidraw_extension() {
-        assertThat(
-            ExcalidrawUtil.isExcalidrawFile(
-                virtualFile(
-                    "sketch.excalidraw",
-                    """
-                        {
-                          "type": "excalidraw",
-                          "version": 2,
-                          "source": "https://excalidraw.com",
-                          "elements": [
-                            {
-                              "id": "iXnxxJATdZI9GNSKXAq5o",
-                              "type": "text",
-                              "x": 774,
-                              "y": 158.5,
-                              "width": 44,
-                              "height": 26,
-                              "angle": 0,
-                              "strokeColor": "#000000",
-                              "backgroundColor": "transparent",
-                              "fillStyle": "hachure",
-                              "strokeWidth": 1,
-                              "strokeStyle": "solid",
-                              "roughness": 1,
-                              "opacity": 100,
-                              "groupIds": [],
-                              "strokeSharpness": "sharp",
-                              "seed": 415262735,
-                              "version": 7,
-                              "versionNonce": 1396575855,
-                              "isDeleted": false,
-                              "boundElementIds": null,
-                              "text": "Hello",
-                              "fontSize": 20,
-                              "fontFamily": 1,
-                              "textAlign": "left",
-                              "verticalAlign": "top",
-                              "baseline": 18
-                            }
-                          ],
-                          "appState": {
-                            "gridSize": null,
-                            "viewBackgroundColor": "#ffffff"
-                          }
-                        }
-                    """
-                )
-            )
-        ).isTrue
+    fun should_accept_file_with_declared_excalidraw_extension() {
+        assertThat(isExcalidrawFile(virtualFile("sketch.excalidraw", "content ignored"))).isTrue
+        assertThat(isExcalidrawFile(virtualFile("sketch.excalidraw.json", "content ignored"))).isTrue
+    }
+
+    @Test
+    fun should_not_accept_file_with_non_excalidraw_extension() {
+        assertThat(isExcalidrawFile(virtualFile("sketch.psd", "content ignored"))).isFalse
+        assertThat(isExcalidrawFile(virtualFile("sketch.java", "content ignored"))).isFalse
+
+        assertThat(isExcalidrawFile(virtualFile("some/directory/sketch.java", "content ignored").parent)).isFalse
     }
 
     @Test
     fun should_accept_excalidraw_file_with_json_extension() {
         assertThat(
-            ExcalidrawUtil.isExcalidrawFile(
+            isExcalidrawFile(
                 virtualFile(
                     "sketch.json",
                     """

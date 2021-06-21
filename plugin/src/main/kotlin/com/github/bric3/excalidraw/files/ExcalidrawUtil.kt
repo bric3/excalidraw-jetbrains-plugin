@@ -8,13 +8,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.IOException
 //import java.io.InputStreamReader
 //import javax.xml.stream.XMLEventReader
 //import javax.xml.stream.XMLInputFactory
 //import javax.xml.stream.XMLStreamConstants
 //import javax.xml.stream.events.Comment
 //import javax.xml.stream.events.XMLEvent
-import java.io.IOException
 
 
 class ExcalidrawUtil private constructor() {
@@ -25,58 +25,53 @@ class ExcalidrawUtil private constructor() {
 
 
         fun isExcalidrawFile(file: VirtualFile?): Boolean {
-            if (file == null) {
-                return false
-            }
+            return when {
+                file == null -> false
+                file.isDirectory || !file.exists() -> false
 
-            if (file.isDirectory || !file.exists()) {
-                return false
-            }
-            // To be aligned with plugin.xml
-            if (arrayOf(".excalidraw", ".excalidraw.json").any { ext -> file.name.endsWith(ext) }) {
-                return true
-            }
+                // To be aligned with plugin.xml
+                arrayOf(".excalidraw", ".excalidraw.json").any { ext -> file.name.endsWith(ext) } -> true
 
-            // TODO disabled for now, as long as parsing the binary payload in the embedded json don't work
-//            // check if svg file has a comment with 'payload-type:application/vnd.excalidraw+json'
-//            if (file.name.endsWith(".svg")) {
-//                val factory: XMLInputFactory = XMLInputFactory.newInstance()
+                // TODO disabled for now, as long as parsing the binary payload in the embedded json don't work
+                // check if svg file has a comment with 'payload-type:application/vnd.excalidraw+json'
+//                file.name.endsWith(".svg") -> {
+//                    file.inputStream.use {
+//                        val factory: XMLInputFactory = XMLInputFactory.newInstance()
+//                        val eventReader: XMLEventReader = factory.createXMLEventReader(InputStreamReader(it))
+//                        while (eventReader.hasNext()) {
+//                            val event: XMLEvent = eventReader.nextEvent()
 //
-//                file.inputStream.use {
-//                    val eventReader: XMLEventReader = factory.createXMLEventReader(InputStreamReader(it))
-//                    while (eventReader.hasNext()) {
-//                        val event: XMLEvent = eventReader.nextEvent()
-//
-//                        if (event.eventType == XMLStreamConstants.COMMENT) {
-//                            val text: String =  (event as Comment).text
-//                            if(text.contains("payload-type:application/vnd.excalidraw+json")) {
-//                                return true
+//                            if (event.eventType == XMLStreamConstants.COMMENT) {
+//                                val text: String = (event as Comment).text
+//                                if (text.contains("payload-type:application/vnd.excalidraw+json")) {
+//                                    return true
+//                                }
 //                            }
 //                        }
+//                        false
 //                    }
 //                }
-//            }
 
-            // check if json file is an excalidraw document
-            if (file.name.endsWith(".json")) {
-                file.inputStream.use {
-                    try {
-                        val excalidraw = mapper.readValue<Map<String, Object>>(it)
+                // check if json file is an excalidraw document
+                file.name.endsWith(".json") -> {
+                    file.inputStream.use {
+                        try {
+                            val excalidraw = mapper.readValue<Map<String, Any>>(it)
+                            if (excalidraw["type"] as String != "excalidraw") {
+                                return false
+                            }
 
-                        if (excalidraw["type"] as String != "excalidraw") {
-                            return false;
+                            // Excalidraw can handle malformed document eg missing "version", "elements", "appState"
+                            true
+                        } catch (e: IOException) {
+                            false
                         }
 
-                        // Excalidraw can handle malformed document eg missing "version", "elements", "appState"
-                        return true
-                    } catch (e: IOException) {
-                        return false
                     }
-
                 }
-            }
 
-            return false
+                else -> false
+            }
         }
 
         fun extractScene(svgContent: String): String {
@@ -87,14 +82,15 @@ class ExcalidrawUtil private constructor() {
             // payload-type:application/vnd.excalidraw+json
 
             // const match = svg.match(/<!-- payload-start -->(.+?)<!-- payload-end -->/);
-            val base64Payload = svgContent.substringAfter("<!-- payload-start -->").substringBefore("<!-- payload-end -->")
+            val base64Payload =
+                svgContent.substringAfter("<!-- payload-start -->").substringBefore("<!-- payload-end -->")
 
 
             // const versionMatch = svg.match(/<!-- payload-version:(\d+) -->/);
             // const version = versionMatch?.[1] || "1";
             // const isByteString = version !== "1";
 
-            val payloadVersion = when (val mr=Regex("<!-- payload-version:(\\d+) -->").find(svgContent)) {
+            val payloadVersion = when (val mr = Regex("<!-- payload-version:(\\d+) -->").find(svgContent)) {
                 null -> "1"
                 else -> mr.groupValues[1]
             }
@@ -144,7 +140,7 @@ class ExcalidrawUtil private constructor() {
             //   }
             //   throw new Error("FAILED");
             // }
-            if(encodedData.encoded == null) {
+            if (encodedData.encoded == null) {
                 // legacy not handled yet
                 throw IllegalArgumentException("legacy non encoded payload not supported at this time")
             }
@@ -175,11 +171,11 @@ class ExcalidrawUtil private constructor() {
 
             val compressed = encodedData.compressed
 
-            val decoded:ByteArray = when (val encoding = encodedData.encoding) {
+            val decoded: ByteArray = when (val encoding = encodedData.encoding) {
                 "bstring" -> encodedData.encoded
                 else -> throw IllegalArgumentException("decode: unknown encoding \"${encoding}\"")
             }
-            val map:String = decoded.let {
+            val map: String = decoded.let {
                 if (compressed == true) {
                     // inflate(new Uint8Array(byteStringToArrayBuffer(decoded)), {
                     //     to: "string",
@@ -207,7 +203,7 @@ class ExcalidrawUtil private constructor() {
     class ByteArraySerializer : JsonDeserializer<ByteArray?>() {
         override fun deserialize(jp: JsonParser, dc: DeserializationContext): ByteArray? {
 //            val binaryValue = jp.binaryValue
-            val node:JsonNode = jp.codec.readTree(jp)
+            val node: JsonNode = jp.codec.readTree(jp)
 
             return null
         }
