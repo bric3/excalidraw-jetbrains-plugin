@@ -12,10 +12,10 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.lifetime.LifetimeDefinition
-import org.freedesktop.dbus.bin.DBusDaemon.saveFile
 import java.beans.PropertyChangeListener
 import java.io.BufferedReader
 import javax.swing.JComponent
@@ -63,12 +63,8 @@ class ExcalidrawEditor(
             }
 
             if (file.name.endsWith("svg")) {
-                // The DialogWrapper can only be used in event dispatch thread. Current thread: Thread[AWT-AppKit,5,system]
-//                val builder = DialogBuilder().title("SVG edition not supported yet")
-//                builder.addOkAction()
-//                builder.show()
-
                 isInvalid = true
+                TODO("Loading from SVG is not yet supported")
 //                val content:String = BufferedReader(file.inputStream.reader()).readText();
 //                val json:String = ExcalidrawUtil.extractScene(content);
 //                view.loadJsonPayload(json);
@@ -81,24 +77,22 @@ class ExcalidrawEditor(
                 when {
                     file.name.endsWith(".svg") -> {
                         TODO("Saving to SVG is not yet supported")
-//                        view.exportSvg().then{ data: String ->
-//                            saveFile(data.toByteArray(charset("utf-8")))
+//                        view.saveAsSvg().then{ data: String ->
+//                            file.setBinaryContent(data.toByteArray(charset("utf-8"))
 //                        }
                     }
                     file.name.endsWith(".png") -> {
                         TODO("Saving to PNG is not yet supported")
-                        //ignore the xml payload and ask for an exported svg
-//                        view.exportPng().then { data: ByteArray ->
-//                            saveFile(data)
+//                        view.saveAsPng().then { data: ByteArray ->
+//                            file.setBinaryContent(data)
 //                        }
                     }
                     else -> {
-                        saveFile(content, file.canonicalPath)
+                        VfsUtil.saveText(file, content)
                     }
                 }
             }
         }
-
     }
 
     @Override
