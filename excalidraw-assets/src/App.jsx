@@ -84,6 +84,21 @@ window.addEventListener("message", (e) => {
 });
 
 
+window.continuousSaving = ({ elements, appState }) => {
+    let newSceneVersion = getSceneVersion(elements);
+    // maybe check appState
+    if (newSceneVersion != currentSceneVersion) {
+        currentSceneVersion = newSceneVersion;
+
+        let jsonContent = saveAsJson();
+
+        dispatchToPlugin({
+            type: "continuous-update",
+            appState: jsonContent,
+        });
+    }
+}
+
 
 
 export default function App() {
@@ -174,8 +189,13 @@ export default function App() {
                 // initialData={InitialData}
                 // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
                 // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
-                onChange={(elements, state) =>
-                    console.log("Elements :", elements, "State : ", state)
+                onChange={(elements, state) => {
+                        // Possibly implement regular saving via this call
+                        // See for debounce (React.useMemo, lodash.debounce) https://dmitripavlutin.com/react-throttle-debounce/
+                        // Or this : const debouncedChangeHandler = useRef(debounce(changeHandler, 300)).current
+                        console.log("Elements :", elements, "State : ", state);
+                        window.continuousSaving({elements, state});
+                    }
                 }
                 onCollabButtonClick={() =>
                     window.alert("Not supported")
