@@ -1,12 +1,12 @@
 import React from "react";
 import Excalidraw, {
+    exportToSvg,
+    exportToBlob,
+    getSceneVersion,
     restore,
     restoreAppState,
     restoreElements,
     serializeAsJSON,
-    exportToSvg,
-    exportToBlob,
-    getSceneVersion,
 } from "@excalidraw/excalidraw";
 
 // placeholder for functions
@@ -14,30 +14,15 @@ import Excalidraw, {
 window.updateApp = null;
 window.updateAppState = null;
 window.saveAsJson = null;
-window.saveAsSVG = null;
-window.saveAsPNG = null;
+window.saveAsSvg = null;
+window.saveAsPng = null;
 
 const defaultInitialData = {
-    readOnly: false,
     gridMode: true,
     zenMode: false,
     theme: "light",
 }
 const initialData = window.initialData ? window.initialData : defaultInitialData;
-
-let {
-    readOnly,
-    gridMode,
-    zenMode,
-    theme
-} = initialData
-
-// let {
-//     elements: initialElements = [],
-//     appState: initialAppState = {},
-//     theme,
-//     readOnly
-// } = initialData;
 
 let currentSceneVersion = getSceneVersion([]); // scene elements are empty on load
 
@@ -57,10 +42,18 @@ window.addEventListener("message", (e) => {
             }
             break;
 
-        case "read-only":
-            readOnly = true;
-            updateAppState({
-                viewModeEnabled: readOnly
+        case "toggle-read-only":
+            window.setViewModeEnabled(message.readOnly);
+            break;
+
+        case "theme-change":
+            window.setTheme(message.theme);
+            break;
+
+        case "save-as-json":
+            dispatchToPlugin({
+                type: "json-content",
+                json: saveAsJson(),
             });
             break;
 
@@ -96,6 +89,17 @@ window.addEventListener("message", (e) => {
 export default function App() {
     const excalidrawRef = React.useRef(null);
 
+    const [theme, setTheme] = React.useState(initialData.theme);
+    window.setTheme = setTheme;
+    const [viewModeEnabled, setViewModeEnabled] = React.useState(false);
+    window.setViewModeEnabled = setViewModeEnabled;
+    const [gridModeEnabled, setGridModeEnabled] = React.useState(initialData.gridMode);
+    window.setGridModeEnabled = setGridModeEnabled;
+    const [zenModeEnabled, setZenModeEnabled] = React.useState(initialData.zenMode);
+    window.setZenModeEnabled = setZenModeEnabled;
+    // const [exportWithDarkMode, setExportWithDarkMode] = React.useState(false);
+    // see https://codesandbox.io/s/excalidraw-forked-xsw0k?file=/src/App.js
+
     // DON'T WORK
     // React.useEffect(() => {
     //     excalidrawRef.current
@@ -111,6 +115,7 @@ export default function App() {
     //         blob,
     //         excalidrawRef.current.getAppState());
     // };
+
 
     window.updateApp = ({elements, appState}) => {
         excalidrawRef.current.updateScene({
@@ -178,9 +183,9 @@ export default function App() {
                 readyPromise={() => {
                     console.log("excalidraw ready")
                 }}
-                viewModeEnabled={readOnly}
-                zenModeEnabled={zenMode}
-                gridModeEnabled={gridMode}
+                viewModeEnabled={viewModeEnabled}
+                zenModeEnabled={zenModeEnabled}
+                gridModeEnabled={gridModeEnabled}
                 exportEmbedScene={true}
                 theme={theme}
                 UIOptions={{canvasActions: {loadScene: false}}}

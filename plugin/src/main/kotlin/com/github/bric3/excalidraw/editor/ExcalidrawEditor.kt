@@ -60,9 +60,7 @@ class ExcalidrawEditor(
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
                 val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
                 view.loadJsonPayload(jsonPayload)
-                if (file.isWritable.not()) {
-                    view.makeReadOnly()
-                }
+                view.toggleReadOnly(file.isWritable.not())
             }
 
             if (file.name.endsWith("svg")) {
@@ -104,9 +102,7 @@ class ExcalidrawEditor(
 
     @Override
     override fun globalSchemeChange(scheme: EditorColorsScheme?) {
-        view.reload(uiThemeFromConfig().key) {
-            initView()
-        }
+        view.changeTheme(uiThemeFromConfig().key)
     }
 
     override fun getComponent(): JComponent {
@@ -117,7 +113,7 @@ class ExcalidrawEditor(
         return view.component
     }
 
-    override fun getName() = "excalidraw-editor"
+    override fun getName() = "Excalidraw"
 
     override fun setState(state: FileEditorState) {
 
