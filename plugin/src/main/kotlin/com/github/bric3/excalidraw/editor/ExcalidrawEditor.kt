@@ -10,7 +10,6 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
@@ -64,9 +63,10 @@ class ExcalidrawEditor(
             }
 
             if (file.name.endsWith("svg")) {
-                val builder = DialogBuilder().title("SVG edition not supported yet")
-                builder.addOkAction()
-                builder.show()
+                // The DialogWrapper can only be used in event dispatch thread. Current thread: Thread[AWT-AppKit,5,system]
+//                val builder = DialogBuilder().title("SVG edition not supported yet")
+//                builder.addOkAction()
+//                builder.show()
 
                 isInvalid = true
 //                val content:String = BufferedReader(file.inputStream.reader()).readText();
@@ -80,12 +80,13 @@ class ExcalidrawEditor(
             if (content !== null) {
                 when {
                     file.name.endsWith(".svg") -> {
-                        // ignore the xml payload and ask for an exported svg
+                        TODO("Saving to SVG is not yet supported")
 //                        view.exportSvg().then{ data: String ->
 //                            saveFile(data.toByteArray(charset("utf-8")))
 //                        }
                     }
                     file.name.endsWith(".png") -> {
+                        TODO("Saving to PNG is not yet supported")
                         //ignore the xml payload and ask for an exported svg
 //                        view.exportPng().then { data: ByteArray ->
 //                            saveFile(data)

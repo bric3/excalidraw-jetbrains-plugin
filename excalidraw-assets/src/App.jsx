@@ -14,6 +14,7 @@ const defaultInitialData = {
     gridMode: true,
     zenMode: false,
     theme: "light",
+    debounceDelayInMs: 250
 }
 const initialData = window.initialData ? window.initialData : defaultInitialData;
 
@@ -67,7 +68,7 @@ window.addEventListener("message", (e) => {
                 reader.onloadend = function () {
                     let base64data = reader.result;
                     dispatchToPlugin({
-                        type: "png-content",
+                        type: "png-base64",
                         png: base64data
                     });
                 };
@@ -87,14 +88,14 @@ window.continuousSaving = (elements, appState) => {
 
         dispatchToPlugin({
             type: "continuous-update",
-            appState: jsonContent,
+            content: jsonContent,
         });
     }
 }
 
 const debouncedContinuousSaving = AwesomeDebouncePromise(
     continuousSaving,
-    500
+    initialData.debounceDelayInMs
 );
 
 
@@ -111,22 +112,6 @@ export default function App() {
     window.setZenModeEnabled = setZenModeEnabled;
     // const [exportWithDarkMode, setExportWithDarkMode] = React.useState(false);
     // see https://codesandbox.io/s/excalidraw-forked-xsw0k?file=/src/App.js
-
-    // DON'T WORK
-    // React.useEffect(() => {
-    //     excalidrawRef.current
-    //         .readyPromise
-    //         .then(() => {
-    //         dispatchToPlugin("excalidraw-ready")
-    //     })
-    // }, this);
-
-    // Not Supported yet "Uncaught TypeError: Object(...) is not a function"
-    // window.loadBlob = (blob) => {
-    //     return loadFromBlob(
-    //         blob,
-    //         excalidrawRef.current.getAppState());
-    // };
 
 
     window.updateApp = ({elements, appState}) => {
