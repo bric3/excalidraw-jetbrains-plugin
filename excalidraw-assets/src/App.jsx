@@ -23,7 +23,7 @@ let currentSceneVersion = getSceneVersion([]); // scene elements are empty on lo
 
 window.addEventListener("message", (e) => {
     const message = e.data;
-    console.log("got: " + message.type + ", message: ", message);
+    console.log("got event: " + message.type + ", message: ", message);
     switch (message.type) {
         case "update":
             const {elements} = message;
@@ -178,7 +178,7 @@ export default function App() {
                 // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
                 onChange={(elements, state) => {
                         // Possibly use React.useMemo to keep reference https://dmitripavlutin.com/react-throttle-debounce/
-                        onDrawingChange(elements, state).then(console.log)
+                        onDrawingChange(elements, state)
                     }
                 }
                 onCollabButtonClick={() =>

@@ -88,7 +88,11 @@ class ExcalidrawEditor(
 //                        }
                     }
                     else -> {
-                        VfsUtil.saveText(file, content)
+                        ApplicationManager.getApplication().invokeLater {
+                            ApplicationManager.getApplication().runWriteAction {
+                                VfsUtil.saveText(file, content)
+                            }
+                        }
                     }
                 }
             }

@@ -68,8 +68,12 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 persistent: Boolean,
                 callback: CefQueryCallback?
             ): Boolean {
+//                println("lifetime: ${lifetime.isAlive}, request: $request")
+
                 val message = mapper.readValue<Map<String, String>>(request!!)
-                if (lifetime.isAlive) return false
+                
+                if (!lifetime.isAlive) return false
+
 
                 when (message["type"]) {
                     // {"type":"continuous-update","content":"{\n  \"type\": \"excalidraw\",\n  \"version\": 2,\n  \"source\": \"https://excalidraw-plugin\",\n  \"elements\": [\n    {\n      \"id\": \"iXnxxJATdZI9GNSKXAq5o\",\n      \"type\": \"text\",\n      \"x\": 280,\n      \"y\": 180,\n      \"width\": 44,\n      \"height\": 26,\n      \"angle\": 0,\n      \"strokeColor\": \"#000000\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"hachure\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 1,\n      \"opacity\": 100,\n      \"groupIds\": [],\n      \"strokeSharpness\": \"sharp\",\n      \"seed\": 415262735,\n      \"version\": 29,\n      \"versionNonce\": 191228684,\n      \"isDeleted\": false,\n      \"boundElementIds\": null,\n      \"text\": \"Hello\",\n      \"fontSize\": 20,\n      \"fontFamily\": 1,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"baseline\": 18\n    }\n  ],\n  \"appState\": {\n    \"gridSize\": 20,\n    \"viewBackgroundColor\": \"#ffffff\"\n  }\n}"}
