@@ -34,10 +34,10 @@
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 
-<!--    <actions>-->
-<!--        <group id="ExcalidrawNew" text="Excalidraw">-->
-<!--            <action id="ExcalidrawNewFile" class="com.github.bric3.excalidraw.actions.DiagramCreateFileAction"/>-->
-<!--            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>-->
-<!--        </group>-->
-<!--    </actions>-->
+    <actions>
+        <group id="ExcalidrawNew" text="Excalidraw">
+            <action id="ExcalidrawNewFile" class="com.github.bric3.excalidraw.actions.ExcalidrawNewFileAction"/>
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
+        </group>
+    </actions>
 </idea-plugin>
