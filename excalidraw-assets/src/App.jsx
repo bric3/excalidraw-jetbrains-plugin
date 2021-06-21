@@ -1,13 +1,6 @@
 import React from "react";
-import Excalidraw, {
-    exportToSvg,
-    exportToBlob,
-    getSceneVersion,
-    restore,
-    restoreAppState,
-    restoreElements,
-    serializeAsJSON,
-} from "@excalidraw/excalidraw";
+import Excalidraw, {exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
+import AwesomeDebouncePromise from 'awesome-debounce-promise';
 
 // placeholder for functions
 // window.loadBlob = null; // not supported yet
@@ -84,7 +77,7 @@ window.addEventListener("message", (e) => {
 });
 
 
-window.continuousSaving = ({ elements, appState }) => {
+window.continuousSaving = (elements, appState) => {
     let newSceneVersion = getSceneVersion(elements);
     // maybe check appState
     if (newSceneVersion != currentSceneVersion) {
@@ -99,6 +92,10 @@ window.continuousSaving = ({ elements, appState }) => {
     }
 }
 
+const debouncedContinuousSaving = AwesomeDebouncePromise(
+    continuousSaving,
+    500
+);
 
 
 export default function App() {
@@ -182,6 +179,11 @@ export default function App() {
         });
     };
 
+    let onDrawingChange = async (elements, state) => {
+        await debouncedContinuousSaving(elements, state);
+    };
+
+
     return (
         <div className="excalidraw-wrapper">
             <Excalidraw
@@ -190,11 +192,8 @@ export default function App() {
                 // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
                 // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
                 onChange={(elements, state) => {
-                        // Possibly implement regular saving via this call
-                        // See for debounce (React.useMemo, lodash.debounce) https://dmitripavlutin.com/react-throttle-debounce/
-                        // Or this : const debouncedChangeHandler = useRef(debounce(changeHandler, 300)).current
-                        console.log("Elements :", elements, "State : ", state);
-                        window.continuousSaving({elements, state});
+                        // Possibly use React.useMemo to keep reference https://dmitripavlutin.com/react-throttle-debounce/
+                        onDrawingChange(elements, state).then(console.log)
                     }
                 }
                 onCollabButtonClick={() =>
@@ -227,7 +226,5 @@ function dispatchToPlugin(message) {
                 console.log("failure for message", message, ", error_code", error_code, ", error_message", error_message);
             }
         });
-    } else {
-        console.log(message);
     }
 }

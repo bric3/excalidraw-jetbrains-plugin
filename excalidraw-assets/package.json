@@ -7,6 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "@excalidraw/excalidraw": "^0.8.0",
+    "awesome-debounce-promise": "^2.1.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3"
