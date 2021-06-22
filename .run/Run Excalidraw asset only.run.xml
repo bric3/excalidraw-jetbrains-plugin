@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run Excalidraw asset only" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/excalidraw-assets/package.json" />
+    <command value="start" />
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>
