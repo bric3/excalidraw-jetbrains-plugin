@@ -4,4 +4,5 @@
 
 ## [Unreleased]
 ### Added
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
+- Initial support of Excalidraw in JetBrains IDEs :
+  create, open (with autosave) `.excalidraw` (json) files. 
