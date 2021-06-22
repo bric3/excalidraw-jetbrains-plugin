@@ -1,17 +1,19 @@
 # Excalidraw Jetbrains plugin
 
 ![Build](https://github.com/bric3/excalidraw-jetbrains-plugin/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/PLUGIN_ID.svg)](https://plugins.jetbrains.com/plugin/PLUGIN_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/PLUGIN_ID.svg)](https://plugins.jetbrains.com/plugin/PLUGIN_ID)
+[![Version](https://img.shields.io/jetbrains/plugin/v/17096.svg)](https://plugins.jetbrains.com/plugin/17096)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/17096.svg)](https://plugins.jetbrains.com/plugin/17096)
+                
+![screenshot](./excalidraw-for-jetbrains.png)
 
 ## Template ToDo list
 - [x] Create a new [IntelliJ Platform Plugin Template][template] project.
 - [x] Verify the pluginGroup, [plugin ID](/src/main/resources/META-INF/plugin.xml) and [sources package](/src/main/kotlin).
 - [x] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html).
-- [ ] Publish a plugin manually for the first time.
-- [ ] Set the Plugin ID in the above README badges.
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
+- [x] Publish a plugin manually for the first time.
+- [x] Set the Plugin ID in the above README badges.
+- [x] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html).
+- [x] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
 This plugin allows creating or editing [Excalidraw](https://excalidraw.com/)
