@@ -99,12 +99,35 @@ const debouncedContinuousSaving = AwesomeDebouncePromise(
 );
 
 
+const resolvablePromise = () => {
+    let resolve;
+    let reject;
+    const promise = new Promise((_resolve, _reject) => {
+        resolve = _resolve;
+        reject = _reject;
+    });
+    promise.resolve = resolve;
+    promise.reject = reject;
+    return promise;
+};
+
+
 export default function App() {
-    const excalidrawApiRef = React.useRef(null);
-    const excalidrawRef = React.useCallback((excalidrawApi) => {
-        excalidrawApiRef.current = excalidrawApi;
-        dispatchToPlugin({ type: "ready" })
-    }, []);
+    const excalidrawRef =  React.useMemo(
+        () => ({
+            current: {
+                readyPromise: resolvablePromise()
+            }
+        }),
+        []
+    );
+
+    React.useEffect(() => {
+        excalidrawRef.current.readyPromise.then((api) => {
+            dispatchToPlugin({ type: "ready" });
+        });
+    }, [excalidrawRef]);
+
 
     const [theme, setTheme] = React.useState(initialData.theme);
     window.setTheme = setTheme;
@@ -119,17 +142,17 @@ export default function App() {
 
 
     window.updateApp = ({elements, appState}) => {
-        excalidrawApiRef.current.updateScene({
+        excalidrawRef.current.updateScene({
             elements: elements,
             appState: appState,
         });
     };
 
     window.updateAppState = (appState) => {
-        excalidrawApiRef.current.updateScene({
-            elements: excalidrawApiRef.current.getSceneElements(),
+        excalidrawRef.current.updateScene({
+            elements: excalidrawRef.current.getSceneElements(),
             appState: {
-                ...excalidrawApiRef.current.getAppState(),
+                ...excalidrawRef.current.getAppState(),
                 ...appState
             },
         });
@@ -137,8 +160,8 @@ export default function App() {
 
     window.saveAsJson = () => {
         return serializeAsJSON(
-            excalidrawApiRef.current.getSceneElements(),
-            excalidrawApiRef.current.getAppState()
+            excalidrawRef.current.getSceneElements(),
+            excalidrawRef.current.getAppState()
         )
     }
 
@@ -150,9 +173,9 @@ export default function App() {
 
     window.saveAsSvg = (exportParams) => {
         return exportToSvg({
-            elements: excalidrawApiRef.current.getSceneElements(),
+            elements: excalidrawRef.current.getSceneElements(),
             appState: {
-                ...excalidrawApiRef.current.getAppState(),
+                ...excalidrawRef.current.getAppState(),
                 ...exportParams
             },
         });
@@ -160,9 +183,9 @@ export default function App() {
 
     window.saveAsPng = (exportParams) => {
         return exportToBlob({
-            elements: excalidrawApiRef.current.getSceneElements(),
+            elements: excalidrawRef.current.getSceneElements(),
             appState: {
-                ...excalidrawApiRef.current.getAppState(),
+                ...excalidrawRef.current.getAppState(),
                 ...exportParams
             },
         });
@@ -182,7 +205,7 @@ export default function App() {
                 // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
                 onChange={(elements, state) => {
                         // Possibly use React.useMemo to keep reference https://dmitripavlutin.com/react-throttle-debounce/
-                        onDrawingChange(elements, state)
+                        onDrawingChange(elements, state).then(ignored => {})
                     }
                 }
                 onCollabButtonClick={() =>
@@ -204,6 +227,7 @@ export default function App() {
 
 function dispatchToPlugin(message) {
     console.log("dispatchToPlugin: ", message);
+    // noinspection JSUnresolvedVariable
     if (window.cefQuery) {
         window.cefQuery({
             request: JSON.stringify(message),
