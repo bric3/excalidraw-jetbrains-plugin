@@ -52,7 +52,7 @@ point the source location to the `java/` folder at the root of the cloned
 repository.
 
 ----
-The Logo is inspired from the actial [Excalidraw logo](https://github.com/excalidraw/excalidraw-logo/blob/afabcf3f9f5e12d6b1574bc7abd5d63466744155/logo256.svg) (MIT licensed).
+The Logo is inspired from the actual [Excalidraw logo](https://github.com/excalidraw/excalidraw-logo/blob/afabcf3f9f5e12d6b1574bc7abd5d63466744155/logo256.svg) (MIT licensed).
 
 ----
 Plugin based on the [IntelliJ Platform Plugin Template][template].

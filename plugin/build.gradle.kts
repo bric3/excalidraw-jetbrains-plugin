@@ -27,7 +27,7 @@ repositories {
 dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-    testImplementation("org.assertj:assertj-core:3.20.1")
+    testImplementation("org.assertj:assertj-core:3.20.2")
 
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
@@ -73,7 +73,7 @@ detekt {
 }
 
 tasks {
-    // Java 11 compat started in 2020.2
+    // Java 11 compat started in 2020.3
     withType<JavaCompile> {
         sourceCompatibility = "11"
         targetCompatibility = "11"
@@ -107,7 +107,7 @@ tasks {
     patchPluginXml {
         version.set(properties("pluginVersion"))
         sinceBuild.set(properties("pluginSinceBuild"))
-        untilBuild.set(properties("pluginUntilBuild"))
+        untilBuild.set(provider { null }) // removes until-build in plugin.xml
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         pluginDescription.set(
