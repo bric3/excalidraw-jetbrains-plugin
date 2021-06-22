@@ -36,3 +36,7 @@ Session.vim
 *~
 # auto-generated tag files
 tags
+
+
+# Ignore project-fixture's workspace file
+./project-fixture/.idea/workspace.xml
