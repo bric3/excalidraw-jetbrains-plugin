@@ -100,7 +100,11 @@ const debouncedContinuousSaving = AwesomeDebouncePromise(
 
 
 export default function App() {
-    const excalidrawRef = React.useRef(null);
+    const excalidrawApiRef = React.useRef(null);
+    const excalidrawRef = React.useCallback((excalidrawApi) => {
+        excalidrawApiRef.current = excalidrawApi;
+        dispatchToPlugin({ type: "ready" })
+    }, []);
 
     const [theme, setTheme] = React.useState(initialData.theme);
     window.setTheme = setTheme;
@@ -115,17 +119,17 @@ export default function App() {
 
 
     window.updateApp = ({elements, appState}) => {
-        excalidrawRef.current.updateScene({
+        excalidrawApiRef.current.updateScene({
             elements: elements,
             appState: appState,
         });
     };
 
     window.updateAppState = (appState) => {
-        excalidrawRef.current.updateScene({
-            elements: excalidrawRef.current.getSceneElements(),
+        excalidrawApiRef.current.updateScene({
+            elements: excalidrawApiRef.current.getSceneElements(),
             appState: {
-                ...excalidrawRef.current.getAppState(),
+                ...excalidrawApiRef.current.getAppState(),
                 ...appState
             },
         });
@@ -133,8 +137,8 @@ export default function App() {
 
     window.saveAsJson = () => {
         return serializeAsJSON(
-            excalidrawRef.current.getSceneElements(),
-            excalidrawRef.current.getAppState()
+            excalidrawApiRef.current.getSceneElements(),
+            excalidrawApiRef.current.getAppState()
         )
     }
 
@@ -146,9 +150,9 @@ export default function App() {
 
     window.saveAsSvg = (exportParams) => {
         return exportToSvg({
-            elements: excalidrawRef.current.getSceneElements(),
+            elements: excalidrawApiRef.current.getSceneElements(),
             appState: {
-                ...excalidrawRef.current.getAppState(),
+                ...excalidrawApiRef.current.getAppState(),
                 ...exportParams
             },
         });
@@ -156,9 +160,9 @@ export default function App() {
 
     window.saveAsPng = (exportParams) => {
         return exportToBlob({
-            elements: excalidrawRef.current.getSceneElements(),
+            elements: excalidrawApiRef.current.getSceneElements(),
             appState: {
-                ...excalidrawRef.current.getAppState(),
+                ...excalidrawApiRef.current.getAppState(),
                 ...exportParams
             },
         });
