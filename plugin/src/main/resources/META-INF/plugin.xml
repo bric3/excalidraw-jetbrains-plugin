@@ -11,7 +11,6 @@
         <fileType name="Excalidraw sketch"
                   implementationClass="com.github.bric3.excalidraw.files.ExcalidrawFileType"
                   fieldName="INSTANCE"
-                  language="Excalidraw"
                   extensions="excalidraw;excalidraw.json"
                   />
         <iconProvider implementation="com.github.bric3.excalidraw.files.ExcalidrawIconProvider" />
@@ -20,13 +19,6 @@
 
         <applicationService serviceImplementation="com.github.bric3.excalidraw.services.MyApplicationService"/>
         <projectService serviceImplementation="com.github.bric3.excalidraw.services.MyProjectService"/>
-        <!--        <applicationConfigurable id="Settings.DiagramsNet.Preview"-->
-        <!--                                 bundle="messages.MyBundle"-->
-        <!--                                 groupId="language"-->
-        <!--                                 nonDefaultProject="true"-->
-        <!--                                 key="settings.diagrams.name"-->
-        <!--                                 instance="de.docs_as_co.intellij.plugin.drawio.settings.DiagramsConfigurable" />-->
-        <!--        <applicationService serviceImplementation="de.docs_as_co.intellij.plugin.drawio.settings.DiagramsApplicationSettings" />-->
     </extensions>
 
     <applicationListeners>
