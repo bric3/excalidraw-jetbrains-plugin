@@ -5,12 +5,13 @@
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/17096.svg)](https://plugins.jetbrains.com/plugin/17096)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
-![screenshot](./excalidraw-for-jetbrains.png)
 
 
 <!-- Plugin description -->
 This plugin allows creating or editing [Excalidraw](https://excalidraw.com/)
 virtual whiteboard within the IDE.
+
+![screenshot](./excalidraw-for-jetbrains.png)
 <!-- Plugin description end -->
 
 ## Installation
