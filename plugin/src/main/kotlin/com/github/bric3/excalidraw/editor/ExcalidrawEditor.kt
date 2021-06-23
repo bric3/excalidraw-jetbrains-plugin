@@ -6,6 +6,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.colors.EditorColorsListener
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.colors.EditorColorsScheme
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -59,6 +60,11 @@ class ExcalidrawEditor(
 
 
     private fun initView() {
+        val document = FileDocumentManager.getInstance().getDocument(file)
+
+//        document.setText()
+
+
         view.initialized().then { 
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
                 val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
@@ -139,6 +145,22 @@ class ExcalidrawEditor(
     }
 
     override fun dispose() {
+        // force manual saving
+        when {
+            file.name.endsWith(".svg") -> {
+                TODO("Saving to SVG is not yet supported")
+            }
+            file.name.endsWith(".png") -> {
+                TODO("Saving to PNG is not yet supported")
+            }
+            else -> {
+                view.manualSaveJsonPayload()
+            }
+        }
+        view.manualSave.view(lifetime) { _, b ->
+            println(b)
+        }
+
         lifetimeDef.terminate(true)
     }
 
