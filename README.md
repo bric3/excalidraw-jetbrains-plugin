@@ -3,17 +3,10 @@
 ![Build](https://github.com/bric3/excalidraw-jetbrains-plugin/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/17096.svg)](https://plugins.jetbrains.com/plugin/17096)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/17096.svg)](https://plugins.jetbrains.com/plugin/17096)
-                
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+
 ![screenshot](./excalidraw-for-jetbrains.png)
 
-## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [x] Verify the pluginGroup, [plugin ID](/src/main/resources/META-INF/plugin.xml) and [sources package](/src/main/kotlin).
-- [x] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html).
-- [x] Publish a plugin manually for the first time.
-- [x] Set the Plugin ID in the above README badges.
-- [x] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html).
-- [x] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
 This plugin allows creating or editing [Excalidraw](https://excalidraw.com/)
@@ -46,17 +39,6 @@ This will build the plugin and start a sandboxed instance of IntelliJ with
 the plugin already installed. You can even start this in debug mode.
 
 
-**TIP**: In order to access the sources of JCEF, clone [JetBrains/jcef](https://github.com/JetBrains/jcef) repository: 
-`git clone git@github.com:JetBrains/jcef.git`. Then open a JCEF type 
-like `org.cef.CefApp`, identify the version of the jar, eg `cef-81.2.24`,
-then checkout the matching branch `git checkout cef-81.2.24`. Finally,
-point the source location to the `java/` folder at the root of the cloned
-repository.
 
 ----
 The Logo is inspired from the actual [Excalidraw logo](https://github.com/excalidraw/excalidraw-logo/blob/afabcf3f9f5e12d6b1574bc7abd5d63466744155/logo256.svg) (MIT licensed).
-
-----
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
