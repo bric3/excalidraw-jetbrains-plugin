@@ -11,7 +11,7 @@ window.saveAsSvg = null;
 window.saveAsPng = null;
 
 const defaultInitialData = {
-    gridMode: true,
+    gridMode: false,
     zenMode: false,
     theme: "light",
     debounceDelayInMs: 250

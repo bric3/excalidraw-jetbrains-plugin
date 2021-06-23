@@ -133,7 +133,7 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                     window.initialData = {
                         "theme": "${uiTheme}",
                         "readOnly": false,
-                        "gridMode": true,
+                        "gridMode": false,
                         "zenMode": false,
                     };
                     """.trimIndent(),
