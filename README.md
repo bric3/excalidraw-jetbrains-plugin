@@ -11,7 +11,7 @@
 This plugin allows creating or editing [Excalidraw](https://excalidraw.com/)
 virtual whiteboard within the IDE.
 
-![screenshot](./excalidraw-for-jetbrains.png)
+<img src="https://raw.githubusercontent.com/bric3/excalidraw-jetbrains-plugin/main/excalidraw-for-jetbrains.png" width="500" height="360">
 <!-- Plugin description end -->
 
 ## Installation
