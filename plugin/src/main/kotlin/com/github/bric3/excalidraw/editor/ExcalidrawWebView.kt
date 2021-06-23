@@ -155,29 +155,15 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
         }
     }
 
-    fun reload(uiTheme: String, onThemeChanged: Runnable) {
-        if (this.uiTheme != uiTheme) {
-            this.uiTheme = uiTheme
-            initializeSchemeHandler()
-            this.panel.browser.cefBrowser.reloadIgnoreCache()
-            // promise needs to be reset, to that it can be listened to again when the reload is complete
-            _initializedPromise = AsyncPromise()
-            onThemeChanged.run()
-        }
-    }
-
-    private var _initializedPromise = AsyncPromise<Unit>()
-
-    // hide the internal promise type from the outside
-    fun initialized(): Promise<Unit> {
-        return _initializedPromise
-    }
-
-
     // Usage inspired by diagrams.net integration plugin
     // usage of the reactive distributed framework to communicate changes
     private val _excalidrawPayload = Property<String?>(null)
     val excalidrawPayload: IPropertyView<String?> = _excalidrawPayload
+
+    private var _initializedPromise = AsyncPromise<Unit>()
+    fun initialized(): Promise<Unit> {
+        return _initializedPromise
+    }
 
 
     fun loadJsonPayload(jsonPayload: String) {
@@ -185,7 +171,9 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
 
         runJS(
             """
-            var json = JSON.parse(`$jsonPayload`);
+            // Mark as raw String otherwise escape sequence are processed
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#raw_strings
+            var json = JSON.parse(String.raw`$jsonPayload`);
             
             window.postMessage({
                 type: "update",
