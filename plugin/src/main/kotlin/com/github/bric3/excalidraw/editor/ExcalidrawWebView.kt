@@ -3,6 +3,7 @@ package com.github.bric3.excalidraw.editor
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.intellij.openapi.diagnostic.Logger
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.lifetime.assertAlive
 import com.jetbrains.rd.util.lifetime.isAlive
@@ -25,6 +26,7 @@ import java.net.URI
 
 class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     companion object {
+        val logger = Logger.getInstance(ExcalidrawWebView::class.java)
         private const val pluginDomain = "excalidraw-jetbrains-plugin"
         const val pluginUrl = "https://$pluginDomain/index.html"
 
@@ -68,11 +70,16 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 persistent: Boolean,
                 callback: CefQueryCallback?
             ): Boolean {
-//                println("lifetime: ${lifetime.isAlive}, request: $request")
+                if (logger.isDebugEnabled) {
+                    logger.debug("lifetime: ${lifetime.isAlive}, request: $request")
+                }
 
                 val message = mapper.readValue<Map<String, String>>(request!!)
                 
-                if (!lifetime.isAlive) return false
+                if (!lifetime.isAlive) {
+                    logger.debug("not alive")
+                    return false
+                }
 
 
                 when (message["type"]) {
@@ -135,6 +142,7 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                         "readOnly": false,
                         "gridMode": false,
                         "zenMode": false,
+                        "debounceAutoSaveInMs": 1000
                     };
                     """.trimIndent(),
                     frame.url,

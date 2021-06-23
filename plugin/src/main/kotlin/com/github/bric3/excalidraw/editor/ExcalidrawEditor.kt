@@ -2,6 +2,7 @@ package com.github.bric3.excalidraw.editor
 
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.colors.EditorColorsListener
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.colors.EditorColorsScheme
@@ -16,6 +17,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.lifetime.LifetimeDefinition
+import com.jetbrains.rd.util.reactive.adviseNotNull
 import java.beans.PropertyChangeListener
 import java.io.BufferedReader
 import javax.swing.JComponent
@@ -27,6 +29,8 @@ class ExcalidrawEditor(
 ) : FileEditor,
     EditorColorsListener,
     DumbAware {
+
+    private val logger = Logger.getInstance(ExcalidrawEditor::class.java)
 
     private val lifetimeDef = LifetimeDefinition()
     private val lifetime = lifetimeDef.lifetime
@@ -72,26 +76,25 @@ class ExcalidrawEditor(
         }
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
-        view.excalidrawPayload.advise(lifetime) { content ->
-            if (content !== null) {
-                when {
-                    file.name.endsWith(".svg") -> {
-                        TODO("Saving to SVG is not yet supported")
-//                        view.saveAsSvg().then{ data: String ->
-//                            file.setBinaryContent(data.toByteArray(charset("utf-8"))
-//                        }
-                    }
-                    file.name.endsWith(".png") -> {
-                        TODO("Saving to PNG is not yet supported")
-//                        view.saveAsPng().then { data: ByteArray ->
-//                            file.setBinaryContent(data)
-//                        }
-                    }
-                    else -> {
-                        ApplicationManager.getApplication().invokeLater {
-                            ApplicationManager.getApplication().runWriteAction {
-                                VfsUtil.saveText(file, content)
-                            }
+        view.excalidrawPayload.adviseNotNull(lifetime) { content ->
+            logger.debug("content to save")
+            when {
+                file.name.endsWith(".svg") -> {
+                    TODO("Saving to SVG is not yet supported")
+//                    view.saveAsSvg().then{ data: String ->
+//                        file.setBinaryContent(data.toByteArray(charset("utf-8"))
+//                    }
+                }
+                file.name.endsWith(".png") -> {
+                    TODO("Saving to PNG is not yet supported")
+//                    view.saveAsPng().then { data: ByteArray ->
+//                        file.setBinaryContent(data)
+//                    }
+                }
+                else -> {
+                    ApplicationManager.getApplication().invokeLater {
+                        ApplicationManager.getApplication().runWriteAction {
+                            VfsUtil.saveText(file, content)
                         }
                     }
                 }
@@ -115,7 +118,6 @@ class ExcalidrawEditor(
     override fun getName() = "Excalidraw"
 
     override fun setState(state: FileEditorState) {
-
     }
 
     override fun isModified(): Boolean {

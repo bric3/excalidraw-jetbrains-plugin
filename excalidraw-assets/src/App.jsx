@@ -14,7 +14,7 @@ const defaultInitialData = {
     gridMode: false,
     zenMode: false,
     theme: "light",
-    debounceDelayInMs: 250
+    debounceAutoSaveInMs: 300
 }
 const initialData = window.initialData ? window.initialData : defaultInitialData;
 
@@ -23,7 +23,7 @@ let currentSceneVersion = getSceneVersion([]); // scene elements are empty on lo
 
 window.addEventListener("message", (e) => {
     const message = e.data;
-    console.log("got event: " + message.type + ", message: ", message);
+    console.debug("got event: " + message.type + ", message: ", message);
     switch (message.type) {
         case "update":
             const {elements} = message;
@@ -53,7 +53,7 @@ window.addEventListener("message", (e) => {
 
         case "save-as-svg":
             let exportConfig = message.exportConfig;
-            console.log(exportConfig);
+            console.debug(exportConfig);
             let svg = saveAsSvg(exportConfig);
             dispatchToPlugin({
                 type: "svg-content",
@@ -79,6 +79,7 @@ window.addEventListener("message", (e) => {
 
 
 window.continuousSaving = (elements, appState) => {
+    console.debug("debounced scene changed")
     let newSceneVersion = getSceneVersion(elements);
     // maybe check appState
     if (newSceneVersion != currentSceneVersion) {
@@ -95,7 +96,7 @@ window.continuousSaving = (elements, appState) => {
 
 const debouncedContinuousSaving = AwesomeDebouncePromise(
     continuousSaving,
-    initialData.debounceDelayInMs
+    initialData.debounceAutoSaveInMs
 );
 
 
@@ -202,9 +203,12 @@ export default function App() {
                 ref={excalidrawRef}
                 // initialData={InitialData}
                 // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
-                // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
+                initialData={{ appState: {
+                        exportEmbedScene: true
+                    }
+                }}
                 onChange={(elements, state) => {
-                        // Possibly use React.useMemo to keep reference https://dmitripavlutin.com/react-throttle-debounce/
+                        console.debug("scene changed")
                         onDrawingChange(elements, state).then(ignored => {})
                     }
                 }
@@ -212,13 +216,14 @@ export default function App() {
                     window.alert("Not supported")
                 }
                 readyPromise={() => {
-                    console.log("excalidraw ready")
+                    console.debug("excalidraw ready")
                 }}
                 viewModeEnabled={viewModeEnabled}
                 zenModeEnabled={zenModeEnabled}
                 gridModeEnabled={gridModeEnabled}
                 exportEmbedScene={true}
                 theme={theme}
+                // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
                 UIOptions={{canvasActions: {loadScene: false}}}
             />
         </div>
@@ -226,17 +231,17 @@ export default function App() {
 }
 
 function dispatchToPlugin(message) {
-    console.log("dispatchToPlugin: ", message);
+    console.debug("dispatchToPlugin: ", message);
     // noinspection JSUnresolvedVariable
     if (window.cefQuery) {
         window.cefQuery({
             request: JSON.stringify(message),
             persistent: false,
             onSuccess: function (response) {
-                console.log("success for message", message, ", response", response);
+                console.debug("success for message", message, ", response", response);
             },
             onFailure: function (error_code, error_message) {
-                console.log("failure for message", message, ", error_code", error_code, ", error_message", error_message);
+                console.debug("failure for message", message, ", error_code", error_code, ", error_message", error_message);
             }
         });
     }
