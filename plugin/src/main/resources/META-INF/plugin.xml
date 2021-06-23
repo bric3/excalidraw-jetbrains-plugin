@@ -13,6 +13,18 @@
                   fieldName="INSTANCE"
                   extensions="excalidraw;excalidraw.json"
                   />
+        <fileType name="Excalidraw SVG Export"
+                  implementationClass="com.github.bric3.excalidraw.files.ExcalidrawSvgFileType"
+                  fieldName="INSTANCE"
+                  language="Excalidraw"
+                  extensions="excalidraw.svg"
+                  />
+<!--        <fileType name="PNG with embedded Excalidraw metadata"-->
+<!--                  implementationClass="com.github.bric3.excalidraw.files.ExcalidrawPngFileType"-->
+<!--                  fieldName="INSTANCE"-->
+<!--                  language="Excalidraw"-->
+<!--                  extensions="excalidraw.png"-->
+<!--                  />-->
         <iconProvider implementation="com.github.bric3.excalidraw.files.ExcalidrawIconProvider" />
 
         <fileEditorProvider implementation="com.github.bric3.excalidraw.editor.ExcalidrawEditorProvider" />
