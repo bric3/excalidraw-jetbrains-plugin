@@ -1,4 +1,4 @@
-# Excalidraw Jetbrains plugin
+# Excalidraw Integration for Jetbrains IDEs
 
 ![Build](https://github.com/bric3/excalidraw-jetbrains-plugin/workflows/Build/badge.svg)
 [![Version](https://img.shields.io/jetbrains/plugin/v/17096.svg)](https://plugins.jetbrains.com/plugin/17096)

@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.github.bric3.excalidraw</id>
-    <name>Excalidraw Jetbrains Plugin</name>
+    <name>Excalidraw Integration</name>
     <vendor>Brice Dutheil</vendor>
 
     <!-- Product and plugin compatibility requirements -->

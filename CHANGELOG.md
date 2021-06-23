@@ -4,5 +4,5 @@
 
 ## [Unreleased]
 ### Added
-- Initial support of Excalidraw in JetBrains IDEs :
+- Initial support of Excalidraw integration in JetBrains IDEs :
   create, open (with autosave) `.excalidraw` (json) files. 
