@@ -23,6 +23,7 @@ import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
 import java.net.URI
+import javax.swing.BorderFactory
 
 class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     companion object {
@@ -58,6 +59,7 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
     val component = panel.component
 
     init {
+        component.border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
         initializeSchemeHandler()
 
         val messageRouter = CefMessageRouter.create()
