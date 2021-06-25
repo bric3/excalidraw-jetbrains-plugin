@@ -1,6 +1,9 @@
 package com.github.bric3.excalidraw.editor
 
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.colors.EditorColorsListener
@@ -15,6 +18,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.jcef.JBCefApp
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.lifetime.LifetimeDefinition
 import com.jetbrains.rd.util.reactive.adviseNotNull
@@ -38,7 +42,8 @@ class ExcalidrawEditor(
 
     override fun getFile() = file
 
-    private var view: ExcalidrawWebView
+    private lateinit var view: ExcalidrawWebView
+    private val jcefUnsupported by lazy { JCEFUnsupportedViewPanel() }
 
     private var isInvalid = false
 
@@ -48,7 +53,20 @@ class ExcalidrawEditor(
         settingsConnection.subscribe(EditorColorsManager.TOPIC, this)
         // TODO listen to settings change, something like: settingsConnection.subscribe(ExcalidrawSettingsChangedListener.TOPIC, this)
 
-        view = ExcalidrawWebView(lifetime, uiThemeFromConfig().key)
+        if (JBCefApp.isSupported()) {
+            view = ExcalidrawWebView(lifetime, uiThemeFromConfig().key)
+        } else {
+            Notifications.Bus.notify(
+                Notification(
+                    "Plugin Error",
+                    "Excalidraw not available",
+                    "CEF is not available on this JVM, use Jetbrains runtime",
+                    NotificationType.ERROR,
+                    null
+                )
+            )
+        }
+
         initView()
     }
 
@@ -59,7 +77,10 @@ class ExcalidrawEditor(
 
 
     private fun initView() {
-        view.initialized().then { 
+        if (!this::view.isInitialized) {
+            return
+        }
+        view.initialized().then {
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
                 val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
                 view.loadJsonPayload(jsonPayload)
@@ -104,16 +125,19 @@ class ExcalidrawEditor(
 
     @Override
     override fun globalSchemeChange(scheme: EditorColorsScheme?) {
-        view.changeTheme(uiThemeFromConfig().key)
+        if (this::view.isInitialized) {
+            view.changeTheme(uiThemeFromConfig().key)
+        }
     }
 
     override fun getComponent(): JComponent {
-        return view.component
+        return when {
+            this::view.isInitialized -> view.component
+            else -> jcefUnsupported
+        }
     }
 
-    override fun getPreferredFocusedComponent(): JComponent {
-        return view.component
-    }
+    override fun getPreferredFocusedComponent() = component
 
     override fun getName() = "Excalidraw"
 
