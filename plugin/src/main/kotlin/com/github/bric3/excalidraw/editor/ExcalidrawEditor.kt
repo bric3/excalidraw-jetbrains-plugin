@@ -5,7 +5,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.colors.EditorColorsListener
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.colors.EditorColorsScheme
@@ -34,7 +34,7 @@ class ExcalidrawEditor(
     EditorColorsListener,
     DumbAware {
 
-    private val logger = Logger.getInstance(ExcalidrawEditor::class.java)
+    private val logger = thisLogger()
 
     private val lifetimeDef = LifetimeDefinition()
     private val lifetime = lifetimeDef.lifetime

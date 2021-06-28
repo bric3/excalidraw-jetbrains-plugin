@@ -3,7 +3,7 @@ package com.github.bric3.excalidraw.editor
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.lifetime.assertAlive
 import com.jetbrains.rd.util.lifetime.isAlive
@@ -11,10 +11,17 @@ import com.jetbrains.rd.util.lifetime.onTermination
 import com.jetbrains.rd.util.reactive.IPropertyView
 import com.jetbrains.rd.util.reactive.Property
 import org.cef.CefApp
+import org.cef.CefSettings
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_ERROR
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_FATAL
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_INFO
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_VERBOSE
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_WARNING
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.browser.CefMessageRouter
 import org.cef.callback.CefQueryCallback
+import org.cef.handler.CefDisplayHandlerAdapter
 import org.cef.handler.CefLoadHandlerAdapter
 import org.cef.handler.CefMessageRouterHandlerAdapter
 import org.cef.network.CefRequest
@@ -26,8 +33,8 @@ import java.net.URI
 import javax.swing.BorderFactory
 
 class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
+    val logger = thisLogger()
     companion object {
-        val logger = Logger.getInstance(ExcalidrawWebView::class.java)
         private const val pluginDomain = "excalidraw-jetbrains-plugin"
         const val pluginUrl = "https://$pluginDomain/index.html"
 
@@ -76,14 +83,13 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                     logger.debug("lifetime: ${lifetime.isAlive}, request: $request")
                 }
 
-                val message = mapper.readValue<Map<String, String>>(request!!)
-                
                 if (!lifetime.isAlive) {
                     logger.debug("not alive")
                     return false
                 }
 
 
+                val message = mapper.readValue<Map<String, String>>(request!!)
                 when (message["type"]) {
                     "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
 
@@ -116,24 +122,8 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 frame: CefFrame?,
                 transitionType: CefRequest.TransitionType?
             ) {
-                // InitialData object {
-                //  "elements" : [],
-                //  "appState": {},
-                //  "scrollToContent": true,
-                //  libraryItems,
-                //
-                // Properties
-                //  "readOnly"
-                //  "gridMode"
-                //  "zenMode"
-                //  "theme"
-                //
                 // initialData : https://github.com/excalidraw/excalidraw/tree/master/src/packages/excalidraw#initialdata
                 // properties https://github.com/excalidraw/excalidraw/tree/master/src/packages/excalidraw#props
-
-                // updateScene
-                //
-                // https://github.com/excalidraw/excalidraw/blob/5cd921549a7e2b67219ee3f10d98228e23103c0f/src/types.ts#L207-L212
 
                 frame?.executeJavaScript(
                     """
@@ -161,6 +151,37 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
             panel.browser.jbCefClient.addLoadHandler(loadHandler, panel.browser.cefBrowser)
             lifetime.onTermination {
                 panel.browser.jbCefClient.removeLoadHandler(loadHandler, panel.browser.cefBrowser)
+            }
+        }
+
+        object : CefDisplayHandlerAdapter() {
+            override fun onConsoleMessage(
+                browser: CefBrowser?,
+                level: CefSettings.LogSeverity?,
+                message: String?,
+                source: String?,
+                line: Int
+            ): Boolean {
+                if (level == null || message == null || source == null) {
+                    logger.warn("Some of required message values were null!")
+                    logger.warn("level: $level source: $source:$line\n\tmessage: $message")
+                } else {
+                    val formattedMessage = "[$level][$source:$line]:\n${message}"
+
+                    when (level) {
+                        LOGSEVERITY_ERROR, LOGSEVERITY_FATAL -> logger.error(formattedMessage)
+                        LOGSEVERITY_INFO -> logger.info(formattedMessage)
+                        LOGSEVERITY_WARNING -> logger.warn(formattedMessage)
+                        LOGSEVERITY_VERBOSE -> logger.debug(formattedMessage)
+                        else -> logger.info(formattedMessage)
+                    }
+                }
+                return super.onConsoleMessage(browser, level, message, source, line)
+            }
+        }.also { displayHandler ->
+            panel.browser.jbCefClient.addDisplayHandler(displayHandler, panel.browser.cefBrowser)
+            lifetime.onTermination {
+                panel.browser.jbCefClient.removeDisplayHandler(displayHandler, panel.browser.cefBrowser)
             }
         }
     }

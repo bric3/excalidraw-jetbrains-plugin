@@ -20,6 +20,28 @@ This plugin has been bootstrapped from the https://github.com/JetBrains/intellij
 It might be worth tracking upstream change if they can be applied there too.
 
 
+== Plugin DEBUG logs
+
+This plugin is using the diagnostic logger at DEBUG level, that means the log events
+will be appended in the usual `idea.log`.
+
+However the log category has to be configured at DEBUG level, in order to do so
+
+. Run the plugin configuration
+. Once the sand-boxed IDE is ready, open _Help | Diagnostic Tools | Debug Log Settings..._
+. Enter `#com.github.bric3.excalidraw`
+
+The sand-boxed IDE's log file is located here : `plugin/build/idea-sandbox/system/log/idea.log`.
+
+Once the sandbox has been run once, this configuration will appear in the following file under the following element:
+
+.plugin/build/idea-sandbox/config/options/other.xml
+[source,xpath]
+----
+/application/component[@name='PropertiesComponent']/property[@name='log.debug.categories']
+----
+
+
 == Dependencies source code
 
 Unfortunately only IntelliJ open API sources are available.
