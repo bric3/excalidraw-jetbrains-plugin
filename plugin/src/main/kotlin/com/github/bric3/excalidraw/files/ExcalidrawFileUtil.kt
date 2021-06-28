@@ -17,7 +17,7 @@ import java.io.IOException
 //import javax.xml.stream.events.XMLEvent
 
 
-class ExcalidrawUtil private constructor() {
+class ExcalidrawFileUtil private constructor() {
     companion object {
         val mapper = jacksonObjectMapper().apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -57,7 +57,7 @@ class ExcalidrawUtil private constructor() {
                     file.inputStream.use {
                         try {
                             val excalidraw = mapper.readValue<Map<String, Any>>(it)
-                            if (excalidraw["type"] as String != "excalidraw") {
+                            if (excalidraw["type"] as String? != "excalidraw") {
                                 return false
                             }
 
