@@ -42,6 +42,15 @@ Once the sandbox has been run once, this configuration will appear in the follow
 ----
 
 
+== Inspect UI
+
+The sand-boxed IDE should be launched with internal mode enabled.
+
+Enable UI Inspector : _Tools > Internal Actions > UI > UI Inspector_
+
+
+
+
 == Dependencies source code
 
 Unfortunately only IntelliJ open API sources are available.
