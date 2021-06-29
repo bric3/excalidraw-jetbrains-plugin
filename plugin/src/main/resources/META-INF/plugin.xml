@@ -32,6 +32,8 @@
 
         <applicationService serviceImplementation="com.github.bric3.excalidraw.services.MyApplicationService"/>
         <projectService serviceImplementation="com.github.bric3.excalidraw.services.MyProjectService"/>
+
+        <notificationGroup id="excalidraw.error" displayType="BALLOON" bundle="messages.MyBundle" key="title.excalidraw.usage.error"/>
     </extensions>
 
     <applicationListeners>
@@ -44,5 +46,21 @@
             <action id="ExcalidrawNewFile" class="com.github.bric3.excalidraw.actions.ExcalidrawNewFileAction"/>
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
         </group>
+
+        <action id="excalidraw.ExportToSvgAction"
+                class="com.github.bric3.excalidraw.actions.ExportToSvgAction"
+                text="Export to SVG"
+                description="Export current Excalidraw drawing to SVG"
+                icon="AllIcons.Actions.Download"/>
+                <!-- TODO Change icon to include "SVG" -->
+
+        <group id="excalidraw.ToolbarActionGroup">
+            <reference ref="excalidraw.ExportToSvgAction"/>
+            <separator/>
+        </group>
+
+
     </actions>
+
+
 </idea-plugin>

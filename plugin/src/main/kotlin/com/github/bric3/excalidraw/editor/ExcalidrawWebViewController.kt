@@ -3,6 +3,7 @@ package com.github.bric3.excalidraw.editor
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.diagnostic.thisLogger
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.lifetime.assertAlive
@@ -30,9 +31,11 @@ import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
 import java.net.URI
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.swing.BorderFactory
 
-class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
+class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
     val logger = thisLogger()
     companion object {
         private const val pluginDomain = "excalidraw-jetbrains-plugin"
@@ -53,21 +56,29 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
             CefApp.getInstance().registerSchemeHandlerFactory(
                 "https", pluginDomain,
                 SchemeHandlerFactory { uri: URI ->
-                    BufferedInputStream(ExcalidrawWebView::class.java.getResourceAsStream("/assets" + uri.path))
+                    BufferedInputStream(ExcalidrawWebViewController::class.java.getResourceAsStream("/assets" + uri.path))
                 }
             ).also { successful -> assert(successful) }
         }
     }
 
-    private val panel = LoadableJCEFHtmlPanel(
+    val jcefPanel = LoadableJCEFHtmlPanel(
         url = pluginUrl,
         openDevtools = false
     )
-    val component = panel.component
+    val component = jcefPanel.component
+
+    private val correlatedResponseMap = ConcurrentHashMap<String, AsyncPromise<String>>()
 
     init {
-        component.border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
+        initJcefPanel()
+    }
+
+    private fun initJcefPanel() {
         initializeSchemeHandler()
+
+        // the bigger border allows the mouse tab resize handle to be not so picky.
+        jcefPanel.component.border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
         val messageRouter = CefMessageRouter.create()
         object : CefMessageRouterHandlerAdapter() {
@@ -100,7 +111,13 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
 
                     // TODO SVG / PNG export
                     // {"type":"svg-content","svg":"<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 46\" width=\"64\" height=\"46\">\n  <!-- svg-source:excalidraw -->\n  \n  <defs>\n    <style>\n      @font-face {\n        font-family: \"Virgil\";\n        src: url(\"https://excalidraw.com/Virgil.woff2\");\n      }\n      @font-face {\n        font-family: \"Cascadia\";\n        src: url(\"https://excalidraw.com/Cascadia.woff2\");\n      }\n    </style>\n  </defs>\n  <rect x=\"0\" y=\"0\" width=\"64\" height=\"46\" fill=\"#ffffff\"></rect><g transform=\"translate(10 10) rotate(0 22 13)\"><text x=\"0\" y=\"18\" font-family=\"Virgil, Segoe UI Emoji\" font-size=\"20px\" fill=\"#000000\" text-anchor=\"start\" style=\"white-space: pre;\" direction=\"ltr\">Hello</text></g></svg>"}
-                    "svg-content" -> println("SVG content: ${message["svg"]!!}")
+                    "svg-content" -> {
+                        val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
+                        promise?.setResult(message["svg"])
+
+
+                        println("SVG content: ${message["svg"]!!}")
+                    }
                     "png-content" -> println("PNG Base 64 content: ${message["png-base64"]!!}")
                     else -> println("Unrecognized message request from excalidraw : $request")
                 }
@@ -109,9 +126,9 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
             }
         }.also { routerHandler ->
             messageRouter.addHandler(routerHandler, true)
-            panel.browser.jbCefClient.cefClient.addMessageRouter(messageRouter)
+            jcefPanel.browser.jbCefClient.cefClient.addMessageRouter(messageRouter)
             lifetime.onTermination {
-                panel.browser.jbCefClient.cefClient.removeMessageRouter(messageRouter)
+                jcefPanel.browser.jbCefClient.cefClient.removeMessageRouter(messageRouter)
                 messageRouter.dispose()
             }
         }
@@ -148,9 +165,9 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 }
             }
         }.also { loadHandler ->
-            panel.browser.jbCefClient.addLoadHandler(loadHandler, panel.browser.cefBrowser)
+            jcefPanel.browser.jbCefClient.addLoadHandler(loadHandler, jcefPanel.browser.cefBrowser)
             lifetime.onTermination {
-                panel.browser.jbCefClient.removeLoadHandler(loadHandler, panel.browser.cefBrowser)
+                jcefPanel.browser.jbCefClient.removeLoadHandler(loadHandler, jcefPanel.browser.cefBrowser)
             }
         }
 
@@ -179,9 +196,9 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
                 return super.onConsoleMessage(browser, level, message, source, line)
             }
         }.also { displayHandler ->
-            panel.browser.jbCefClient.addDisplayHandler(displayHandler, panel.browser.cefBrowser)
+            jcefPanel.browser.jbCefClient.addDisplayHandler(displayHandler, jcefPanel.browser.cefBrowser)
             lifetime.onTermination {
-                panel.browser.jbCefClient.removeDisplayHandler(displayHandler, panel.browser.cefBrowser)
+                jcefPanel.browser.jbCefClient.removeDisplayHandler(displayHandler, jcefPanel.browser.cefBrowser)
             }
         }
     }
@@ -236,11 +253,34 @@ class ExcalidrawWebView(val lifetime: Lifetime, var uiTheme: String) {
         )
     }
 
+    fun saveAs(imageType: ExcalidrawImageType) : AsyncPromise<String> {
+        check(imageType == ExcalidrawImageType.SVG)
+        val msgType = when (imageType) {
+            ExcalidrawImageType.SVG -> "save-as-svg"
+            ExcalidrawImageType.PNG -> "save-as-png"
+        }
+        val correlationId = UUID.randomUUID().toString()
+        val payloadPromise = AsyncPromise<String>()
+        correlatedResponseMap[correlationId] = payloadPromise
+
+        runJS(
+            """
+            window.postMessage({
+                type: "$msgType",
+                exportConfig: {},
+                correlationId: "$correlationId" 
+            })
+            """
+        )
+
+        return payloadPromise
+    }
+
     private fun runJS(@Language("JavaScript") js: String) {
         lifetime.assertAlive()
-        panel.browser.cefBrowser.mainFrame.executeJavaScript(
+        jcefPanel.browser.cefBrowser.mainFrame.executeJavaScript(
             js.trimIndent(),
-            panel.browser.cefBrowser.mainFrame.url,
+            jcefPanel.browser.cefBrowser.mainFrame.url,
             0
         )
     }

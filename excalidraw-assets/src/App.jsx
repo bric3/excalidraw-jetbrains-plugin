@@ -25,7 +25,7 @@ window.addEventListener("message", (e) => {
     const message = e.data;
     console.debug("got event: " + message.type + ", message: ", message);
     switch (message.type) {
-        case "update":
+        case "update": {
             const {elements} = message;
             let updateSceneVersion = getSceneVersion(elements);
             if (currentSceneVersion !== updateSceneVersion) {
@@ -35,45 +35,53 @@ window.addEventListener("message", (e) => {
                 });
             }
             break;
-
-        case "toggle-read-only":
+        }
+        
+        case "toggle-read-only": {
             window.setViewModeEnabled(message.readOnly);
             break;
+        }
 
-        case "theme-change":
+        case "theme-change": {
             window.setTheme(message.theme);
             break;
+        }
 
-        case "save-as-json":
+        case "save-as-json": {
             dispatchToPlugin({
                 type: "json-content",
                 json: saveAsJson(),
             });
             break;
+        }
 
-        case "save-as-svg":
-            let exportConfig = message.exportConfig;
-            console.debug(exportConfig);
+        case "save-as-svg": {
+            let exportConfig = message.exportConfig ?? {};
             let svg = saveAsSvg(exportConfig);
             dispatchToPlugin({
                 type: "svg-content",
                 svg: svg.outerHTML,
+                correlationId: message.correlationId ?? null
             });
             break;
+        }
 
-        case "save-as-png":
-            saveAsPng(message.exportConfig).then((blob) => {
+        case "save-as-png": {
+            let exportConfig = message.exportConfig ?? {};
+            saveAsPng(exportConfig).then((blob) => {
                 let reader = new FileReader();
                 reader.readAsDataURL(blob);
                 reader.onloadend = function () {
                     let base64data = reader.result;
                     dispatchToPlugin({
                         type: "png-base64",
-                        png: base64data
+                        png: base64data,
+                        correlationId: message.correlationId ?? null
                     });
                 };
             });
             break;
+        }
     }
 });
 
@@ -114,7 +122,7 @@ const resolvablePromise = () => {
 
 
 export default function App() {
-    const excalidrawRef =  React.useMemo(
+    const excalidrawRef = React.useMemo(
         () => ({
             current: {
                 readyPromise: resolvablePromise()
@@ -125,7 +133,7 @@ export default function App() {
 
     React.useEffect(() => {
         excalidrawRef.current.readyPromise.then((api) => {
-            dispatchToPlugin({ type: "ready" });
+            dispatchToPlugin({type: "ready"});
         });
     }, [excalidrawRef]);
 
@@ -173,6 +181,7 @@ export default function App() {
     // exportWithDarkMode: boolean (false) Indicates whether to export with dark mode
 
     window.saveAsSvg = (exportParams) => {
+        console.debug("saveAsSvg export config", exportParams);
         return exportToSvg({
             elements: excalidrawRef.current.getSceneElements(),
             appState: {
@@ -183,6 +192,7 @@ export default function App() {
     };
 
     window.saveAsPng = (exportParams) => {
+        console.debug("saveAsSvg export config", exportParams);
         return exportToBlob({
             elements: excalidrawRef.current.getSceneElements(),
             appState: {
@@ -203,14 +213,16 @@ export default function App() {
                 ref={excalidrawRef}
                 // initialData={InitialData}
                 // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
-                initialData={{ appState: {
+                initialData={{
+                    appState: {
                         exportEmbedScene: true
                     }
                 }}
                 onChange={(elements, state) => {
-                        console.debug("scene changed")
-                        onDrawingChange(elements, state).then(ignored => {})
-                    }
+                    console.debug("scene changed")
+                    onDrawingChange(elements, state).then(ignored => {
+                    })
+                }
                 }
                 onCollabButtonClick={() =>
                     window.alert("Not supported")

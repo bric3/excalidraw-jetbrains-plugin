@@ -14,6 +14,7 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VfsUtil
@@ -22,9 +23,11 @@ import com.intellij.ui.jcef.JBCefApp
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.lifetime.LifetimeDefinition
 import com.jetbrains.rd.util.reactive.adviseNotNull
+import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import java.io.BufferedReader
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 
 class ExcalidrawEditor(
@@ -42,8 +45,10 @@ class ExcalidrawEditor(
 
     override fun getFile() = file
 
-    private lateinit var view: ExcalidrawWebView
+    lateinit var viewController: ExcalidrawWebViewController
     private val jcefUnsupported by lazy { JCEFUnsupportedViewPanel() }
+    private val actionPanel = ExcalidrawActionPanel()
+    private val toolbarAndWebView: JPanel
 
     private var isInvalid = false
 
@@ -53,8 +58,32 @@ class ExcalidrawEditor(
         settingsConnection.subscribe(EditorColorsManager.TOPIC, this)
         // TODO listen to settings change, something like: settingsConnection.subscribe(ExcalidrawSettingsChangedListener.TOPIC, this)
 
+        initViewIfSupported().also {
+            toolbarAndWebView = object : JPanel(BorderLayout()) {
+                init {
+                    when {
+                        this@ExcalidrawEditor::viewController.isInitialized -> {
+                            actionPanel.setTargetComponent(viewController.component)
+                            add(actionPanel, BorderLayout.NORTH)
+                            add(viewController.component, BorderLayout.CENTER)
+                        }
+                        else -> add(jcefUnsupported, BorderLayout.CENTER)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun uiThemeFromConfig(): ExcalidrawColorScheme = when {
+        UIUtil.isUnderDarcula() -> ExcalidrawColorScheme.DARK
+        else -> ExcalidrawColorScheme.LIGHT
+    }
+
+
+    private fun initViewIfSupported() {
         if (JBCefApp.isSupported()) {
-            view = ExcalidrawWebView(lifetime, uiThemeFromConfig().key)
+            viewController = ExcalidrawWebViewController(lifetime, uiThemeFromConfig().key)
+            Disposer.register(this, viewController.jcefPanel)
         } else {
             Notifications.Bus.notify(
                 Notification(
@@ -65,26 +94,17 @@ class ExcalidrawEditor(
                     null
                 )
             )
-        }
-
-        initView()
-    }
-
-    private fun uiThemeFromConfig(): ExcalidrawColorScheme = when {
-        UIUtil.isUnderDarcula() -> ExcalidrawColorScheme.DARK
-        else -> ExcalidrawColorScheme.LIGHT
-    }
-
-
-    private fun initView() {
-        if (!this::view.isInitialized) {
             return
         }
-        view.initialized().then {
+
+//        if (!this::view.isInitialized) {
+//            return
+//        }
+        viewController.initialized().then {
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
                 val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
-                view.loadJsonPayload(jsonPayload)
-                view.toggleReadOnly(file.isWritable.not())
+                viewController.loadJsonPayload(jsonPayload)
+                viewController.toggleReadOnly(file.isWritable.not())
             }
 
             if (file.name.endsWith("svg")) {
@@ -97,7 +117,7 @@ class ExcalidrawEditor(
         }
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
-        view.excalidrawPayload.adviseNotNull(lifetime) { content ->
+        viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
             logger.debug("content to save")
             when {
                 file.name.endsWith(".svg") -> {
@@ -125,19 +145,20 @@ class ExcalidrawEditor(
 
     @Override
     override fun globalSchemeChange(scheme: EditorColorsScheme?) {
-        if (this::view.isInitialized) {
-            view.changeTheme(uiThemeFromConfig().key)
+        if (this::viewController.isInitialized) {
+            viewController.changeTheme(uiThemeFromConfig().key)
         }
     }
 
-    override fun getComponent(): JComponent {
-        return when {
-            this::view.isInitialized -> view.component
-            else -> jcefUnsupported
-        }
-    }
+    override fun getComponent(): JComponent = toolbarAndWebView
+//    override fun getComponent(): JComponent {
+//        return when {
+//            this::view.isInitialized -> view.component
+//            else -> jcefUnsupported
+//        }
+//    }
 
-    override fun getPreferredFocusedComponent() = component
+    override fun getPreferredFocusedComponent() = toolbarAndWebView
 
     override fun getName() = "Excalidraw"
 
