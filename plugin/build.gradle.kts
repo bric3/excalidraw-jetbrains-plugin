@@ -151,4 +151,8 @@ tasks {
             isNonStable(candidate.version) && !isNonStable(currentVersion)
         }
     }
+
+    runIde {
+        systemProperties["idea.log.debug.categories"] = "#com.github.bric3.excalidraw"
+    }
 }
