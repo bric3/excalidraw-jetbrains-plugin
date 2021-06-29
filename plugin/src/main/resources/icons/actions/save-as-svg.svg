@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        version="1.1"
+        id="svg23"
+        sodipodi:docname="savs-as-svg.svg"
+        inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        xmlns="http://www.w3.org/2000/svg"
+>
+  <defs
+     id="defs27" />
+  <sodipodi:namedview
+     id="namedview25"
+     pagecolor="#5b5b5b"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     showguides="false"
+     inkscape:zoom="41.8125"
+     inkscape:cx="7.4379671"
+     inkscape:cy="8.2869955"
+     inkscape:window-width="1514"
+     inkscape:window-height="914"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g21" />
+  <g
+     fill="none"
+     fill-rule="evenodd"
+     id="g21">
+    <polygon
+       fill="#F26522"
+       fill-opacity=".7"
+       points="1 16 16 16 16 9 1 9"
+       id="rect" />
+    <polygon
+       fill="#6e6e6e"
+       points="7,5 7,1 9,1 9,5 12,5 8,9 4,5 "
+       id="down-arrow" />
+  </g>
+  <g
+     aria-label="SVG"
+     id="text2922"
+     style="font-size:8px;line-height:1.25;opacity:1;vector-effect:none;fill:#231f20;fill-opacity:0.7;stop-color:#000000;stop-opacity:1"
+     transform="matrix(1,0,0,0.92633415,0,1.0321805)">
+    <path
+       d="m 3.5958146,15.386428 q -0.416,0 -0.76,-0.112 -0.344,-0.112 -0.6,-0.312 -0.248,-0.208 -0.392,-0.504 -0.144,-0.296 -0.152,-0.656 h 0.904 q 0.016,0.376 0.296,0.592 0.288,0.216 0.72,0.216 0.472,0 0.736,-0.208 0.272,-0.216 0.272,-0.584 0,-0.32 -0.2,-0.56 -0.2,-0.24 -0.568,-0.36 l -0.608,-0.2 q -1.416,-0.448 -1.416,-1.664 0,-0.728 0.472,-1.144 0.48,-0.424 1.32,-0.424 0.392,0 0.712,0.112 0.328,0.104 0.56,0.304 0.24,0.2 0.376,0.488 0.144,0.288 0.152,0.648 h -0.904 q -0.008,-0.36 -0.272,-0.568 -0.256,-0.216 -0.64,-0.216 -0.416,0 -0.656,0.2 -0.24,0.2 -0.24,0.536 0,0.312 0.176,0.528 0.184,0.208 0.576,0.336 l 0.64,0.2 q 0.688,0.208 1.04,0.664 0.36,0.448 0.36,1.08 0,0.368 -0.136,0.664 -0.128,0.296 -0.376,0.504 -0.248,0.208 -0.6,0.328 -0.352,0.112 -0.792,0.112 z"
+       style="font-weight:bold;font-family:'JetBrainsMonoMedium Nerd Font';-inkscape-font-specification:'JetBrainsMonoMedium Nerd Font Bold';vector-effect:none;stop-color:#000000;stop-opacity:1"
+       id="S" />
+    <path
+       d="m 6.2566896,9.546428 h 0.912 l 1.064,4.384 q 0.04,0.152 0.064,0.296 0.024,0.144 0.04,0.256 0.016,0.128 0.032,0.24 h 0.04 q 0.016,-0.112 0.04,-0.24 0.04,-0.248 0.112,-0.552 l 1.064,-4.384 H 10.52869 l -1.5520004,5.76 h -1.208 z"
+       style="font-weight:bold;font-family:'JetBrainsMonoMedium Nerd Font';-inkscape-font-specification:'JetBrainsMonoMedium Nerd Font Bold';vector-effect:none;stop-color:#000000;stop-opacity:1"
+       id="V" />
+    <path
+       d="m 13.077565,12.266428 h 1.96 v 1.376 q 0,0.4 -0.136,0.72 -0.128,0.32 -0.368,0.552 -0.24,0.224 -0.584,0.352 -0.336,0.12 -0.76,0.12 -0.416,0 -0.76,-0.12 -0.344,-0.128 -0.584,-0.352 -0.24,-0.232 -0.376,-0.552 -0.128,-0.328 -0.128,-0.72 v -2.432 q 0,-0.392 0.128,-0.704 0.136,-0.32 0.376,-0.544 0.248,-0.232 0.584,-0.352 0.344,-0.128 0.76,-0.128 0.776,0 1.264,0.392 0.488,0.392 0.608,1.12 h -0.888 q -0.064,-0.336 -0.328,-0.528 -0.256,-0.2 -0.656,-0.2 -0.448,0 -0.712,0.256 -0.256,0.248 -0.256,0.688 v 2.432 q 0,0.456 0.256,0.712 0.264,0.256 0.712,0.256 0.448,0 0.704,-0.256 0.264,-0.256 0.264,-0.712 v -0.608 h -1.08 z"
+       style="font-weight:bold;font-family:'JetBrainsMonoMedium Nerd Font';-inkscape-font-specification:'JetBrainsMonoMedium Nerd Font Bold';vector-effect:none;stop-color:#000000;stop-opacity:1"
+       id="G" />
+  </g>
+</svg>

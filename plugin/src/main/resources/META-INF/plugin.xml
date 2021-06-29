@@ -51,8 +51,7 @@
                 class="com.github.bric3.excalidraw.actions.ExportToSvgAction"
                 text="Export to SVG"
                 description="Export current Excalidraw drawing to SVG"
-                icon="AllIcons.Actions.Download"/>
-                <!-- TODO Change icon to include "SVG" -->
+                icon="ExcalidrawIcons.SaveAsSvg"/>
 
         <group id="excalidraw.ToolbarActionGroup">
             <reference ref="excalidraw.ExportToSvgAction"/>
