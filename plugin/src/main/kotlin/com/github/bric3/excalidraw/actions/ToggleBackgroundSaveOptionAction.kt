@@ -9,9 +9,5 @@ class ToggleBackgroundSaveOptionAction : ToggleSaveOptionAction() {
 
     override fun toggle(saveOptions: SaveOptions, state: Boolean) {
         saveOptions.exportBackground = state
-//        saveOptions.exportBackground = when (saveOptions.exportBackground) {
-//            null, false -> true
-//            true -> false
-//        }
     }
 }

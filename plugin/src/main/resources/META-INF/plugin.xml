@@ -49,17 +49,17 @@
         <!-- Editor Toolbar -->
         <action id="excalidraw.ToggleSaveWithDarkMode"
                 class="com.github.bric3.excalidraw.actions.ToggleDarkmodeSaveOptionAction"
-                text="Toggle Dark Mode when saving as image"
+                text="Toggle Dark Mode When Saving as Image"
                 description="Toggle Dark Mode when saving as image"
                 icon="AllIcons.Actions.IntentionBulbGrey"/>
         <action id="excalidraw.ToggleSaveWithBackground"
                 class="com.github.bric3.excalidraw.actions.ToggleBackgroundSaveOptionAction"
-                text="Toggle background when saving as image"
+                text="Toggle Background When Saving as Image"
                 description="Toggle background when saving as image"
                 icon="AllIcons.General.ProjectTab"/>
         <action id="excalidraw.ToggleSaveWithWatermark"
                 class="com.github.bric3.excalidraw.actions.ToggleWatermarkSaveOptionAction"
-                text="Add watermark when saving as image"
+                text="Add Watermark When Saving as Image"
                 description="Add watermark when saving as image"
                 icon="AllIcons.General.Inline_edit_hovered"/>
         <action id="excalidraw.ExportToSvgAction"
@@ -72,8 +72,17 @@
                 text="Export to PNG"
                 description="Export current Excalidraw drawing to PNG"
                 icon="ExcalidrawIcons.SaveAsPng"/>
+        <action id="excalidraw.ToggleGridMode"
+                class="com.github.bric3.excalidraw.actions.ToggleGridModeAction"
+                text="Toggle Grid Mode"
+                description="Toggle the grid mode"
+                icon="AllIcons.Graph.Grid"/>
+        <action id="excalidraw.ToggleZenMode"
+                class="com.github.bric3.excalidraw.actions.ToggleZenModeAction"
+                text="Toggle Zen Mode"
+                description="Toggle the zen mode"
+                icon="AllIcons.General.ReaderMode"/>
 
-        <!-- AllIcons.General.ReaderMode -->
         <!-- AllIcons.Actions.InlayGlobe -->
 
         <!-- Groups -->
@@ -82,14 +91,14 @@
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
         </group>
         <group id="excalidraw.ToolbarActionGroup">
-            <!-- TODO Save option toggles: exportBackground, shouldAddWatermark, exportWithDarkMode -->
             <reference ref="excalidraw.ToggleSaveWithDarkMode"/>
             <reference ref="excalidraw.ToggleSaveWithBackground"/>
             <reference ref="excalidraw.ToggleSaveWithWatermark"/>
             <reference ref="excalidraw.ExportToSvgAction"/>
             <reference ref="excalidraw.ExportToPngAction"/>
             <separator/>
-            <!-- TODO Scene options : grid, zen -->
+            <reference ref="excalidraw.ToggleGridMode" />
+            <reference ref="excalidraw.ToggleZenMode" />
         </group>
 
     </actions>

@@ -9,9 +9,5 @@ class ToggleDarkmodeSaveOptionAction : ToggleSaveOptionAction() {
 
     override fun toggle(saveOptions: SaveOptions, state: Boolean) {
         saveOptions.exportWithDarkMode = state
-//        saveOptions.exportWithDarkMode = when (saveOptions.exportWithDarkMode) {
-//            null, false -> true
-//            true -> false
-//        }
     }
 }

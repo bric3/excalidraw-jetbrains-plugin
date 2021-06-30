@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.bric3.excalidraw.SaveOptions
+import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.diagnostic.thisLogger
 import com.jetbrains.rd.util.lifetime.Lifetime
@@ -242,6 +243,21 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             window.postMessage({
                 type: "toggle-read-only",
                 readOnly: $readOnly
+            }, 'https://$pluginDomain')
+            """
+        )
+    }
+
+    fun toggleModes(sceneModes: SceneModes) {
+        val sceneModesJson = mapper.writeValueAsString(sceneModes)
+
+        runJS(
+            """
+            var json = JSON.parse(String.raw`$sceneModesJson`)
+
+            window.postMessage({
+                type: "toggle-scene-modes",
+                sceneModes: json
             }, 'https://$pluginDomain')
             """
         )

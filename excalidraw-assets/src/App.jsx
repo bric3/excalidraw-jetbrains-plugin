@@ -42,6 +42,13 @@ window.addEventListener("message", (e) => {
             break;
         }
 
+        case "toggle-scene-modes": {
+            let modes = message.sceneModes ?? {};
+            if ("gridMode" in modes) window.setGridModeEnabled(modes.gridMode);
+            if ("zenMode" in modes) window.setZenModeEnabled(modes.zenMode);
+            break;
+        }
+
         case "theme-change": {
             window.setTheme(message.theme);
             break;

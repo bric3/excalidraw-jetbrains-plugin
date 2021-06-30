@@ -9,9 +9,5 @@ class ToggleWatermarkSaveOptionAction : ToggleSaveOptionAction() {
 
     override fun toggle(saveOptions: SaveOptions, state: Boolean) {
         saveOptions.shouldAddWatermark = state
-//        saveOptions.shouldAddWatermark = when (saveOptions.shouldAddWatermark) {
-//            null, false -> true
-//            true -> false
-//        }
     }
 }
