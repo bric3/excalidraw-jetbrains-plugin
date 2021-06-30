@@ -74,7 +74,7 @@ window.addEventListener("message", (e) => {
                 reader.onloadend = function () {
                     let base64data = reader.result;
                     dispatchToPlugin({
-                        type: "png-base64",
+                        type: "png-base64-content",
                         png: base64data,
                         correlationId: message.correlationId ?? null
                     });

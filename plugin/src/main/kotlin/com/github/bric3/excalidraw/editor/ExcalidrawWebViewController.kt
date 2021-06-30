@@ -74,6 +74,8 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         initJcefPanel()
     }
 
+    private val debounceAutoSaveInMs = 1000
+
     private fun initJcefPanel() {
         initializeSchemeHandler()
 
@@ -114,9 +116,9 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
                         val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
                         promise?.setResult(message["svg"])
                     }
-                    "png-content" -> {
+                    "png-base64-content" -> {
                         val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
-                        promise?.setResult(message["png-base64"])
+                        promise?.setResult(message["png"])
                     }
                     else -> println("Unrecognized message request from excalidraw : $request")
                 }
@@ -146,11 +148,11 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
                     window.EXCALIDRAW_ASSET_PATH = "/"; // loads assets from plugin
                     
                     window.initialData = {
-                        "theme": "${uiTheme}",
+                        "theme": "$uiTheme",
                         "readOnly": false,
                         "gridMode": false,
                         "zenMode": false,
-                        "debounceAutoSaveInMs": 1000
+                        "debounceAutoSaveInMs": ${this@ExcalidrawWebViewController.debounceAutoSaveInMs}
                     };
                     """.trimIndent(),
                     frame.url,
@@ -253,7 +255,6 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
     }
 
     fun saveAs(imageType: ExcalidrawImageType) : AsyncPromise<String> {
-        check(imageType == ExcalidrawImageType.SVG)
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
             ExcalidrawImageType.PNG -> "save-as-png"

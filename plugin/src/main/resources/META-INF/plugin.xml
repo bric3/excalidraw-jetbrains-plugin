@@ -42,22 +42,34 @@
     </applicationListeners>
 
     <actions>
-        <group id="ExcalidrawNew" text="Excalidraw">
-            <action id="ExcalidrawNewFile" class="com.github.bric3.excalidraw.actions.ExcalidrawNewFileAction"/>
-            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
-        </group>
+        <!-- New File Menu -->
+        <action id="excalidraw.NewFileAction"
+                class="com.github.bric3.excalidraw.actions.ExcalidrawNewFileAction"/>
 
+        <!-- Editor Toolbar -->
         <action id="excalidraw.ExportToSvgAction"
                 class="com.github.bric3.excalidraw.actions.ExportToSvgAction"
                 text="Export to SVG"
                 description="Export current Excalidraw drawing to SVG"
                 icon="ExcalidrawIcons.SaveAsSvg"/>
+        <action id="excalidraw.ExportToPngAction"
+                class="com.github.bric3.excalidraw.actions.ExportToPngAction"
+                text="Export to PNG"
+                description="Export current Excalidraw drawing to PNG"
+                icon="ExcalidrawIcons.SaveAsPng"/>
 
-        <group id="excalidraw.ToolbarActionGroup">
-            <reference ref="excalidraw.ExportToSvgAction"/>
-            <separator/>
+        <!-- Groups -->
+        <group id="excalidraw.ExcalidrawNewActionGroup" text="Excalidraw">
+            <reference id="excalidraw.NewFileAction" />
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFromTemplate"/>
         </group>
-
+        <group id="excalidraw.ToolbarActionGroup">
+            <!-- TODO Save option toggles: exportBackground, shouldAddWatermark, exportWithDarkMode -->
+            <reference ref="excalidraw.ExportToSvgAction"/>
+            <reference ref="excalidraw.ExportToPngAction"/>
+            <separator/>
+            <!-- Scene options : grid, zen -->
+        </group>
 
     </actions>
 
