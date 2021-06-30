@@ -1,8 +1,10 @@
 package com.github.bric3.excalidraw.editor
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.diagnostic.thisLogger
 import com.jetbrains.rd.util.lifetime.Lifetime
@@ -43,6 +45,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
         val mapper = jacksonObjectMapper().apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            setSerializationInclusion(JsonInclude.Include.NON_NULL)
         }
 
         var didRegisterSchemeHandler = false
@@ -53,6 +56,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             CefApp.getInstance().clearSchemeHandlerFactories()
 
             // initialization ideas from docToolchain/diagrams.net-intellij-plugin
+            @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
             CefApp.getInstance().registerSchemeHandlerFactory(
                 "https", pluginDomain,
                 SchemeHandlerFactory { uri: URI ->
@@ -254,20 +258,26 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         )
     }
 
-    fun saveAs(imageType: ExcalidrawImageType) : AsyncPromise<String> {
+    fun saveAs(imageType: ExcalidrawImageType, saveOptions: SaveOptions?) : AsyncPromise<String> {
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
             ExcalidrawImageType.PNG -> "save-as-png"
         }
+
+        val saveOptionsJson = mapper.writeValueAsString(saveOptions)
+
+
         val correlationId = UUID.randomUUID().toString()
         val payloadPromise = AsyncPromise<String>()
         correlatedResponseMap[correlationId] = payloadPromise
 
         runJS(
             """
+            var json = JSON.parse(String.raw`$saveOptionsJson`)
+
             window.postMessage({
                 type: "$msgType",
-                exportConfig: {},
+                exportConfig: json,
                 correlationId: "$correlationId" 
             }, 'https://$pluginDomain')
             """

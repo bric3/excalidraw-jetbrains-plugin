@@ -1,7 +1,8 @@
 package com.github.bric3.excalidraw.actions
 
-import com.github.bric3.excalidraw.editor.ExcalidrawEditor
+import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
+import com.github.bric3.excalidraw.findEditor
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -12,7 +13,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import org.jetbrains.annotations.Nullable
@@ -26,19 +26,21 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
     }
 
     override fun actionPerformed(event: AnActionEvent) {
-        val excalidrawEditor = findEditor(event) ?: return
-        // toto dialog
+        val excalidrawEditor = event.findEditor() ?: return
+        val saveOptions = excalidrawEditor.getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()
 
 
         val descriptor = FileSaverDescriptor(
-            "Export Image to", "Choose the destination file",
+            "Export Image to",
+            "Choose the image destination",
             type.extension
         )
         val saveFileDialog: FileSaverDialog =
             FileChooserFactory.getInstance().createSaveFileDialog(descriptor, null as Project?)
 
         val destination = saveFileDialog.save(excalidrawEditor.file.parent,
-                                              excalidrawEditor.file.nameWithoutExtension + "." + type.extension)
+                                              "${excalidrawEditor.file.nameWithoutExtension}.${type.extension}"
+        )
         if (destination != null) {
             logger.debug("Export ${type.name} to destination : ${destination.file}")
             if (destination.file.extension != type.extension) {
@@ -53,7 +55,7 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
                 )
             }
 
-            excalidrawEditor.viewController.saveAs(type).then { payload ->
+            excalidrawEditor.viewController.saveAs(type, saveOptions).then { payload ->
                 ApplicationManager.getApplication().invokeLater {
                     ApplicationManager.getApplication().runWriteAction {
                         try {
@@ -89,10 +91,5 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
                 null
             )
         )
-    }
-
-    private fun findEditor(event: AnActionEvent): ExcalidrawEditor? {
-        val project = event.project ?: return null
-        return FileEditorManager.getInstance(project).selectedEditor as? ExcalidrawEditor ?: return null
     }
 }

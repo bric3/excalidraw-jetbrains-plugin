@@ -47,6 +47,21 @@
                 class="com.github.bric3.excalidraw.actions.ExcalidrawNewFileAction"/>
 
         <!-- Editor Toolbar -->
+        <action id="excalidraw.ToggleSaveWithDarkMode"
+                class="com.github.bric3.excalidraw.actions.ToggleDarkmodeSaveOptionAction"
+                text="Toggle Dark Mode when saving as image"
+                description="Toggle Dark Mode when saving as image"
+                icon="AllIcons.Actions.IntentionBulbGrey"/>
+        <action id="excalidraw.ToggleSaveWithBackground"
+                class="com.github.bric3.excalidraw.actions.ToggleBackgroundSaveOptionAction"
+                text="Toggle background when saving as image"
+                description="Toggle background when saving as image"
+                icon="AllIcons.General.ProjectTab"/>
+        <action id="excalidraw.ToggleSaveWithWatermark"
+                class="com.github.bric3.excalidraw.actions.ToggleWatermarkSaveOptionAction"
+                text="Add watermark when saving as image"
+                description="Add watermark when saving as image"
+                icon="AllIcons.General.Inline_edit_hovered"/>
         <action id="excalidraw.ExportToSvgAction"
                 class="com.github.bric3.excalidraw.actions.ExportToSvgAction"
                 text="Export to SVG"
@@ -58,6 +73,9 @@
                 description="Export current Excalidraw drawing to PNG"
                 icon="ExcalidrawIcons.SaveAsPng"/>
 
+        <!-- AllIcons.General.ReaderMode -->
+        <!-- AllIcons.Actions.InlayGlobe -->
+
         <!-- Groups -->
         <group id="excalidraw.ExcalidrawNewActionGroup" text="Excalidraw">
             <reference id="excalidraw.NewFileAction" />
@@ -65,10 +83,13 @@
         </group>
         <group id="excalidraw.ToolbarActionGroup">
             <!-- TODO Save option toggles: exportBackground, shouldAddWatermark, exportWithDarkMode -->
+            <reference ref="excalidraw.ToggleSaveWithDarkMode"/>
+            <reference ref="excalidraw.ToggleSaveWithBackground"/>
+            <reference ref="excalidraw.ToggleSaveWithWatermark"/>
             <reference ref="excalidraw.ExportToSvgAction"/>
             <reference ref="excalidraw.ExportToPngAction"/>
             <separator/>
-            <!-- Scene options : grid, zen -->
+            <!-- TODO Scene options : grid, zen -->
         </group>
 
     </actions>
