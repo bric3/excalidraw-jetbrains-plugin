@@ -227,7 +227,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             window.postMessage({
                 type: "update",
                 elements: json.elements
-            })
+            }, 'https://$pluginDomain')
             """
         )
     }
@@ -238,7 +238,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             window.postMessage({
                 type: "toggle-read-only",
                 readOnly: $readOnly
-            })
+            }, 'https://$pluginDomain')
             """
         )
     }
@@ -249,7 +249,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             window.postMessage({
                 type: "theme-change",
                 theme: "$theme"
-            })
+            }, 'https://$pluginDomain')
             """
         )
     }
@@ -269,7 +269,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
                 type: "$msgType",
                 exportConfig: {},
                 correlationId: "$correlationId" 
-            })
+            }, 'https://$pluginDomain')
             """
         )
 
