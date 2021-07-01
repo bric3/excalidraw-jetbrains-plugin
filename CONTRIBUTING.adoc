@@ -19,8 +19,79 @@
 This plugin has been bootstrapped from the https://github.com/JetBrains/intellij-platform-plugin-template[IntelliJ Platform Plugin Template].
 It might be worth tracking upstream change if they can be applied there too.
 
+[source]
+----
+.
+├── .github
+│   └── workflows <6>
+├── .run <7>
+├── CHANGELOG.md <1>
+├── excalidraw-assets <2>
+├── plugin <3>
+├── project-fixture <4>
+└── settings.gradle.kts <5>
+----
+<1> The changelog to manually edit
+<2> This the Excalidraw *React* web-app, this a gradle project
+<3> This the actual plugin code base, it's a gradle project
+<4> Simple project to open in the sand-boxed IDE.
+<5> Usual declaration of the gradle sub-projects (`excalidraw-assets` and `plugin`)
+<6> Github Action workflows
+<7> IntelliJ IDEA's run configurations (_Run Plugin_, etc.)
 
-== Plugin DEBUG logs
+=== Excalidraw React web-app assets
+
+[source]
+----
+excalidraw-assets
+├── build.gradle.kts <1>
+├── config-overrides.js <2>
+├── gulpfile.js <3>
+├── node_modules <9>
+├── package.json <4>
+├── public <5>
+│   └── index.html
+├── src <6>
+│   ├── App.tsx
+│   ├── index.tsx
+│   ├── react-app-env.d.ts
+│   └── styles.css
+├── tsconfig.json <7>
+└── yarn.lock <8>
+----
+<1> The gradle build configuration, configure `node` and `yarn` tasks,
+also defines input/output for better cacheability.
+<2> This is a webpack override configuration, used by `react-app-rewired`, in particular it allows to
+inline source maps to allow debugging in a JCEF devtools.
+<3> This is a _gulp_ script that performs additional inlining after the react app has been built,
+these task cannot be easily merged in the webpack config override if that's even possible.
+<4> Usual `package.json` that declares dependencies, with unbounded ranges.
+<5> The location of the `index.html`
+<6> The location of the React app sources in typescript.
+<7> Configuration file necessary for typescript.
+<8> A Yarn lock file represents the exact dependencies, it allows reproducible builds.
+<9> The `node_modules` folder is where the dependencies are downloaded. Its location is hardcoded in `node` or `npm`.
+
+
+.A note about the Excalidraw React Web App
+JS and React are stranger things to me, their official documentation can be overwhelming at first,
+I fund this https://medium.com/swlh/react-without-create-react-app-setting-up-a-dev-build-from-scratch-fefd5d9d6baa[blog post]
+useful to introduce me to basic concepts.
+
+On the same topic here's a https://www.carlrippon.com/creating-react-app-with-typescript-eslint-with-webpack5/[blog post with the typescript angle].
+
+
+=== Plugin code base
+
+The `plugin` is a usual Gradle project, most of the sources are written in Kotlin.
+
+TODO : describe `plugin.xml`, and package structure.
+
+== Running the plugin in the sand-boxed environment
+
+Use the predefined task `Run Plugin`, whose configuration is saved in the `.run` folder.
+
+=== Plugin DEBUG logs
 
 This plugin is using the diagnostic logger at DEBUG level, that means the log events
 will be appended in the usual `idea.log`.
@@ -42,7 +113,7 @@ Once the sandbox has been run once, this configuration will appear in the follow
 ----
 
 
-== Inspect UI
+=== Inspect UI
 
 The sand-boxed IDE should be launched with internal mode enabled.
 
@@ -56,7 +127,7 @@ Enable UI Inspector : _Tools > Internal Actions > UI > UI Inspector_
 Unfortunately only IntelliJ open API sources are available.
 
 There are two things that was useful to grep JCEF (Java Chrominium Embedded Frame)
-and rd (aka Jetbrains'own reactive distributed library).
+and `rd` (aka Jetbrains'own reactive distributed library).
 
 .JCEF
 In order to access the sources of JCEF, clone [JetBrains/jcef](https://github.com/JetBrains/jcef) repository:

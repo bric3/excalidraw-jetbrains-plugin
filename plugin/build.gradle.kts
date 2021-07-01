@@ -1,5 +1,4 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.changelog.closure
 import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
@@ -12,7 +11,6 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.5.10"
     id("org.jetbrains.intellij") version "1.0"
     id("org.jetbrains.changelog") version "1.1.2"
-    id("io.gitlab.arturbosch.detekt") version "1.17.1"
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     id("com.github.ben-manes.versions") version "0.39.0"
 }
@@ -28,9 +26,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testImplementation("org.assertj:assertj-core:3.20.2")
-
-
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
 }
 
 // Configure gradle-intellij-plugin plugin.
@@ -59,33 +54,18 @@ changelog {
 //    groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security")
 }
 
-// Configure detekt plugin.
-// Read more: https://detekt.github.io/detekt/kotlindsl.html
-detekt {
-    config = files("./detekt-config.yml")
-    buildUponDefaultConfig = true
-
-    reports {
-        html.enabled = false
-        xml.enabled = false
-        txt.enabled = false
-    }
-}
-
 tasks {
     // Java 11 compat started in 2020.3
     withType<JavaCompile> {
         sourceCompatibility = "11"
         targetCompatibility = "11"
     }
+
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "11"
             useIR = true
         }
-    }
-    withType<Detekt> {
-        jvmTarget = "11"
     }
 
     withType<Test> {
@@ -146,7 +126,7 @@ tasks {
             val isStable = stableKeyword || regex.matches(version)
             return isStable.not()
         }
-        
+
         rejectVersionIf {
             isNonStable(candidate.version) && !isNonStable(currentVersion)
         }
