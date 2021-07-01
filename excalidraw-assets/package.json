@@ -13,6 +13,7 @@
     "@types/react-dom": "^17.0.8",
     "awesome-debounce-promise": "^2.1.0",
     "react": "^17.0.2",
+    "react-app-rewired": "^2.1.8",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "typescript": "^4.3.4"
@@ -29,10 +30,9 @@
     ]
   },
   "scripts": {
-    "start": "BROWSER=none cross-env NODE_ENV=development react-scripts start",
-    "build": "BUILD_PATH=./build/react-build/ react-scripts build && npx gulp",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "start": "BROWSER=none cross-env NODE_ENV=development react-app-rewired start",
+    "build": "BUILD_PATH=./build/react-build/ react-app-rewired build && npx gulp",
+    "test": "react-app-rewired test --env=jsdom"
   },
   "browserslist": {
     "production": [
