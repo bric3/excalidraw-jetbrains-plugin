@@ -278,6 +278,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
             ExcalidrawImageType.PNG -> "save-as-png"
+            ExcalidrawImageType.EXCALIDRAW -> "save-as-json"
         }
 
         val saveOptionsJson = mapper.writeValueAsString(saveOptions)

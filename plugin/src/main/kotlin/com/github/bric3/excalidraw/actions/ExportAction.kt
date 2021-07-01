@@ -3,6 +3,7 @@ package com.github.bric3.excalidraw.actions
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
+import com.github.bric3.excalidraw.notifyAboutWriteError
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -14,8 +15,6 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFileWrapper
-import org.jetbrains.annotations.Nullable
 import java.io.IOException
 
 abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
@@ -65,9 +64,9 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
                                 write(convertToByteArray(payload))
                             } }
                         } catch (e: IOException) {
-                            notifyAboutWriteError(destination, e)
+                            notifyAboutWriteError(type, destination.virtualFile, e)
                         } catch (e: IllegalArgumentException) {
-                            notifyAboutWriteError(destination, e)
+                            notifyAboutWriteError(type, destination.virtualFile, e)
                         }
                     }
                 }
@@ -77,19 +76,4 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
 
     protected abstract fun convertToByteArray(payload: String): ByteArray
 
-    private fun notifyAboutWriteError(
-        destination: @Nullable VirtualFileWrapper,
-        ex: Exception
-    ) {
-        logger.error("Could not write to ${destination.virtualFile}", ex)
-        Notifications.Bus.notify(
-            Notification(
-                "excalidraw.error",
-                "Writing export to disk failed",
-                "This action failed to write the ${type.name} content to disk.",
-                NotificationType.ERROR,
-                null
-            )
-        )
-    }
 }

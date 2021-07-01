@@ -1,5 +1,7 @@
 package com.github.bric3.excalidraw.editor
 
+import com.github.bric3.excalidraw.files.ExcalidrawImageType
+import com.github.bric3.excalidraw.notifyAboutWriteError
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -17,7 +19,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.util.ui.UIUtil
@@ -26,6 +27,8 @@ import com.jetbrains.rd.util.reactive.adviseNotNull
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import java.io.BufferedReader
+import java.io.IOException
+import java.nio.charset.StandardCharsets
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -119,7 +122,7 @@ class ExcalidrawEditor(
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
         viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
             logger.debug("content to save")
-            when {
+            val (type, b) = when {
                 file.name.endsWith(".svg") -> {
                     TODO("Saving to SVG is not yet supported")
 //                    view.saveAsSvg().then{ data: String ->
@@ -133,10 +136,22 @@ class ExcalidrawEditor(
 //                    }
                 }
                 else -> {
-                    ApplicationManager.getApplication().invokeLater {
-                        ApplicationManager.getApplication().runWriteAction {
-                            VfsUtil.saveText(file, content)
+                    Pair(ExcalidrawImageType.EXCALIDRAW,
+                         content.toByteArray(StandardCharsets.UTF_8))
+                }
+            }
+            ApplicationManager.getApplication().invokeLater {
+                ApplicationManager.getApplication().runWriteAction {
+                    try {
+                        file.getOutputStream(file).use { stream ->
+                            with(stream) {
+                                write(b)
+                            }
                         }
+                    } catch (e: IOException) {
+                        notifyAboutWriteError(type, file, e)
+                    } catch (e: IllegalArgumentException) {
+                        notifyAboutWriteError(type, file, e)
                     }
                 }
             }
