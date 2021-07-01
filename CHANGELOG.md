@@ -3,6 +3,7 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+## [0.2.0-eap] - 2021-07-01
 ### Added
 - Save drawing to SVG or PNG (without the Excalidraw scene metadata)
 - Options when saving to image (background color, dark mode, watermark)
