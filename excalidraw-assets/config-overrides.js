@@ -1,3 +1,6 @@
+// overrides the react-script config file found here
+// ./node_modules/react-scripts/config/webpack.config.js
+
 module.exports = function override(config, env) {
     // see https://webpack.js.org/configuration/
     console.log("Disabling build minimizer (config-overrides.js)");
