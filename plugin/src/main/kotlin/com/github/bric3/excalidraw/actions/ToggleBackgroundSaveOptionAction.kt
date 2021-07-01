@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ToggleBackgroundSaveOptionAction : ToggleSaveOptionAction() {
     override fun isSelected(event: AnActionEvent): Boolean =
-        event.getSaveOptions().exportBackground ?: false
+        event.getSaveOptions()?.exportBackground ?: false
 
     override fun toggle(saveOptions: SaveOptions, state: Boolean) {
         saveOptions.exportBackground = state

@@ -9,5 +9,5 @@ class ToggleGridModeAction : ToggleSceneModeAction() {
     }
 
     override fun isSelected(event: AnActionEvent): Boolean =
-        event.getSceneModes().gridMode ?: false
+        event.getSceneModes()?.gridMode ?: false
 }

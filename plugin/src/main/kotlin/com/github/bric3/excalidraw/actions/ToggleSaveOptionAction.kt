@@ -7,15 +7,15 @@ import com.intellij.openapi.actionSystem.ToggleAction
 
 abstract class ToggleSaveOptionAction : ToggleAction() {
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-        val saveOptions = event.getSaveOptions()
+        val saveOptions = event.getSaveOptions() ?: return
 
         toggle(saveOptions, state)
     }
 
     protected abstract fun toggle(saveOptions: SaveOptions, state: Boolean)
 
-    protected fun AnActionEvent.getSaveOptions() : SaveOptions {
-        val excalidrawEditor = this.findEditor() ?: throw IllegalStateException("No excalidraw editor found")
+    protected fun AnActionEvent.getSaveOptions() : SaveOptions? {
+        val excalidrawEditor = this.findEditor() ?: return null
         var saveOptions = excalidrawEditor.getUserData(SaveOptions.SAVE_OPTIONS_KEY)
         if (saveOptions == null) {
             saveOptions = SaveOptions()

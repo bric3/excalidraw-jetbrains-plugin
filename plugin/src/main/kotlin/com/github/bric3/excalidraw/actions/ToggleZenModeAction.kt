@@ -9,5 +9,5 @@ class ToggleZenModeAction : ToggleSceneModeAction() {
     }
 
     override fun isSelected(event: AnActionEvent): Boolean =
-        event.getSceneModes().zenMode ?: false
+        event.getSceneModes()?.zenMode ?: false
 }

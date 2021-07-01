@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ToggleDarkmodeSaveOptionAction : ToggleSaveOptionAction() {
     override fun isSelected(event: AnActionEvent): Boolean =
-        event.getSaveOptions().exportWithDarkMode ?: false
+        event.getSaveOptions()?.exportWithDarkMode ?: false
 
     override fun toggle(saveOptions: SaveOptions, state: Boolean) {
         saveOptions.exportWithDarkMode = state
