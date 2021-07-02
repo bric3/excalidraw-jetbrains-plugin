@@ -1,6 +1,7 @@
 import React from "react";
 import Excalidraw, {exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
+import {encodeSvgMetadata} from "./image";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
@@ -68,14 +69,18 @@ class ExcalidrawApiBridge {
             this.excalidraw().getAppState()
         )
     };
-    readonly saveAsSvg = (exportParams:object) => {
+    readonly saveAsSvg = async (exportParams:object) => {
         console.debug("saveAsSvg export config", exportParams);
+        let sceneElements = this.excalidraw().getSceneElements();
+        let appState = this.excalidraw().getAppState();
+        const metadata = await encodeSvgMetadata({ text: serializeAsJSON(sceneElements, appState) });
         return exportToSvg({
-            elements: this.excalidraw().getSceneElements(),
+            elements: sceneElements,
             appState: {
-                ...this.excalidraw().getAppState(),
+                ...appState,
                 ...exportParams
             },
+            metadata: metadata,
         });
     };
     readonly saveAsPng = (exportParams:object) => {
@@ -174,12 +179,13 @@ class ExcalidrawApiBridge {
 
             case "save-as-svg": {
                 const exportConfig = message.exportConfig ?? {};
-                const svg = this.saveAsSvg(exportConfig);
-                this.dispatchToPlugin({
-                    type: "svg-content",
-                    svg: svg.outerHTML,
-                    correlationId: message.correlationId ?? null
-                });
+                this.saveAsSvg(exportConfig).then(svg => {
+                    this.dispatchToPlugin({
+                        type: "svg-content",
+                        svg: svg.outerHTML,
+                        correlationId: message.correlationId ?? null
+                    });
+                })
                 break;
             }
 
