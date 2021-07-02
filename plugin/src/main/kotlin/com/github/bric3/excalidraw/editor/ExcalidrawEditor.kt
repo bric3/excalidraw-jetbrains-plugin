@@ -121,7 +121,10 @@ class ExcalidrawEditor(
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
         viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
-            logger.debug("content to save")
+            logger.debug("content to save to $file")
+            if (!file.isWritable) {
+                return@adviseNotNull
+            }
             val (type, b) = when {
                 file.name.endsWith(".svg") -> {
                     TODO("Saving to SVG is not yet supported")
