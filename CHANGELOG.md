@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 ### Added
-- SVG are now saved with an embedded scene (always on) (#11)
+- SVG and PNG exports are now saved with an embedded scene (always on) (#11)
 
 ### Changed
 - The Excalidraw webapp is now written in typescript

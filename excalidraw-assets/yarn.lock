@@ -3779,6 +3779,11 @@ cosmiconfig@^7.0.0:
     path-type "^4.0.0"
     yaml "^1.10.0"
 
+crc-32@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/crc-32/-/crc-32-0.3.0.tgz#6a3d3687f5baec41f7e9b99fe1953a2e5d19775e"
+  integrity sha1-aj02h/W67EH36bmf4ZU6Ll0Zd14=
+
 create-ecdh@^4.0.0:
   version "4.0.4"
   resolved "https://registry.npmjs.org/create-ecdh/-/create-ecdh-4.0.4.tgz"
@@ -8748,6 +8753,26 @@ plugin-error@^1.0.1:
     arr-union "^3.1.0"
     extend-shallow "^3.0.2"
 
+png-chunk-text@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/png-chunk-text/-/png-chunk-text-1.0.0.tgz#1c6006d8e34ba471d38e1c9c54b3f53e1085e18f"
+  integrity sha1-HGAG2ONLpHHTjhycVLP1PhCF4Y8=
+
+png-chunks-encode@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/png-chunks-encode/-/png-chunks-encode-1.0.0.tgz#d9ea5e35caeeed782658c1ab7bafa7a5edb1a878"
+  integrity sha1-2epeNcru7XgmWMGre6+npe2xqHg=
+  dependencies:
+    crc-32 "^0.3.0"
+    sliced "^1.0.1"
+
+png-chunks-extract@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/png-chunks-extract/-/png-chunks-extract-1.0.0.tgz#fad4a905e66652197351c65e35b92c64311e472d"
+  integrity sha1-+tSpBeZmUhlzUcZeNbksZDEeRy0=
+  dependencies:
+    crc-32 "^0.3.0"
+
 pnp-webpack-plugin@1.6.4:
   version "1.6.4"
   resolved "https://registry.npmjs.org/pnp-webpack-plugin/-/pnp-webpack-plugin-1.6.4.tgz"
@@ -10636,6 +10661,11 @@ slice-ansi@^4.0.0:
     ansi-styles "^4.0.0"
     astral-regex "^2.0.0"
     is-fullwidth-code-point "^3.0.0"
+
+sliced@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/sliced/-/sliced-1.0.1.tgz#0b3a662b5d04c3177b1926bea82b03f837a2ef41"
+  integrity sha1-CzpmK10Ewxd7GSa+qCsD+Dei70E=
 
 snapdragon-node@^2.0.1:
   version "2.1.1"

@@ -1,7 +1,7 @@
 import React from "react";
 import Excalidraw, {exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {encodeSvgMetadata} from "./image";
+import {encodePngMetadata, encodeSvgMetadata} from "./image";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
@@ -73,6 +73,7 @@ class ExcalidrawApiBridge {
         console.debug("saveAsSvg export config", exportParams);
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
+
         const metadata = await encodeSvgMetadata({ text: serializeAsJSON(sceneElements, appState) });
         return exportToSvg({
             elements: sceneElements,
@@ -85,12 +86,20 @@ class ExcalidrawApiBridge {
     };
     readonly saveAsPng = (exportParams:object) => {
         console.debug("saveAsPng export config", exportParams);
+        let sceneElements = this.excalidraw().getSceneElements();
+        let appState = this.excalidraw().getAppState();
+
         return exportToBlob({
             elements: this.excalidraw().getSceneElements(),
             appState: {
                 ...this.excalidraw().getAppState(),
                 ...exportParams
             },
+        }).then(pngBlob => {
+            return encodePngMetadata({
+                blob: pngBlob!,
+                metadata: serializeAsJSON(sceneElements, appState)
+            })
         });
     };
     
@@ -247,6 +256,7 @@ export default function App() {
                 // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
                 initialData={{
                     appState: {
+                        // Always embed scene
                         exportEmbedScene: true
                     }
                 }}
