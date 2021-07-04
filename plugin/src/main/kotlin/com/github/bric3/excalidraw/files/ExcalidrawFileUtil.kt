@@ -1,5 +1,6 @@
 package com.github.bric3.excalidraw.files
 
+
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -7,18 +8,28 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import org.w3c.dom.NamedNodeMap
 import java.io.IOException
-//import java.io.InputStreamReader
-//import javax.xml.stream.XMLEventReader
-//import javax.xml.stream.XMLInputFactory
-//import javax.xml.stream.XMLStreamConstants
-//import javax.xml.stream.events.Comment
-//import javax.xml.stream.events.XMLEvent
+import java.nio.charset.StandardCharsets
+import javax.imageio.ImageIO
+import javax.imageio.metadata.IIOMetadata
+import javax.xml.stream.XMLEventReader
+import javax.xml.stream.XMLInputFactory
+import javax.xml.stream.XMLStreamConstants
+import javax.xml.stream.XMLStreamException
+import javax.xml.stream.events.Comment
+import javax.xml.stream.events.XMLEvent
 
 
 class ExcalidrawFileUtil private constructor() {
     companion object {
+        val EXCALIDRAW_EMBEDDED_SCENE = Key<ByteArray>("application/vnd.excalidraw+json")
+
+        val logger = logger<ExcalidrawFileUtil>()
+        
         val mapper = jacksonObjectMapper().apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         }
@@ -33,24 +44,42 @@ class ExcalidrawFileUtil private constructor() {
                 arrayOf(".excalidraw", ".excalidraw.json").any { ext -> file.name.endsWith(ext) } -> true
 
                 // TODO disabled for now, as long as parsing the binary payload in the embedded json don't work
-                // check if svg file has a comment with 'payload-type:application/vnd.excalidraw+json'
-//                file.name.endsWith(".svg") -> {
-//                    file.inputStream.use {
-//                        val factory: XMLInputFactory = XMLInputFactory.newInstance()
-//                        val eventReader: XMLEventReader = factory.createXMLEventReader(InputStreamReader(it))
-//                        while (eventReader.hasNext()) {
-//                            val event: XMLEvent = eventReader.nextEvent()
-//
-//                            if (event.eventType == XMLStreamConstants.COMMENT) {
-//                                val text: String = (event as Comment).text
-//                                if (text.contains("payload-type:application/vnd.excalidraw+json")) {
-//                                    return true
-//                                }
-//                            }
-//                        }
-//                        false
-//                    }
-//                }
+                // check if SVG file has a comment with 'payload-type:application/vnd.excalidraw+json'
+                file.name.endsWith(".svg") -> {
+                    // TODO put scene in file user data
+                    try {
+                        file.inputStream.reader().use {
+                            val factory: XMLInputFactory = XMLInputFactory.newInstance()
+                            val eventReader: XMLEventReader = factory.createXMLEventReader(it)
+                            while (eventReader.hasNext()) {
+                                val event: XMLEvent = eventReader.nextEvent()
+
+                                if (event.eventType == XMLStreamConstants.COMMENT) {
+                                    val text: String = (event as Comment).text
+                                    if (text.contains("payload-type:application/vnd.excalidraw+json")) {
+                                        return true
+                                    }
+                                }
+                            }
+                        }
+                    } catch (ioe: IOException) {
+                        logger.warn("Unable to read this SVG file, maybe it is malformed, file: '$file'", ioe)
+                    } catch (xse: XMLStreamException) {
+                        logger.warn("Unable to read this SVG file, maybe it is malformed, file: '$file'", xse)
+                    }
+                    false
+                }
+
+                // check if PNG file has a tEXt chunk with keyword 'application/vnd.excalidraw+json'
+                file.name.endsWith("png") -> {
+                    val sceneFromPng = tryExtractExcalidrawSceneFromPng(file)
+                    if (sceneFromPng != null) {
+//                        file.putUserDataIfAbsent(EXCALIDRAW_EMBEDDED_SCENE, sceneFromPng)
+                        return true
+                    }
+                    return false
+                }
+
 
                 // check if json file is an excalidraw document
                 file.name.endsWith(".json") -> {
@@ -74,7 +103,42 @@ class ExcalidrawFileUtil private constructor() {
             }
         }
 
-        fun extractScene(svgContent: String): String {
+        fun tryExtractExcalidrawSceneFromPng(
+            file: VirtualFile,
+        ): ByteArray? {
+            try {
+                file.inputStream.use {
+                    val ir = ImageIO.getImageReadersBySuffix("png").next()
+                    ir.setInput(ImageIO.createImageInputStream(it), true)
+                    val imageMetadata: IIOMetadata = ir.getImageMetadata(0)
+                    val tree = imageMetadata.getAsTree(imageMetadata.nativeMetadataFormatName)
+                    val childNodes = tree.childNodes
+
+                    for (i in 0 until childNodes.length) {
+                        val node = childNodes.item(i)
+                        if (node.nodeName == "tEXt") {
+                            val tEXtChildNodes = node.childNodes
+                            for (j in 0 until tEXtChildNodes.length) {
+                                val tEXtNode = tEXtChildNodes.item(j)
+                                if (tEXtNode.nodeName == "tEXtEntry") {
+                                    val attributes: NamedNodeMap = tEXtNode.attributes
+                                    if (attributes.getNamedItem("keyword")?.nodeValue == "application/vnd.excalidraw+json") {
+                                        return attributes.getNamedItem("value")?.nodeValue?.toByteArray(StandardCharsets.ISO_8859_1)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (ioe: IOException) {
+                logger.warn("Unable to read this PNG file, maybe it is malformed, file: '$file'", ioe)
+            }
+
+            return null
+        }
+
+        // TODO find a way
+        fun tryExtractExcalidrawSceneFrom(svgContent: String): String {
             // basically reimplements decodeSvgMetadata
             // https://github.com/excalidraw/excalidraw/blob/5c73c5813ce92d3c7b0610530f78ccb06a47d983/src/data/image.ts#L106-L136
 

@@ -1,7 +1,7 @@
 import React from "react";
 import Excalidraw, {exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {encodePngMetadata, encodeSvgMetadata} from "./image";
+import {decodePngMetadata, decodeSvgMetadata, encodePngMetadata, encodeSvgMetadata} from "./image";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
@@ -17,18 +17,22 @@ const initialData = anyWindow.initialData ?? defaultInitialData;
 
 class ExcalidrawApiBridge {
     private readonly excalidrawRef: any;
+    private continuousSavingEnabled = true;
     private _setTheme: React.Dispatch<string> | null = null;
     set setTheme(value: React.Dispatch<string>) {
         this._setTheme = value;
     }
+
     private _setViewModeEnabled: React.Dispatch<boolean> | null = null;
     set setViewModeEnabled(value: React.Dispatch<boolean>) {
         this._setViewModeEnabled = value;
     }
+
     private _setGridModeEnabled: React.Dispatch<boolean> | null = null;
     set setGridModeEnabled(value: React.Dispatch<boolean>) {
         this._setGridModeEnabled = value;
     }
+
     private _setZenModeEnabled: React.Dispatch<boolean> | null = null;
     set setZenModeEnabled(value: React.Dispatch<boolean>) {
         this._setZenModeEnabled = value;
@@ -54,7 +58,7 @@ class ExcalidrawApiBridge {
         });
     };
 
-    readonly updateAppState = (appState:object) => {
+    readonly updateAppState = (appState: object) => {
         this.excalidraw().updateScene({
             elements: this.excalidraw().getSceneElements(),
             appState: {
@@ -69,12 +73,12 @@ class ExcalidrawApiBridge {
             this.excalidraw().getAppState()
         )
     };
-    readonly saveAsSvg = async (exportParams:object) => {
+    readonly saveAsSvg = async (exportParams: object) => {
         console.debug("saveAsSvg export config", exportParams);
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
 
-        const metadata = await encodeSvgMetadata({ text: serializeAsJSON(sceneElements, appState) });
+        const metadata = await encodeSvgMetadata({text: serializeAsJSON(sceneElements, appState)});
         return exportToSvg({
             elements: sceneElements,
             appState: {
@@ -84,7 +88,7 @@ class ExcalidrawApiBridge {
             metadata: metadata,
         });
     };
-    readonly saveAsPng = (exportParams:object) => {
+    readonly saveAsPng = (exportParams: object) => {
         console.debug("saveAsPng export config", exportParams);
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
@@ -102,10 +106,13 @@ class ExcalidrawApiBridge {
             })
         });
     };
-    
+
     currentSceneVersion = getSceneVersion([]); // scene elements are empty on load
 
-    private _continuousSaving = (elements:object[], appState:object) => {
+    private _continuousSaving = (elements: object[], appState: object) => {
+        if (!this.continuousSavingEnabled) {
+            return;
+        }
         console.debug("debounced scene changed")
         // @ts-ignore
         const newSceneVersion = getSceneVersion(elements);
@@ -126,17 +133,17 @@ class ExcalidrawApiBridge {
         initialData.debounceAutoSaveInMs
     )
 
-    dispatchToPlugin(message:object) : void {
+    dispatchToPlugin(message: object): void {
         console.debug("dispatchToPlugin: ", message);
         // noinspection JSUnresolvedVariable
         if (anyWindow.cefQuery) {
             anyWindow.cefQuery({
                 request: JSON.stringify(message),
                 persistent: false,
-                onSuccess: function (response:any) {
+                onSuccess: function (response: any) {
                     console.debug("success for message", message, ", response", response);
                 },
-                onFailure: function (error_code:any, error_message:any) {
+                onFailure: function (error_code: any, error_message: any) {
                     console.debug("failure for message", message, ", error_code", error_code, ", error_message", error_message);
                 }
             });
@@ -154,10 +161,71 @@ class ExcalidrawApiBridge {
                 if (this.currentSceneVersion !== updateSceneVersion) {
                     this.currentSceneVersion = updateSceneVersion;
                     this.updateApp({
-                        elements: elements,
-                        appState: {}   // TODO load
+                        elements: elements || [],
+                        appState: {} // TODO load appState ?
                     });
                 }
+                break;
+            }
+
+            case "load-from-file": {
+                const {fileToFetch} = message
+                fetch('/fs/' + fileToFetch)
+                    .then(response => response.blob())
+                    .then(async image => {
+                        // TODO continuous saving disabled for now, eventually reenable
+                        this.continuousSavingEnabled = false
+
+                        switch (image.type) {
+                            case "image/png":
+                                try {
+                                    return await decodePngMetadata(image);
+                                } catch (error) {
+                                    console.error(error)
+                                    this.dispatchToPlugin({
+                                        type: "excalidraw-error",
+                                        errorMessage: "cannot load image"
+                                    })
+                                }
+                                break;
+                            case "image/svg+xml":
+                                try {
+                                    return await decodeSvgMetadata({
+                                        svg: await image.text(),
+                                    });
+                                } catch (error) {
+                                    console.error(error)
+                                    this.dispatchToPlugin({
+                                        type: "excalidraw-error",
+                                        errorMessage: "cannot load image"
+                                    })
+                                }
+                                break;
+                            default:
+                                console.error("Not a supported image type", image.type)
+                                this.dispatchToPlugin({
+                                    type: "excalidraw-error",
+                                    errorMessage: "cannot load image"
+                                })
+                                return null
+                        }
+                    })
+                    .then(jsonString => {
+                        if(jsonString == null) {
+                            return;
+                        }
+                        let scene = JSON.parse(jsonString);
+
+                        const updateSceneVersion = getSceneVersion(scene.elements);
+                        if (this.currentSceneVersion !== updateSceneVersion) {
+                            this.currentSceneVersion = updateSceneVersion;
+                            this.updateApp({
+                                elements: scene.elements || [],
+                                appState: {} // TODO load appState
+                            });
+                        }
+                    })
+
                 break;
             }
 
@@ -174,7 +242,7 @@ class ExcalidrawApiBridge {
             }
 
             case "theme-change": {
-                anyWindow.setTheme(message.theme);
+                this._setTheme!(message.theme);
                 break;
             }
 
@@ -228,7 +296,7 @@ export default function App() {
 
     const excalidrawRef = React.useCallback((excalidrawApi) => {
         excalidrawApiRef.current = excalidrawApi;
-        apiBridge!.dispatchToPlugin({ type: "ready" })
+        apiBridge!.dispatchToPlugin({type: "ready"})
     }, []);
 
     // React Hook "React.useState" cannot be called in a class component.
@@ -243,11 +311,11 @@ export default function App() {
     // see https://codesandbox.io/s/excalidraw-forked-xsw0k?file=/src/App.js
 
 
-    let onDrawingChange = async (elements:any, state:object) => {
+    let onDrawingChange = async (elements: any, state: object) => {
         await apiBridge!.debouncedContinuousSaving(elements, state);
     };
 
-    
+
     return (
         <div className="excalidraw-wrapper">
             <Excalidraw
@@ -262,7 +330,8 @@ export default function App() {
                 }}
                 onChange={(elements, state) => {
                     console.debug("scene changed")
-                    onDrawingChange(elements, state).then(ignored => {})
+                    onDrawingChange(elements, state).then(ignored => {
+                    })
                 }}
                 onCollabButtonClick={() =>
                     window.alert("Not supported")

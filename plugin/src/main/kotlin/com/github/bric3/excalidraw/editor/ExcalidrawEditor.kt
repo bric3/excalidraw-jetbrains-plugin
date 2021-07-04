@@ -26,9 +26,8 @@ import com.jetbrains.rd.util.lifetime.LifetimeDefinition
 import com.jetbrains.rd.util.reactive.adviseNotNull
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
-import java.io.BufferedReader
 import java.io.IOException
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -52,8 +51,6 @@ class ExcalidrawEditor(
     private val jcefUnsupported by lazy { JCEFUnsupportedViewPanel() }
     private val actionPanel = ExcalidrawActionPanel()
     private val toolbarAndWebView: JPanel
-
-    private var isInvalid = false
 
     init {
         //subscribe to changes of the theme
@@ -100,23 +97,19 @@ class ExcalidrawEditor(
             return
         }
 
-//        if (!this::view.isInitialized) {
-//            return
-//        }
         viewController.initialized().then {
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
-                val jsonPayload = BufferedReader(file.inputStream.reader()).readText()
-                viewController.loadJsonPayload(jsonPayload)
-                viewController.toggleReadOnly(file.isWritable.not())
+                file.inputStream.bufferedReader(UTF_8).use {
+                    val jsonPayload = it.readText()
+                    viewController.loadJsonPayload(jsonPayload)
+                }
             }
 
-            if (file.name.endsWith("svg")) {
-                isInvalid = true
-                TODO("Loading from SVG is not yet supported")
-//                val content:String = BufferedReader(file.inputStream.reader()).readText();
-//                val json:String = ExcalidrawUtil.extractScene(content);
-//                view.loadJsonPayload(json);
+            if (file.name.endsWith("svg") || file.name.endsWith("png")) {
+                viewController.loadFromFile(file)
+
             }
+            viewController.toggleReadOnly(file.isWritable.not())
         }
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
@@ -127,20 +120,20 @@ class ExcalidrawEditor(
             }
             val (type, b) = when {
                 file.name.endsWith(".svg") -> {
-                    TODO("Saving to SVG is not yet supported")
+                    TODO("Continuous saving to SVG is not yet supported")
 //                    view.saveAsSvg().then{ data: String ->
 //                        file.setBinaryContent(data.toByteArray(charset("utf-8"))
 //                    }
                 }
                 file.name.endsWith(".png") -> {
-                    TODO("Saving to PNG is not yet supported")
+                    TODO("Continuous saving to PNG is not yet supported")
 //                    view.saveAsPng().then { data: ByteArray ->
 //                        file.setBinaryContent(data)
 //                    }
                 }
                 else -> {
                     Pair(ExcalidrawImageType.EXCALIDRAW,
-                         content.toByteArray(StandardCharsets.UTF_8))
+                         content.toByteArray(UTF_8))
                 }
             }
             ApplicationManager.getApplication().invokeLater {
@@ -169,12 +162,6 @@ class ExcalidrawEditor(
     }
 
     override fun getComponent(): JComponent = toolbarAndWebView
-//    override fun getComponent(): JComponent {
-//        return when {
-//            this::view.isInitialized -> view.component
-//            else -> jcefUnsupported
-//        }
-//    }
 
     override fun getPreferredFocusedComponent() = toolbarAndWebView
 

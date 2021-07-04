@@ -16,10 +16,10 @@ import java.net.URI
 /**
  * Creates a Scheme handler for the CEF application
  *
- * This file is copied <em>as is from</em>
+ * This comes from
  * <a href="https://github.com/docToolchain/diagrams.net-intellij-plugin/blob/14a4c8f7da38e5e4952e7046740493994f726e57/src/main/kotlin/de/docs_as_co/intellij/plugin/drawio/utils/SchemeHandlerFactory.kt">
  *     docToolchain/diagrams.net-intellij-plugin
- * </a>.
+ * </a> however it contains some modifications.
  */
 class SchemeHandlerFactory(val getStream: (uri: URI) -> InputStream?) : CefSchemeHandlerFactory {
     override fun create(browser: CefBrowser, frame: CefFrame, schemeName: String, request: CefRequest): CefResourceHandler {
@@ -43,6 +43,8 @@ class SchemeHandlerFactory(val getStream: (uri: URI) -> InputStream?) : CefSchem
                     response.mimeType = "text/css"
                 } else if (uri.path.endsWith(".svg")) {
                     response.mimeType = "image/svg+xml"
+                } else if (uri.path.endsWith(".png")) {
+                    response.mimeType = "image/png"
                 }
 
                 if (myStream === null) {

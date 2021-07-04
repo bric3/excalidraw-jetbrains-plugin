@@ -8,6 +8,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.lifetime.assertAlive
 import com.jetbrains.rd.util.lifetime.isAlive
@@ -33,13 +34,13 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
-import java.net.URI
 import java.util.*
 import java.util.concurrent.*
 import javax.swing.BorderFactory
 
 class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
     val logger = thisLogger()
+
     companion object {
         private const val pluginDomain = "excalidraw-jetbrains-plugin"
         const val pluginUrl = "https://$pluginDomain/index.html"
@@ -49,7 +50,9 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             setSerializationInclusion(JsonInclude.Include.NON_NULL)
         }
 
-        var didRegisterSchemeHandler = false
+        private val fsMapping = ConcurrentHashMap<String, VirtualFile>()
+
+        private var didRegisterSchemeHandler = false
         fun initializeSchemeHandler() {
             didRegisterSchemeHandler = true
 
@@ -60,8 +63,17 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
             CefApp.getInstance().registerSchemeHandlerFactory(
                 "https", pluginDomain,
-                SchemeHandlerFactory { uri: URI ->
-                    BufferedInputStream(ExcalidrawWebViewController::class.java.getResourceAsStream("/assets" + uri.path))
+                SchemeHandlerFactory { uri ->
+                    val matchingFile = fsMapping.entries.firstOrNull { uri.path.endsWith(it.key) }
+                    val stream = matchingFile?.value?.inputStream
+
+                    if (matchingFile != null) {
+                        fsMapping - matchingFile.key
+                    }
+
+                    BufferedInputStream(
+                        stream ?: ExcalidrawWebViewController::class.java.getResourceAsStream("/assets${uri.path}")
+                    )
                 }
             ).also { successful -> assert(successful) }
         }
@@ -109,7 +121,8 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
                 val message = mapper.readValue<Map<String, String>>(request!!)
                 when (message["type"]) {
-                    "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
+                    "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */
+                    }
 
                     // {"type":"continuous-update","content":"{\n  \"type\": \"excalidraw\",\n  \"version\": 2,\n  \"source\": \"https://excalidraw-plugin\",\n  \"elements\": [\n    {\n      \"id\": \"iXnxxJATdZI9GNSKXAq5o\",\n      \"type\": \"text\",\n      \"x\": 280,\n      \"y\": 180,\n      \"width\": 44,\n      \"height\": 26,\n      \"angle\": 0,\n      \"strokeColor\": \"#000000\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"hachure\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 1,\n      \"opacity\": 100,\n      \"groupIds\": [],\n      \"strokeSharpness\": \"sharp\",\n      \"seed\": 415262735,\n      \"version\": 29,\n      \"versionNonce\": 191228684,\n      \"isDeleted\": false,\n      \"boundElementIds\": null,\n      \"text\": \"Hello\",\n      \"fontSize\": 20,\n      \"fontFamily\": 1,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"baseline\": 18\n    }\n  ],\n  \"appState\": {\n    \"gridSize\": 20,\n    \"viewBackgroundColor\": \"#ffffff\"\n  }\n}"}
                     "continuous-update" -> _excalidrawPayload.set(message["content"]!!)
@@ -219,7 +232,6 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         return _initializedPromise
     }
 
-
     fun loadJsonPayload(jsonPayload: String) {
         _excalidrawPayload.set(null)
 
@@ -227,11 +239,28 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             """
             // Mark as raw String otherwise escape sequence are processed
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#raw_strings
-            var json = JSON.parse(String.raw`$jsonPayload`);
+            let json = JSON.parse(String.raw`$jsonPayload`);
             
             window.postMessage({
                 type: "update",
                 elements: json.elements
+            }, 'https://$pluginDomain')
+            """
+        )
+    }
+
+    fun loadFromFile(file: VirtualFile) {
+        _excalidrawPayload.set(null)
+
+        fsMapping[file.name] = file
+
+        runJS(
+            """
+            // Mark as raw String otherwise escape sequence are processed
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#raw_strings
+            window.postMessage({
+                type: "load-from-file",
+                fileToFetch: String.raw`${file.name}`
             }, 'https://$pluginDomain')
             """
         )
@@ -253,7 +282,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
         runJS(
             """
-            var json = JSON.parse(String.raw`$sceneModesJson`)
+            let json = JSON.parse(String.raw`$sceneModesJson`)
 
             window.postMessage({
                 type: "toggle-scene-modes",
@@ -274,7 +303,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         )
     }
 
-    fun saveAs(imageType: ExcalidrawImageType, saveOptions: SaveOptions?) : AsyncPromise<String> {
+    fun saveAs(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): AsyncPromise<String> {
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
             ExcalidrawImageType.PNG -> "save-as-png"
@@ -290,7 +319,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
         runJS(
             """
-            var json = JSON.parse(String.raw`$saveOptionsJson`)
+            let json = JSON.parse(String.raw`$saveOptionsJson`)
 
             window.postMessage({
                 type: "$msgType",
