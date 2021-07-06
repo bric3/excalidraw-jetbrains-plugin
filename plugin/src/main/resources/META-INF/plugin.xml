@@ -20,10 +20,9 @@
                   fieldName="INSTANCE"
                   language="XML"
                   extensions="excalidraw.svg"/>
-        <fileType name="PNG with embedded Excalidraw metadata"
+        <fileType name="Excalidraw PNG Export"
                   implementationClass="com.github.bric3.excalidraw.files.ExcalidrawPngFileType"
                   fieldName="INSTANCE"
-                  language="Excalidraw"
                   extensions="excalidraw.png"
                   />
         <iconProvider implementation="com.github.bric3.excalidraw.files.ExcalidrawIconProvider"/>
