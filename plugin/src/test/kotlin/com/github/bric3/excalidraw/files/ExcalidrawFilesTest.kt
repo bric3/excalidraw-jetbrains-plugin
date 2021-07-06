@@ -1,6 +1,6 @@
 package com.github.bric3.excalidraw.files
 
-import com.github.bric3.excalidraw.files.ExcalidrawFileUtil.Companion.isExcalidrawFile
+import com.github.bric3.excalidraw.files.ExcalidrawFiles.Companion.isExcalidrawFile
 import com.intellij.testFramework.BinaryLightVirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets
 
 class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     @Test
-//    @Disabled("disabled for now, as long as parsing the binary payload in the embedded json don't work")
     fun should_accept_svg_with_embedded_excalidraw_payload() {
         @Language("xml") val svgFile =
             """

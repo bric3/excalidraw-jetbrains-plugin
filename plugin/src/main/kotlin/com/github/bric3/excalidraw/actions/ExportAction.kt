@@ -1,21 +1,19 @@
 package com.github.bric3.excalidraw.actions
 
 import com.github.bric3.excalidraw.SaveOptions
+import com.github.bric3.excalidraw.asyncWrite
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
-import com.github.bric3.excalidraw.notifyAboutWriteError
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.project.Project
-import java.io.IOException
 
 abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
     private val logger = thisLogger()
@@ -55,24 +53,13 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
             }
 
             excalidrawEditor.viewController.saveAs(type, saveOptions).then { payload ->
-                ApplicationManager.getApplication().invokeLater {
-                    ApplicationManager.getApplication().runWriteAction {
-                        try {
-                            val file = destination.getVirtualFile(true)!!
-
-                            file.getOutputStream(file).use { stream -> with(stream) {
-                                write(convertToByteArray(payload))
-                            } }
-                        } catch (e: IOException) {
-                            notifyAboutWriteError(type, destination.virtualFile, e)
-                        } catch (e: IllegalArgumentException) {
-                            notifyAboutWriteError(type, destination.virtualFile, e)
-                        }
-                    }
-                }
+                asyncWrite({ destination.getVirtualFile(true)!! },
+                           type,
+                           convertToByteArray(payload))
             }
         }
     }
+
 
     protected abstract fun convertToByteArray(payload: String): ByteArray
 

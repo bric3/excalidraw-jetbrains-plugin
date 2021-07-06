@@ -1,8 +1,11 @@
 package com.github.bric3.excalidraw.editor
 
+import com.github.bric3.excalidraw.SaveOptions
+import com.github.bric3.excalidraw.asyncWrite
+import com.github.bric3.excalidraw.files.EXCALIDRAW_IMAGE_TYPE
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
-import com.github.bric3.excalidraw.notifyAboutWriteError
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
+import com.intellij.AppTopics
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -11,8 +14,11 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.colors.EditorColorsListener
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.colors.EditorColorsScheme
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -20,14 +26,19 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.util.ui.UIUtil
 import com.jetbrains.rd.util.lifetime.LifetimeDefinition
 import com.jetbrains.rd.util.reactive.adviseNotNull
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
-import java.io.IOException
+import java.beans.PropertyChangeSupport
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.*
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -56,9 +67,37 @@ class ExcalidrawEditor(
 
     init {
         //subscribe to changes of the theme
-        val settingsConnection = ApplicationManager.getApplication().messageBus.connect(this)
-        settingsConnection.subscribe(EditorColorsManager.TOPIC, this)
-        // TODO listen to settings change, something like: settingsConnection.subscribe(ExcalidrawSettingsChangedListener.TOPIC, this)
+        val busConnection = ApplicationManager.getApplication().messageBus.connect(this)
+        busConnection.subscribe(EditorColorsManager.TOPIC, this)
+        busConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
+            override fun beforeAllDocumentsSaving() {
+                // This is the manual or auto save action of IntelliJ
+                println("before all documents saving") // TODO remove
+                saveEditor()
+            }
+        })
+
+        busConnection.subscribe(
+            FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
+            object : FileEditorManagerListener.Before {
+                override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
+                    println("before closing ${file.name}") // TODO remove
+                }
+            })
+
+        busConnection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
+            override fun after(events: MutableList<out VFileEvent>) {
+                events
+                    .filterIsInstance<VFilePropertyChangeEvent>()
+                    .filter { it.file == file && it.propertyName == "writable" }
+                    .forEach {
+                        viewController.toggleReadOnly(file.isWritable.not())
+                        logger.debug("${it.javaClass.simpleName}: ${it.file.name} writable : ${it.file.isWritable}")
+                    }
+            }
+        })
+
+        // TODO listen to settings change, something like: busConnection.subscribe(ExcalidrawSettingsChangedListener.TOPIC, this)
 
         initViewIfSupported().also {
             toolbarAndWebView = object : JPanel(BorderLayout()) {
@@ -126,40 +165,77 @@ class ExcalidrawEditor(
                     propertyChangeSupport.firePropertyChange(FileEditor.PROP_MODIFIED, false, true)
                 }
             }
-            val (type, b) = when {
-                file.name.endsWith(".svg") -> {
-                    TODO("Continuous saving to SVG is not yet supported")
-//                    view.saveAsSvg().then{ data: String ->
-//                        file.setBinaryContent(data.toByteArray(charset("utf-8"))
+//            val (type, b) = when {
+//                file.name.endsWith(".svg") -> {
+//                    TODO("Continuous saving to SVG is not yet supported")
+////                    view.saveAsSvg().then{ data: String ->
+////                        file.setBinaryContent(data.toByteArray(charset("utf-8"))
+////                    }
+//                }
+//                file.name.endsWith(".png") -> {
+//                    TODO("Continuous saving to PNG is not yet supported")
+////                    view.saveAsPng().then { data: ByteArray ->
+////                        file.setBinaryContent(data)
+////                    }
+//                }
+//                else -> {
+//                    Pair(
+//                        ExcalidrawImageType.EXCALIDRAW,
+//                        content.toByteArray(UTF_8)
+//                    )
+//                }
+//            }
+
+            // replaced by IntelliJ's auto-save feature
+//            ApplicationManager.getApplication().invokeLater {
+//                ApplicationManager.getApplication().runWriteAction {
+//                    try {
+//                        file.getOutputStream(file).use { stream ->
+//                            with(stream) {
+//                                write(b)
+//                            }
+//                        }
+//                    } catch (e: IOException) {
+//                        notifyAboutWriteError(type, file, e)
+//                    } catch (e: IllegalArgumentException) {
+//                        notifyAboutWriteError(type, file, e)
 //                    }
-                }
-                file.name.endsWith(".png") -> {
-                    TODO("Continuous saving to PNG is not yet supported")
-//                    view.saveAsPng().then { data: ByteArray ->
-//                        file.setBinaryContent(data)
-//                    }
-                }
-                else -> {
-                    Pair(ExcalidrawImageType.EXCALIDRAW,
-                         content.toByteArray(UTF_8))
-                }
-            }
-            ApplicationManager.getApplication().invokeLater {
-                ApplicationManager.getApplication().runWriteAction {
-                    try {
-                        file.getOutputStream(file).use { stream ->
-                            with(stream) {
-                                write(b)
-                            }
-                        }
-                    } catch (e: IOException) {
-                        notifyAboutWriteError(type, file, e)
-                    } catch (e: IllegalArgumentException) {
-                        notifyAboutWriteError(type, file, e)
-                    }
-                }
-            }
+//                }
+//            }
         }
+    }
+
+    private fun saveEditor() {
+        if (!file.isWritable) {
+            logger.debug("bailing out save, file non writable")
+            return
+        }
+        logger.debug("starts saving editor")
+        val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()
+        val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
+            ?: throw IllegalStateException("Excalidraw should have been identified")
+        
+        viewController.saveAs(type, saveOptions).then { payload ->
+            logger.debug("Got payload")
+            val byteArrayPayload = when (type) {
+                ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> payload.toByteArray(UTF_8)
+                ExcalidrawImageType.PNG -> Base64.getDecoder().decode(payload.substringAfter("data:image/png;base64,"))
+            }
+            asyncWrite(
+                { file },
+                type,
+                byteArrayPayload
+            )
+        }.then {
+            modified = false
+            logger.debug("File ${file.name} saved")
+        }
+
+//        runBlocking {
+//            withTimeout(1000) {
+//                promise.await()
+//            }
+//        }
     }
 
     @Override
@@ -187,11 +263,21 @@ class ExcalidrawEditor(
     }
 
     override fun addPropertyChangeListener(listener: PropertyChangeListener) {
+        println("addPropertyChangeListener")
         propertyChangeSupport.addPropertyChangeListener(listener)
     }
 
     override fun removePropertyChangeListener(listener: PropertyChangeListener) {
+        println("removePropertyChangeListener")
         propertyChangeSupport.removePropertyChangeListener(listener)
+    }
+
+    override fun deselectNotify() {
+        // if closing the editor it's preceded by
+        // com.intellij.openapi.fileEditor.FileEditorManagerListener.Before.beforeFileClosed
+        // changing (and current editor gets deselected) editor triggers
+        println("deselectNotify")
+        saveEditor()
     }
 
     override fun getCurrentLocation(): FileEditorLocation? {

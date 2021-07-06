@@ -250,6 +250,7 @@ class ExcalidrawApiBridge {
                 this.dispatchToPlugin({
                     type: "json-content",
                     json: this.saveAsJson(),
+                    correlationId: message.correlationId ?? null
                 });
                 break;
             }

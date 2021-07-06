@@ -110,7 +110,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
                 callback: CefQueryCallback?
             ): Boolean {
                 if (logger.isDebugEnabled) {
-                    logger.debug("lifetime: ${lifetime.isAlive}, request: $request")
+                    logger.debug("lifetime alive: ${lifetime.isAlive}, request: $request")
                 }
 
                 if (!lifetime.isAlive) {
@@ -121,15 +121,13 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
                 val message = mapper.readValue<Map<String, String>>(request!!)
                 when (message["type"]) {
-                    "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */
-                    }
+                    "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
 
-                    // {"type":"continuous-update","content":"{\n  \"type\": \"excalidraw\",\n  \"version\": 2,\n  \"source\": \"https://excalidraw-plugin\",\n  \"elements\": [\n    {\n      \"id\": \"iXnxxJATdZI9GNSKXAq5o\",\n      \"type\": \"text\",\n      \"x\": 280,\n      \"y\": 180,\n      \"width\": 44,\n      \"height\": 26,\n      \"angle\": 0,\n      \"strokeColor\": \"#000000\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"hachure\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 1,\n      \"opacity\": 100,\n      \"groupIds\": [],\n      \"strokeSharpness\": \"sharp\",\n      \"seed\": 415262735,\n      \"version\": 29,\n      \"versionNonce\": 191228684,\n      \"isDeleted\": false,\n      \"boundElementIds\": null,\n      \"text\": \"Hello\",\n      \"fontSize\": 20,\n      \"fontFamily\": 1,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"baseline\": 18\n    }\n  ],\n  \"appState\": {\n    \"gridSize\": 20,\n    \"viewBackgroundColor\": \"#ffffff\"\n  }\n}"}
                     "continuous-update" -> _excalidrawPayload.set(message["content"]!!)
-                    // {"type":"json-content","json":"{\n  \"type\": \"excalidraw\",\n  \"version\": 2,\n  \"source\": \"https://excalidraw-plugin\",\n  \"elements\": [\n    {\n      \"id\": \"iXnxxJATdZI9GNSKXAq5o\",\n      \"type\": \"text\",\n      \"x\": 280,\n      \"y\": 180,\n      \"width\": 44,\n      \"height\": 26,\n      \"angle\": 0,\n      \"strokeColor\": \"#000000\",\n      \"backgroundColor\": \"transparent\",\n      \"fillStyle\": \"hachure\",\n      \"strokeWidth\": 1,\n      \"strokeStyle\": \"solid\",\n      \"roughness\": 1,\n      \"opacity\": 100,\n      \"groupIds\": [],\n      \"strokeSharpness\": \"sharp\",\n      \"seed\": 415262735,\n      \"version\": 29,\n      \"versionNonce\": 191228684,\n      \"isDeleted\": false,\n      \"boundElementIds\": null,\n      \"text\": \"Hello\",\n      \"fontSize\": 20,\n      \"fontFamily\": 1,\n      \"textAlign\": \"left\",\n      \"verticalAlign\": \"top\",\n      \"baseline\": 18\n    }\n  ],\n  \"appState\": {\n    \"gridSize\": 20,\n    \"viewBackgroundColor\": \"#ffffff\"\n  }\n}"}
-                    "json-content" -> _excalidrawPayload.set(message["json"]!!)
-
-                    // {"type":"svg-content","svg":"<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 46\" width=\"64\" height=\"46\">\n  <!-- svg-source:excalidraw -->\n  \n  <defs>\n    <style>\n      @font-face {\n        font-family: \"Virgil\";\n        src: url(\"https://excalidraw.com/Virgil.woff2\");\n      }\n      @font-face {\n        font-family: \"Cascadia\";\n        src: url(\"https://excalidraw.com/Cascadia.woff2\");\n      }\n    </style>\n  </defs>\n  <rect x=\"0\" y=\"0\" width=\"64\" height=\"46\" fill=\"#ffffff\"></rect><g transform=\"translate(10 10) rotate(0 22 13)\"><text x=\"0\" y=\"18\" font-family=\"Virgil, Segoe UI Emoji\" font-size=\"20px\" fill=\"#000000\" text-anchor=\"start\" style=\"white-space: pre;\" direction=\"ltr\">Hello</text></g></svg>"}
+                    "json-content" -> {
+                        val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
+                        promise?.setResult(message["json"])
+                    }
                     "svg-content" -> {
                         val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
                         promise?.setResult(message["svg"])
@@ -147,6 +145,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             messageRouter.addHandler(routerHandler, true)
             jcefPanel.browser.jbCefClient.cefClient.addMessageRouter(messageRouter)
             lifetime.onTermination {
+                logger.debug("removing message router")
                 jcefPanel.browser.jbCefClient.cefClient.removeMessageRouter(messageRouter)
                 messageRouter.dispose()
             }
@@ -239,7 +238,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             """
             // Mark as raw String otherwise escape sequence are processed
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#raw_strings
-            let json = JSON.parse(String.raw`$jsonPayload`);
+            var json = JSON.parse(String.raw`$jsonPayload`);
             
             window.postMessage({
                 type: "update",
@@ -282,7 +281,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
         runJS(
             """
-            let json = JSON.parse(String.raw`$sceneModesJson`)
+            var json = JSON.parse(String.raw`$sceneModesJson`)
 
             window.postMessage({
                 type: "toggle-scene-modes",
@@ -316,10 +315,11 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         val correlationId = UUID.randomUUID().toString()
         val payloadPromise = AsyncPromise<String>()
         correlatedResponseMap[correlationId] = payloadPromise
+        logger.debug("notify excalidraw to save content as $imageType, correlation-id: $correlationId")
 
         runJS(
             """
-            let json = JSON.parse(String.raw`$saveOptionsJson`)
+            var json = JSON.parse(String.raw`$saveOptionsJson`)
 
             window.postMessage({
                 type: "$msgType",

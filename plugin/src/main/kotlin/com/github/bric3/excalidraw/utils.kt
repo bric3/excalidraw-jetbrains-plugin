@@ -6,9 +6,12 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.workspaceModel.storage.impl.EntityStorageSerializerImpl.Companion.logger
+import org.jetbrains.concurrency.AsyncPromise
+import java.io.IOException
 
 /**
  * Return a matching editor.
@@ -44,3 +47,35 @@ fun notifyAboutWriteError(
         )
     )
 }
+
+fun asyncWrite(
+    destination: () -> VirtualFile,
+    type: ExcalidrawImageType,
+    byteArrayPayload: ByteArray
+): AsyncPromise<Boolean> {
+    val writeDone = AsyncPromise<Boolean>()
+    ApplicationManager.getApplication().invokeLater {
+        ApplicationManager.getApplication().runWriteAction {
+            val file = destination.invoke()
+            try {
+                file.getOutputStream(file).use { stream ->
+                    with(stream) {
+                        write(byteArrayPayload)
+                    }
+                }
+                writeDone.setResult(true)
+            } catch (e: IOException) {
+                writeDone.setError(e)
+                notifyAboutWriteError(type, file, e)
+            } catch (e: IllegalArgumentException) {
+                writeDone.setError(e)
+                notifyAboutWriteError(type, file, e)
+            }
+        }
+    }
+    return writeDone
+}
+
+val debugMode = ProcessHandle.current().info().arguments().map {
+    it.any { it.contains("-agentlib:jdwp") }
+}.orElse(false)!!

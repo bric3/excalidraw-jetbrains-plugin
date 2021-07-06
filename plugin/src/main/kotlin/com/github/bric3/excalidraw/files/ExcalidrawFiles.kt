@@ -20,11 +20,11 @@ import javax.xml.stream.events.Comment
 import javax.xml.stream.events.XMLEvent
 
 
-class ExcalidrawFileUtil private constructor() {
+class ExcalidrawFiles private constructor() {
     companion object {
         val EXCALIDRAW_EMBEDDED_SCENE = Key<ByteArray>("application/vnd.excalidraw+json")
 
-        private val logger = logger<ExcalidrawFileUtil>()
+        private val logger = logger<ExcalidrawFiles>()
         
         private val mapper = jacksonObjectMapper().apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -37,34 +37,38 @@ class ExcalidrawFileUtil private constructor() {
                 file.isDirectory || !file.exists() -> false
 
                 // To be aligned with plugin.xml
-                arrayOf(".excalidraw", ".excalidraw.json").any { ext -> file.name.endsWith(ext) } -> true
+                arrayOf(".excalidraw", ".excalidraw.json").any { ext -> file.name.endsWith(ext) } -> {
+                    file.putUserDataIfAbsent(EXCALIDRAW_IMAGE_TYPE, ExcalidrawImageType.EXCALIDRAW)
+                    true
+                }
 
                 // check if SVG file has a comment with 'payload-type:application/vnd.excalidraw+json'
                 file.name.endsWith(".svg") -> {
+                    file.putUserDataIfAbsent(EXCALIDRAW_IMAGE_TYPE, ExcalidrawImageType.SVG)
                     svgHasEmbeddedScene(file)
                 }
 
                 // check if PNG file has a tEXt chunk with keyword 'application/vnd.excalidraw+json'
                 file.name.endsWith("png") -> {
+                    file.putUserDataIfAbsent(EXCALIDRAW_IMAGE_TYPE, ExcalidrawImageType.PNG)
                     pngHasEmbeddedScene(file)
                 }
 
 
                 // check if json file is an excalidraw document
                 file.name.endsWith(".json") -> {
-                    file.inputStream.use {
+                    file.inputStream.bufferedReader(StandardCharsets.UTF_8).use {
                         try {
                             val excalidraw = mapper.readValue<Map<String, Any>>(it)
-                            if (excalidraw["type"] as String? != "excalidraw") {
-                                return false
+                            if (excalidraw["type"] as String? == "excalidraw") {
+                                file.putUserDataIfAbsent(EXCALIDRAW_IMAGE_TYPE, ExcalidrawImageType.EXCALIDRAW)
+                                // Excalidraw can handle malformed document eg missing "version", "elements", "appState"
+                                return@use true
                             }
-
-                            // Excalidraw can handle malformed document eg missing "version", "elements", "appState"
-                            true
-                        } catch (e: IOException) {
-                            false
+                        } catch (ioe: IOException) {
+                            logger.warn("Couldn't read $file", ioe)
                         }
-
+                        false
                     }
                 }
 

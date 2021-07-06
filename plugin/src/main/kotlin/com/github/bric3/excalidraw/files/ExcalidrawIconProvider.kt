@@ -13,7 +13,7 @@ import javax.swing.Icon
 class ExcalidrawIconProvider : DumbAware, IconProvider() {
     override fun getIcon(element: PsiElement, flags: Int): Icon? {
         if (element is PsiFile) {
-            if (ExcalidrawFileUtil.isExcalidrawFile(element.virtualFile)) {
+            if (ExcalidrawFiles.isExcalidrawFile(element.virtualFile)) {
                 return ExcalidrawIcons.ExcalidrawFileIcon
             }
         }
