@@ -51,6 +51,8 @@ class ExcalidrawEditor(
     private val jcefUnsupported by lazy { JCEFUnsupportedViewPanel() }
     private val actionPanel = ExcalidrawActionPanel()
     private val toolbarAndWebView: JPanel
+    private val propertyChangeSupport = PropertyChangeSupport(this)
+    @Volatile private var modified = false
 
     init {
         //subscribe to changes of the theme
@@ -118,6 +120,12 @@ class ExcalidrawEditor(
             if (!file.isWritable) {
                 return@adviseNotNull
             }
+            modified = true
+            ApplicationManager.getApplication().invokeLater {
+                ApplicationManager.getApplication().runWriteAction {
+                    propertyChangeSupport.firePropertyChange(FileEditor.PROP_MODIFIED, false, true)
+                }
+            }
             val (type, b) = when {
                 file.name.endsWith(".svg") -> {
                     TODO("Continuous saving to SVG is not yet supported")
@@ -171,7 +179,7 @@ class ExcalidrawEditor(
     }
 
     override fun isModified(): Boolean {
-        return false
+        return modified
     }
 
     override fun isValid(): Boolean {
@@ -179,9 +187,11 @@ class ExcalidrawEditor(
     }
 
     override fun addPropertyChangeListener(listener: PropertyChangeListener) {
+        propertyChangeSupport.addPropertyChangeListener(listener)
     }
 
     override fun removePropertyChangeListener(listener: PropertyChangeListener) {
+        propertyChangeSupport.removePropertyChangeListener(listener)
     }
 
     override fun getCurrentLocation(): FileEditorLocation? {
