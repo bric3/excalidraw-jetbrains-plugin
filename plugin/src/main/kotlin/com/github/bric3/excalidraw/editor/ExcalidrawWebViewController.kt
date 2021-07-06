@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.SceneModes
+import com.github.bric3.excalidraw.debugMode
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.vfs.VirtualFile
@@ -81,7 +82,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
     val jcefPanel = LoadableJCEFHtmlPanel(
         url = pluginUrl,
-        openDevtools = false
+        openDevtools = debugMode
     )
     val component = jcefPanel.component
 

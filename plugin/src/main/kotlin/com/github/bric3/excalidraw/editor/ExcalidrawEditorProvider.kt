@@ -4,6 +4,7 @@ import com.github.bric3.excalidraw.files.ExcalidrawFiles
 import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
+import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -15,6 +16,12 @@ class ExcalidrawEditorProvider : AsyncFileEditorProvider, DumbAware {
     override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
     override fun createEditorAsync(project: Project, file: VirtualFile): AsyncFileEditorProvider.Builder =
         object : AsyncFileEditorProvider.Builder() {
-            override fun build(): FileEditor = ExcalidrawEditor(project, file)
+            override fun build(): FileEditor {
+                if (NonProjectFileWritingAccessProvider.isWriteAccessAllowed(file, project)) {
+                    NonProjectFileWritingAccessProvider.allowWriting(listOf(file))
+                }
+
+                return ExcalidrawEditor(project, file)
+            }
         }
 }
