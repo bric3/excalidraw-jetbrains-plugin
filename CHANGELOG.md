@@ -3,6 +3,7 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+## [0.3.0-eap] - 2021-08-11
 ### Added
 - SVG and PNG exports are now saved with an embedded scene (always on) ([#11](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/11))
 - SVG and PNG files an embedded scene are recognized and can be loaded in the editor ([#12](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/12))
