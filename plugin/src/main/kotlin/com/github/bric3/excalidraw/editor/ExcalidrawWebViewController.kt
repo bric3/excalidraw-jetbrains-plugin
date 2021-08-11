@@ -8,6 +8,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.debugMode
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
+import com.github.bric3.excalidraw.logWithThread
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.rd.util.lifetime.Lifetime
@@ -16,6 +17,8 @@ import com.jetbrains.rd.util.lifetime.isAlive
 import com.jetbrains.rd.util.lifetime.onTermination
 import com.jetbrains.rd.util.reactive.IPropertyView
 import com.jetbrains.rd.util.reactive.Property
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import org.cef.CefApp
 import org.cef.CefSettings
 import org.cef.CefSettings.LogSeverity.LOGSEVERITY_ERROR
@@ -86,7 +89,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
     )
     val component = jcefPanel.component
 
-    private val correlatedResponseMap = ConcurrentHashMap<String, AsyncPromise<String>>()
+    private val correlatedResponseMapChannel = ConcurrentHashMap<String, Channel<String>>()
 
     init {
         initJcefPanel()
@@ -110,6 +113,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
                 persistent: Boolean,
                 callback: CefQueryCallback?
             ): Boolean {
+                logWithThread("CefMessageRouterHandlerAdapter::onQuery")
                 if (logger.isDebugEnabled) {
                     logger.debug("lifetime alive: ${lifetime.isAlive}, request: $request")
                 }
@@ -126,18 +130,25 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
                     "continuous-update" -> _excalidrawPayload.set(message["content"]!!)
                     "json-content" -> {
-                        val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
-                        promise?.setResult(message["json"])
+                        val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
+                        runBlocking {
+                            channel?.send(message["json"]!!)
+                        }
+
                     }
                     "svg-content" -> {
-                        val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
-                        promise?.setResult(message["svg"])
+                        val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
+                        runBlocking {
+                            channel?.send(message["svg"]!!)
+                        }
                     }
                     "png-base64-content" -> {
-                        val promise = correlatedResponseMap.remove(message["correlationId"] ?: "")
-                        promise?.setResult(message["png"])
+                        val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
+                        runBlocking {
+                            channel?.send(message["png"]!!)
+                        }
                     }
-                    else -> println("Unrecognized message request from excalidraw : $request")
+                    else -> logger.error("Unrecognized message request from excalidraw : $request")
                 }
 
                 return true
@@ -163,7 +174,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
                 frame?.executeJavaScript(
                     """
-                    window.EXCALIDRAW_ASSET_PATH = "/"; // loads assets from plugin
+                    window.EXCALIDRAW_ASSET_PATH = "/"; // loads excalidraw assets from plugin (instead of CDN)
                     
                     window.initialData = {
                         "theme": "$uiTheme",
@@ -303,7 +314,9 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         )
     }
 
-    fun saveAs(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): AsyncPromise<String> {
+    suspend fun saveAsCoroutines(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): String {
+        logWithThread("ExcalidrawWebViewController::saveAsCoroutines")
+
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
             ExcalidrawImageType.PNG -> "save-as-png"
@@ -312,10 +325,9 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
         val saveOptionsJson = mapper.writeValueAsString(saveOptions)
 
-
         val correlationId = UUID.randomUUID().toString()
-        val payloadPromise = AsyncPromise<String>()
-        correlatedResponseMap[correlationId] = payloadPromise
+        val channel = Channel<String>()
+        correlatedResponseMapChannel[correlationId] = channel
         logger.debug("notify excalidraw to save content as $imageType, correlation-id: $correlationId")
 
         runJS(
@@ -330,7 +342,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
             """
         )
 
-        return payloadPromise
+        return channel.receive()
     }
 
     private fun runJS(@Language("JavaScript") js: String) {

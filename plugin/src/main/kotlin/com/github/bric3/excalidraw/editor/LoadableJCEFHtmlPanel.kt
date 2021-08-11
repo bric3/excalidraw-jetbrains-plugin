@@ -1,5 +1,6 @@
 package com.github.bric3.excalidraw.editor
 
+import com.github.bric3.excalidraw.logWithThread
 import com.intellij.CommonBundle
 import com.intellij.ide.plugins.MultiPanel
 import com.intellij.openapi.Disposable
@@ -91,6 +92,7 @@ class LoadableJCEFHtmlPanel(
     }
 
     override fun dispose() {
+        logWithThread("LoadableJCEFHtmlPanel::dispose")
         alarm.dispose()
     }
 

@@ -173,7 +173,8 @@ class ExcalidrawApiBridge {
                 fetch('/fs/' + fileToFetch)
                     .then(response => response.blob())
                     .then(async image => {
-                        // TODO continuous saving disabled for now, eventually reenable
+                        // TODO continuous saving disabled for now,
+                        // as the plugin uses IntelliJ's auto-saving mechanism instead.
                         this.continuousSavingEnabled = false
 
                         switch (image.type) {

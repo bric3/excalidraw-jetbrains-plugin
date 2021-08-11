@@ -56,6 +56,7 @@ fun asyncWrite(
     val writeDone = AsyncPromise<Boolean>()
     ApplicationManager.getApplication().invokeLater {
         ApplicationManager.getApplication().runWriteAction {
+            logWithThread("utils::asyncWrite")
             val file = destination.invoke()
             try {
                 file.getOutputStream(file).use { stream ->
@@ -75,6 +76,13 @@ fun asyncWrite(
     }
     return writeDone
 }
+
+fun logWithThread(message: String) {
+    if (debugMode) {
+        println(Thread.currentThread().name + "(" + Thread.currentThread().id + "): " + message)
+    }
+}
+
 
 val debugMode = ProcessHandle.current().info().arguments().map {
     it.any { it.contains("-agentlib:jdwp") }

@@ -4,13 +4,16 @@
 
 ## [Unreleased]
 ### Added
-- SVG and PNG exports are now saved with an embedded scene (always on) (#11)
+- SVG and PNG exports are now saved with an embedded scene (always on) ([#11](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/11))
+- SVG and PNG files an embedded scene are recognized and can be loaded in the editor ([#12](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/12))
+- Modified excalidraw files marker if _Mark Modified (*)_ is ticked (in _Preferences | Editor | General | Editor Tabs_)
 
 ### Changed
 - The Excalidraw webapp is now written in typescript
 - The Excalidraw webapp now inline sourcemaps to enable 
-  debugging within the JCEF DevTools, this was impossible due to a bug in chrominium
+  debugging within the JCEF DevTools, this was impossible due to a bug in chromium
   (see [#7](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/7))
+- Refactored how editor are auto-saved, now using IntelliJ's built-in mechanism.
 
 ## [0.2.0-eap] - 2021-07-01
 ### Added
