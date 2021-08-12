@@ -1,5 +1,4 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import org.jetbrains.changelog.closure
 import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -8,9 +7,9 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.5.20"
-    id("org.jetbrains.intellij") version "1.1.2"
-    id("org.jetbrains.changelog") version "1.1.2"
+    id("org.jetbrains.kotlin.jvm") version "1.5.21"
+    id("org.jetbrains.intellij") version "1.1.4"
+    id("org.jetbrains.changelog") version "1.2.1"
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     id("com.github.ben-manes.versions") version "0.39.0"
 }
@@ -18,7 +17,6 @@ plugins {
 group = properties("pluginGroup")
 version = properties("pluginVersion")
 
-// Configure project's dependencies
 repositories {
     mavenCentral()
 }
@@ -28,7 +26,6 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.20.2")
 }
 
-// Configure gradle-intellij-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
     pluginName.set(properties("pluginName"))
@@ -41,17 +38,16 @@ intellij {
     plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
 }
 
-// Configure gradle-changelog-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
-    version = properties("pluginVersion")
-    path = "${rootProject.projectDir}/CHANGELOG.md"
-    header = closure { "[$version] - ${date()}" }
-    itemPrefix = "-"
-    keepUnreleasedSection = true
-    unreleasedTerm = "[Unreleased]"
-    groups = emptyList()
-//    groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security")
+    version.set(properties("pluginVersion"))
+    path.set("${rootProject.projectDir}/CHANGELOG.md")
+    header.set(provider { "[${version.get()}] - ${date()}" })
+    itemPrefix.set("-")
+    keepUnreleasedSection.set(true)
+    unreleasedTerm.set("[Unreleased]")
+    groups.set(emptyList())
+//    groups.set(listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"))
 }
 
 tasks {
