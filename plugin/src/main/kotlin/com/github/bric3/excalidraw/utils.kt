@@ -7,11 +7,18 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.workspaceModel.storage.impl.EntityStorageSerializerImpl.Companion.logger
 import org.jetbrains.concurrency.AsyncPromise
 import java.io.IOException
+
+val logger = Logger.getInstance("com.github.bric3.excalidraw.utils")
+
+val debugMode = ProcessHandle.current().info().arguments().map {
+    it.any { it.contains("-agentlib:jdwp") }
+}.orElse(false)!!
+
 
 /**
  * Return a matching editor.
@@ -82,8 +89,3 @@ fun logWithThread(message: String) {
         println(Thread.currentThread().name + "(" + Thread.currentThread().id + "): " + message)
     }
 }
-
-
-val debugMode = ProcessHandle.current().info().arguments().map {
-    it.any { it.contains("-agentlib:jdwp") }
-}.orElse(false)!!
