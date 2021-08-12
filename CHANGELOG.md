@@ -3,6 +3,7 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+## [0.3.1-eap] - 2021-08-12
 ### Fixed
 - Fixed compatibility issue with 2021.1.x
 
