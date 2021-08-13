@@ -1,5 +1,13 @@
 package com.github.bric3.excalidraw.files
 
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.bric3.excalidraw.files.ExcalidrawFiles.Companion.isExcalidrawFile
 import com.intellij.testFramework.BinaryLightVirtualFile
 import com.intellij.testFramework.LightVirtualFile
@@ -7,7 +15,11 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.util.*
 
 class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     @Test
@@ -156,6 +168,59 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     fun should_not_accept_malformed_json_file() {
         val malformedJson = """ { "malformed_json: "whatever" }"""
         assertThat(isExcalidrawFile(virtualFile("malformed.json", malformedJson))).isFalse
+    }
+
+    @Test
+    internal fun should_decode_excalidraw_payload() {
+        // Create mapper, add deserializer etc; then create parser
+        val base64Payload = "eyJ2ZXJzaW9uIjoiMSIsImVuY29kaW5nIjoiYnN0cmluZyIsImNvbXByZXNzZWQiOnRydWUsImVuY29kZWQiOiJ4nGVSyU7DMFx1MDAxML3zXHUwMDE1kbmyJCVd4FbKKiQkVCEkXHUwMDEwXHUwMDA3k0xcdTAwMTOLqW3ZXHUwMDEz2oL4d2ynxKH4YGnebG/ezNdekjDaaGBnXHSDdcFRlIav2IHHP8BYoaRzXHKCbVVjilx1MDAxMFlcdTAwMTNpe3Z8XHUwMDFjM45cbrVss1x1MDAwMGFcdJKsi3txdpJ8hd95ROlz76aj6+dy+Fx1MDAwNlx1MDAwZlirw1x1MDAxM13cPTazkFx1MDAxYYJ+yVx1MDAxMKwpomtcdTAwMDeN01Fnb5ydXHKzzl6JkmqH5XlcdTAwMDfVIKqaPPmYxmWFvnraIZaMeoeZQmV81/00vNj4jVx1MDAxN++VUY0su1x1MDAxODJcXFrNjVx1MDAxYjLGLVx1MDAwNOKcNtjKw4u6McB2ujxtSWY7eJdnlVx1MDAxMzNmubZVLcHaPzlK80JQXHUwMDEwII1zeI76tlxmqr/u1q+50ds6zHqjx1xmwG9lPFx1MDAxOI5O8skgXHUwMDE2jMtcdTAwMWbvYvdKhjPITvM8XHUwMDFi5JM0ii7shds/hZpcdTAwMGKOXHUwMDE2opBew8v2NlqeskGMa/frdvRuXHUwMDAwUfVkVZLm4tN363Hz6Fx1MDAxNV9cbtz8UcbXmKKoPGmGsOitxzEn4W61c5PS/SVbQCHDTJNcdTAwMDB+uz/IyLjWc+Lkfe0hO6lFueVcdTAwMTRHYFx1MDAxZlx1MDAwMlbn/49lf1x1MDAxMVx1MDAxZdvzNb9/XHUwMDAw4FnnXG4ifQ=="
+
+        val mapper = jacksonObjectMapper().apply {
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
+        val jsonFactory = JsonFactory.builder().build()
+        val parser = jsonFactory.createParser(
+            InputStreamReader(
+                ByteArrayInputStream(
+                    Base64.getDecoder().decode(base64Payload)
+                ), "ISO-8859-1"
+            )
+        )
+        val v = mapper.readValue<EncodedPayload>(parser)
+        println(
+            """
+            {
+                version: ${v.version},
+                encoding: ${v.encoding},
+                compressed: ${v.compressed},
+                encoded: ${v.encoded}
+            }
+            """.trimIndent())
+
+
+        println(String(v.encoded, Charset.forName("UTF-16")))
+    }
+
+    data class EncodedPayload(
+        val version: String?,
+        val encoding: String,
+        val compressed: Boolean,
+        @JsonDeserialize(using = ByteStringDeserializer::class)
+        val encoded: ByteArray
+    )
+
+    class ByteStringDeserializer : JsonDeserializer<ByteArray?>() {
+        override fun deserialize(jp: JsonParser, dc: DeserializationContext): ByteArray? {
+            val value = jp.text
+
+            // val bytes = value.toByteArray(Charset.forName("ISO-8859-1"))
+            val bytes = ByteArray(value.length)
+            for(i in value.indices) {
+                bytes[i] = value[i].toByte()
+            }
+
+            return bytes
+        }
     }
 
     private fun virtualFile(fileName: String, content: String): LightVirtualFile =
