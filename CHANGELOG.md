@@ -3,6 +3,10 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+## [0.3.2-eap] - 2021-08-12
+### Fixed
+- Incorrect editor selected in split panes ([#11](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/13))
+
 ## [0.3.1-eap] - 2021-08-12
 ### Fixed
 - Fixed compatibility issue with 2021.1.x

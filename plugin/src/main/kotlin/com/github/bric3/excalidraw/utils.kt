@@ -6,10 +6,12 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import org.jetbrains.concurrency.AsyncPromise
 import java.io.IOException
 
@@ -29,7 +31,12 @@ val debugMode = ProcessHandle.current().info().arguments().map {
  */
 fun AnActionEvent.findEditor(): ExcalidrawEditor? {
     val project = this.project ?: return null
-    return FileEditorManager.getInstance(project).selectedEditor as? ExcalidrawEditor ?: return null
+    val psiFile = (this.dataContext.getData(CommonDataKeys.PSI_FILE) as PsiFile)
+    val editor = FileEditorManager.getInstance(project).selectedEditors.find {
+        psiFile.virtualFile.equals(it.file)
+    }
+
+    return editor as? ExcalidrawEditor ?: return null
 }
 
 
