@@ -3,6 +3,8 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+
+## [0.3.2] - 2021-09-14
 ### New
 - This version is the first public release of the excalidraw integration.
   
@@ -13,8 +15,6 @@
   Contributions are welcome: Excalidraw library support, plugin settings, switch 
   to [excalidraw.com](https://excalidraw.com) (thus enabling collaboration), etc.
   Please check out the [project](https://github.com/bric3/excalidraw-jetbrains-plugin).
-
-  
 
 ## [0.3.2-eap] - 2021-09-11
 ### Fixed
@@ -49,4 +49,4 @@
 ## [0.1.0-eap] - 2021-06-25
 ### Added
 - Initial support of Excalidraw integration in JetBrains IDEs :
-  create, open (with autosave) `.excalidraw` (json) files. 
+  create, open (with autosave) `.excalidraw` (json) files.
