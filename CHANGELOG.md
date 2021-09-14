@@ -3,7 +3,20 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
-## [0.3.2-eap] - 2021-08-12
+### New
+- This version is the first public release of the excalidraw integration.
+  
+  This version supports the edition of `.excalidraw`, and embedded excalidraw
+  in `svg` and `png` image files. This plugin is engineered to be able to work 
+  offline, consequently online collaboration is not supported.
+  
+  Contributions are welcome: Excalidraw library support, plugin settings, switch 
+  to [excalidraw.com](https://excalidraw.com) (thus enabling collaboration), etc.
+  Please check out the [project](https://github.com/bric3/excalidraw-jetbrains-plugin).
+
+  
+
+## [0.3.2-eap] - 2021-09-11
 ### Fixed
 - Incorrect editor selected in split panes ([#11](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/13))
 
