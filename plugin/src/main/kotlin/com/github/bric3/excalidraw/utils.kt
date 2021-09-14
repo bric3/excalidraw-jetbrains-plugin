@@ -31,7 +31,7 @@ val debugMode = ProcessHandle.current().info().arguments().map {
  */
 fun AnActionEvent.findEditor(): ExcalidrawEditor? {
     val project = this.project ?: return null
-    val psiFile = (this.dataContext.getData(CommonDataKeys.PSI_FILE) as PsiFile)
+    val psiFile = this.dataContext.getData(CommonDataKeys.PSI_FILE) ?: return null
     val editor = FileEditorManager.getInstance(project).selectedEditors.find {
         psiFile.virtualFile.equals(it.file)
     }
