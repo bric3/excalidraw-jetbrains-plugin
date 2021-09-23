@@ -6,7 +6,7 @@
 .Install from EAP repository
 . Open _Settings (or Preferences)_ then _Plugins | ⚙️_
 . Select _Manage Plugin Repositories..._
-. Enter `https://plugins.jetbrains.com/plugins/list?channel=eap&pluginId=17096`
+. Enter `https://plugins.jetbrains.com/plugins/eap/list?pluginId=17096`
 
 .Install EAP from disk
 .Download the EAP from the https://github.com/bric3/excalidraw-jetbrains-plugin/releases[plugin release page].
