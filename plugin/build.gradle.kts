@@ -8,7 +8,7 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.5.30"
-    id("org.jetbrains.intellij") version "1.1.6"
+    id("org.jetbrains.intellij") version "1.3.1"
     id("org.jetbrains.changelog") version "1.3.0"
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     id("com.github.ben-manes.versions") version "0.39.0"
