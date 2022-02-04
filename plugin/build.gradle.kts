@@ -10,7 +10,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.5.30"
     id("org.jetbrains.intellij") version "1.3.1"
     id("org.jetbrains.changelog") version "1.3.1"
-    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
     id("com.github.ben-manes.versions") version "0.42.0"
 }
 
