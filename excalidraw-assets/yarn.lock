@@ -1795,9 +1795,9 @@
   resolved "https://registry.npmjs.org/@types/normalize-package-data/-/normalize-package-data-2.4.0.tgz"
   integrity sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
 
-"@types/pako@^1.0.1":
+"@types/pako@1.0.1":
   version "1.0.1"
-  resolved "https://registry.npmjs.org/@types/pako/-/pako-1.0.1.tgz"
+  resolved "https://registry.yarnpkg.com/@types/pako/-/pako-1.0.1.tgz#33b237f3c9aff44d0f82fe63acffa4a365ef4a61"
   integrity sha512-GdZbRSJ3Cv5fiwT6I0SQ3ckeN2PWNqxd26W9Z2fCK1tGrrasGy4puvNFtnddqH9UJFMQYXxEuuB7B8UK+LLwSg==
 
 "@types/parse-json@^4.0.0":
@@ -3815,9 +3815,9 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-cross-env@^7.0.2:
+cross-env@7.0.3:
   version "7.0.3"
-  resolved "https://registry.npmjs.org/cross-env/-/cross-env-7.0.3.tgz"
+  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-7.0.3.tgz#865264b29677dc015ba8418918965dd232fc54cf"
   integrity sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==
   dependencies:
     cross-spawn "^7.0.1"
@@ -5744,18 +5744,18 @@ gulp-cli@^2.2.0:
     v8flags "^3.2.0"
     yargs "^7.1.0"
 
-gulp-inline-source-html@^1.0.3:
+gulp-inline-source-html@1.0.3:
   version "1.0.3"
-  resolved "https://registry.npmjs.org/gulp-inline-source-html/-/gulp-inline-source-html-1.0.3.tgz"
+  resolved "https://registry.yarnpkg.com/gulp-inline-source-html/-/gulp-inline-source-html-1.0.3.tgz#0a7eb32e2bfa7bef1e90bda61a78ecb8cc7984a3"
   integrity sha512-N2GtYBkZJg4uK3HF8U5IykHwwyUv8ksQAULQAXdwvP1SHkMQicHlnkLnRHQQKl31zgkWmb2c/quiyMbPH9szjw==
   dependencies:
     inline-source "^7.2.0"
     plugin-error "^1.0.1"
     through2 "^4.0.0"
 
-gulp-replace@^1.0.0:
+gulp-replace@1.1.3:
   version "1.1.3"
-  resolved "https://registry.npmjs.org/gulp-replace/-/gulp-replace-1.1.3.tgz"
+  resolved "https://registry.yarnpkg.com/gulp-replace/-/gulp-replace-1.1.3.tgz#8641cdca78e683e8573ca4a012e7e4ebb7e4db60"
   integrity sha512-HcPHpWY4XdF8zxYkDODHnG2+7a3nD/Y8Mfu3aBgMiCFDW3X2GiOKXllsAmILcxe3KZT2BXoN18WrpEFm48KfLQ==
   dependencies:
     "@types/node" "^14.14.41"
@@ -5764,9 +5764,9 @@ gulp-replace@^1.0.0:
     replacestream "^4.0.3"
     yargs-parser ">=5.0.0-security.0"
 
-gulp@^4.0.2:
+gulp@4.0.2:
   version "4.0.2"
-  resolved "https://registry.npmjs.org/gulp/-/gulp-4.0.2.tgz"
+  resolved "https://registry.yarnpkg.com/gulp/-/gulp-4.0.2.tgz#543651070fd0f6ab0a0650c6a3e6ff5a7cb09caa"
   integrity sha512-dvEs27SCZt2ibF29xYgmnwwCYZxdxhQ/+LFWlbAW8y7jt68L/65402Lz3+CKy0Ov4rOs+NERmDq7YlZaDqUIfA==
   dependencies:
     glob-watcher "^5.0.3"
