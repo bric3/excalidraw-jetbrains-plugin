@@ -1,4 +1,4 @@
-import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
 import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -7,11 +7,9 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.5.30"
-    id("org.jetbrains.intellij") version "1.5.1"
+    id("org.jetbrains.kotlin.jvm") version "1.7.0"
+    id("org.jetbrains.intellij") version "1.6.0"
     id("org.jetbrains.changelog") version "1.3.1"
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
-    id("com.github.ben-manes.versions") version "0.42.0"
 }
 
 group = properties("pluginGroup")
@@ -20,10 +18,13 @@ version = properties("pluginVersion")
 repositories {
     mavenCentral()
 }
+
 dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.assertj:assertj-core:3.22.0")
+    testImplementation("org.mockito:mockito-inline:4.6.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
 
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
@@ -50,22 +51,34 @@ changelog {
 //    groups.set(listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"))
 }
 
+// Java 11 compat started in 2020.3
+val JVM_LANGUAGE_LEVEL = 11
+
 tasks {
     // Java 11 compat started in 2020.3
     withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        options.release.set(JVM_LANGUAGE_LEVEL)
     }
 
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "11"
-            useIR = true
+            jvmTarget = "$JVM_LANGUAGE_LEVEL"
+
+            // Match the lowest supported version for this platform
+            // See https://plugins.jetbrains.com/docs/intellij/kotlin.html#kotlin-standard-library
+            apiVersion = "1.4"
+            languageVersion = "1.4"
+
+            // Generates default method in Kotlin interfaces to be usable from Java
+            // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/
+            freeCompilerArgs += "-Xjvm-default=all"
         }
     }
 
     withType<Test> {
         useJUnitPlatform()
+        // needed for com.intellij.testFramework.UsefulTestCase.DELETE_ON_EXIT_HOOK_CLASS
+        jvmArgs("--add-opens", "java.base/java.io=ALL-UNNAMED")
     }
 
     processResources {
@@ -113,19 +126,6 @@ tasks {
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
-    }
-
-    withType<DependencyUpdatesTask> {
-        fun isNonStable(version: String): Boolean {
-            val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
-            val regex = "^[0-9,.v-]+(-r)?$".toRegex()
-            val isStable = stableKeyword || regex.matches(version)
-            return isStable.not()
-        }
-
-        rejectVersionIf {
-            isNonStable(candidate.version) && !isNonStable(currentVersion)
-        }
     }
 
     runIde {
