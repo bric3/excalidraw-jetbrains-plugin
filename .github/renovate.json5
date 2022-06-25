@@ -1,0 +1,7 @@
+// Config options: https://github.com/renovatebot/renovate/blob/main/docs/usage/configuration-options.md
+{
+  "extends": [
+    "config:base",
+    ":preserveSemverRanges"
+  ]
+}
