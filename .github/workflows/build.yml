@@ -141,7 +141,7 @@ jobs:
 
       # Upload plugin artifact to make it available in the next jobs
       - name: Upload artifact
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: plugin-artifact
           path: ./plugin/build/distributions/${{ steps.properties.outputs.artifact }}
