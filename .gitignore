@@ -1,6 +1,7 @@
 .gradle
 .idea
 build
+out
 
 # Cache of project
 .gradletasknamecache
