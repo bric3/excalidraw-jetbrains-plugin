@@ -4,7 +4,7 @@ import org.siouan.frontendgradleplugin.infrastructure.gradle.InstallDependencies
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpmYarn
 
 plugins {
-    id("org.siouan.frontend-jdk11") version "5.3.0"
+    id("org.siouan.frontend-jdk11") version "6.0.0"
 }
 
 
