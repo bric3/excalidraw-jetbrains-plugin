@@ -4,7 +4,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.asyncWrite
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
-import com.github.bric3.excalidraw.logWithThread
+import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -46,7 +46,7 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
             "${excalidrawEditor.file.nameWithoutExtension}.${type.extension}"
         )
         if (destination != null) {
-            logWithThread("Export ${type.name} to destination : ${destination.file}")
+            debuggingLogWithThread("Export ${type.name} to destination : ${destination.file}")
             if (destination.file.extension != type.extension) {
                 Notifications.Bus.notify(
                     Notification(

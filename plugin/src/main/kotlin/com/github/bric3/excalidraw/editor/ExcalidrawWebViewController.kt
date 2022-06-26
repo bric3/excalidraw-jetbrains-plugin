@@ -8,12 +8,14 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.debugMode
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
-import com.github.bric3.excalidraw.logWithThread
+import com.github.bric3.excalidraw.debuggingLogWithThread
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.rd.util.lifetime.Lifetime
-import com.jetbrains.rd.util.lifetime.assertAlive
 import com.jetbrains.rd.util.lifetime.isAlive
+import com.jetbrains.rd.util.lifetime.isNotAlive
 import com.jetbrains.rd.util.lifetime.onTermination
 import com.jetbrains.rd.util.reactive.IPropertyView
 import com.jetbrains.rd.util.reactive.Property
@@ -42,7 +44,7 @@ import java.util.*
 import java.util.concurrent.*
 import javax.swing.BorderFactory
 
-class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
+class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) : Disposable {
     val logger = thisLogger()
 
     companion object {
@@ -99,6 +101,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
     private fun initJcefPanel() {
         initializeSchemeHandler()
+        Disposer.register(this, jcefPanel)
 
         // the bigger border allows the mouse tab resize handle to be not so picky.
         jcefPanel.component.border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
@@ -113,7 +116,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
                 persistent: Boolean,
                 callback: CefQueryCallback?
             ): Boolean {
-                logWithThread("CefMessageRouterHandlerAdapter::onQuery")
+                debuggingLogWithThread("CefMessageRouterHandlerAdapter::onQuery")
                 if (logger.isDebugEnabled) {
                     logger.debug("lifetime alive: ${lifetime.isAlive}, request: $request")
                 }
@@ -247,6 +250,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         _excalidrawPayload.set(null)
 
         runJS(
+            "loadJsonPayload",
             """
             // Mark as raw String otherwise escape sequence are processed
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#raw_strings
@@ -266,6 +270,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         fsMapping[file.name] = file
 
         runJS(
+            "loadFromFile",
             """
             // Mark as raw String otherwise escape sequence are processed
             // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#raw_strings
@@ -279,6 +284,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
     fun toggleReadOnly(readOnly: Boolean) {
         runJS(
+            "toggleReadOnly",
             """
             window.postMessage({
                 type: "toggle-read-only",
@@ -292,6 +298,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         val sceneModesJson = mapper.writeValueAsString(sceneModes)
 
         runJS(
+            "toggleModes",
             """
             var json = JSON.parse(String.raw`$sceneModesJson`)
 
@@ -305,6 +312,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
 
     fun changeTheme(theme: String) {
         runJS(
+            "changeTheme",
             """
             window.postMessage({
                 type: "theme-change",
@@ -315,7 +323,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
     }
 
     suspend fun saveAsCoroutines(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): String {
-        logWithThread("ExcalidrawWebViewController::saveAsCoroutines")
+        debuggingLogWithThread("ExcalidrawWebViewController::saveAsCoroutines")
 
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
@@ -331,6 +339,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         logger.debug("notify excalidraw to save content as $imageType, correlation-id: $correlationId")
 
         runJS(
+            "saveAsCoroutines",
             """
             var json = JSON.parse(String.raw`$saveOptionsJson`)
 
@@ -345,12 +354,18 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) {
         return channel.receive()
     }
 
-    private fun runJS(@Language("JavaScript") js: String) {
-        lifetime.assertAlive()
+    private fun runJS(jsOperation: String, @Language("JavaScript") js: String) {
+        if (lifetime.isNotAlive) {
+            thisLogger().warn("runJS: lifetime is not alive for operation: $jsOperation")
+            return
+        }
         jcefPanel.browser.cefBrowser.mainFrame.executeJavaScript(
             js.trimIndent(),
             jcefPanel.browser.cefBrowser.mainFrame.url,
             0
         )
+    }
+
+    override fun dispose() {
     }
 }

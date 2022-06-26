@@ -11,7 +11,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiFile
 import org.jetbrains.concurrency.AsyncPromise
 import java.io.IOException
 
@@ -70,7 +69,7 @@ fun asyncWrite(
     val writeDone = AsyncPromise<Boolean>()
     ApplicationManager.getApplication().invokeLater {
         ApplicationManager.getApplication().runWriteAction {
-            logWithThread("utils::asyncWrite")
+            debuggingLogWithThread("utils::asyncWrite")
             val file = destination.invoke()
             try {
                 file.getOutputStream(file).use { stream ->
@@ -91,7 +90,7 @@ fun asyncWrite(
     return writeDone
 }
 
-fun logWithThread(message: String) {
+fun debuggingLogWithThread(message: String) {
     if (debugMode) {
         println(Thread.currentThread().name + "(" + Thread.currentThread().id + "): " + message)
     }

@@ -4,7 +4,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.asyncWrite
 import com.github.bric3.excalidraw.files.EXCALIDRAW_IMAGE_TYPE
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
-import com.github.bric3.excalidraw.logWithThread
+import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
 import com.intellij.AppTopics
 import com.intellij.notification.Notification
@@ -41,6 +41,7 @@ import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeSupport
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.*
+import java.util.concurrent.Phaser
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -67,6 +68,8 @@ class ExcalidrawEditor(
     private val propertyChangeSupport = PropertyChangeSupport(this)
     @Volatile private var modified = false
 
+    private val saveOperations = Phaser(1)
+
     init {
         //subscribe to changes of the theme
         val busConnection = ApplicationManager.getApplication().messageBus.connect(this)
@@ -74,7 +77,7 @@ class ExcalidrawEditor(
         busConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
             override fun beforeAllDocumentsSaving() {
                 // This is the manual or auto save action of IntelliJ
-                logWithThread("ExcalidrawEditor::beforeAllDocumentsSaving")
+                debuggingLogWithThread("ExcalidrawEditor::beforeAllDocumentsSaving")
                 saveEditor()
                 // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeAllDocumentsSaving
                 // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
@@ -134,7 +137,7 @@ class ExcalidrawEditor(
     private fun initViewIfSupported() {
         if (JBCefApp.isSupported()) {
             viewController = ExcalidrawWebViewController(lifetime, uiThemeFromConfig().key)
-            Disposer.register(this, viewController.jcefPanel)
+            Disposer.register(this, viewController)
         } else {
             Notifications.Bus.notify(
                 Notification(
@@ -165,7 +168,7 @@ class ExcalidrawEditor(
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
         viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
-            logWithThread("content to save to $file")
+            debuggingLogWithThread("content to save to $file")
             if (!file.isWritable) {
                 return@adviseNotNull
             }
@@ -194,21 +197,23 @@ class ExcalidrawEditor(
     }
 
     private fun saveCoroutines() {
-        logWithThread("ExcalidrawEditor::saveCoroutines")
+
+        debuggingLogWithThread("ExcalidrawEditor::saveCoroutines")
         if (!file.isWritable) {
-            logWithThread("bailing out save, file non writable")
+            debuggingLogWithThread("bailing out save, file non writable")
             return
         }
-        logWithThread("starts saving editor")
+        debuggingLogWithThread("starts saving editor")
         val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()                                          
         val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
             ?: throw IllegalStateException("Excalidraw should have been identified")
 
+        saveOperations.register()
         // wrap in runBlocking ?
-
         GlobalScope.launch(Dispatchers.Default) {
             val payload = viewController.saveAsCoroutines(type, saveOptions)
-            logWithThread("received a payload!! : ${payload.substring(0, 10)}...")
+            debuggingLogWithThread("received a payload!! : ${payload.substring(0, 10)}...")
+            saveOperations.arriveAndDeregister()
             val byteArrayPayload = when (type) {
                 ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> payload.toByteArray(UTF_8)
                 ExcalidrawImageType.PNG -> Base64.getDecoder().decode(payload.substringAfter("data:image/png;base64,"))
@@ -218,8 +223,9 @@ class ExcalidrawEditor(
                 type,
                 byteArrayPayload
             ).then {
-                logWithThread("File ${file.name} saved")
+                debuggingLogWithThread("File ${file.name} saved")
                 toggleModifiedStatus(false)
+
             }
         }
     }
@@ -260,7 +266,7 @@ class ExcalidrawEditor(
         // if closing the editor it's preceded by
         // com.intellij.openapi.fileEditor.FileEditorManagerListener.Before.beforeFileClosed
         // changing (and current editor gets deselected) editor triggers
-        logWithThread("ExcalidrawEditor::deselectNotify")
+        debuggingLogWithThread("ExcalidrawEditor::deselectNotify")
         saveEditor()
 
         // deselectNotify
@@ -284,8 +290,14 @@ class ExcalidrawEditor(
     }
 
     override fun dispose() {
-        logWithThread("ExcalidrawEditor::dispose")
-        lifetimeDef.terminate(true)
+        GlobalScope.launch(Dispatchers.Default) {
+            debuggingLogWithThread("ExcalidrawEditor::dispose, save in progress: ${saveOperations.unarrivedParties - 1}")
+            saveOperations.arriveAndAwaitAdvance()
+            debuggingLogWithThread("ExcalidrawEditor::dispose")
+            lifetimeDef.terminate(true)
+            viewController.dispose()
+            saveOperations.arriveAndDeregister()
+        }
     }
 
     override fun <T : Any?> getUserData(key: Key<T>): T? {

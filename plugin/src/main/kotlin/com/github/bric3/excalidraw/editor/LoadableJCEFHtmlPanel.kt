@@ -1,11 +1,12 @@
 package com.github.bric3.excalidraw.editor
 
-import com.github.bric3.excalidraw.logWithThread
+import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.intellij.CommonBundle
 import com.intellij.ide.plugins.MultiPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.EditorBundle
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.jcef.JBCefBrowser
@@ -53,6 +54,7 @@ class LoadableJCEFHtmlPanel(
     }
 
     init {
+        Disposer.register(this, browser)
         if (url != null) {
             htmlPanelComponent.loadURL(url)
         }
@@ -92,7 +94,7 @@ class LoadableJCEFHtmlPanel(
     }
 
     override fun dispose() {
-        logWithThread("LoadableJCEFHtmlPanel::dispose")
+        debuggingLogWithThread("LoadableJCEFHtmlPanel::dispose")
         alarm.dispose()
     }
 
