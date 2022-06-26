@@ -33,10 +33,10 @@ It might be worth tracking upstream change if they can be applied there too.
 ----
 <1> The changelog to manually edit
 <2> This the Excalidraw *React* web-app, this a gradle project
-<3> This the actual plugin code base, it's a gradle project
+<3> This the actual IntelliJ plugin code base, it's a gradle project
 <4> Simple project to open in the sand-boxed IDE.
 <5> Usual declaration of the gradle sub-projects (`excalidraw-assets` and `plugin`)
-<6> Github Action workflows
+<6> GitHub Action workflows
 <7> IntelliJ IDEA's run configurations (_Run Plugin_, etc.)
 
 === Excalidraw React web-app assets
@@ -60,7 +60,7 @@ excalidraw-assets
 └── yarn.lock <8>
 ----
 <1> The gradle build configuration, configure `node` and `yarn` tasks,
-also defines input/output for better cacheability.
+also defines input/output for better cache-ability.
 <2> This is a webpack override configuration, used by `react-app-rewired`, in particular it allows to
 inline source maps to allow debugging in a JCEF devtools.
 <3> This is a _gulp_ script that performs additional inlining after the react app has been built,
@@ -75,7 +75,7 @@ these task cannot be easily merged in the webpack config override if that's even
 
 .A note about the Excalidraw React Web App
 JS and React are stranger things to me, their official documentation can be overwhelming at first,
-I fund this https://medium.com/swlh/react-without-create-react-app-setting-up-a-dev-build-from-scratch-fefd5d9d6baa[blog post]
+I found this https://medium.com/swlh/react-without-create-react-app-setting-up-a-dev-build-from-scratch-fefd5d9d6baa[blog post]
 useful to introduce me to basic concepts.
 
 On the same topic here's a https://www.carlrippon.com/creating-react-app-with-typescript-eslint-with-webpack5/[blog post with the typescript angle].
@@ -96,7 +96,7 @@ Use the predefined task `Run Plugin`, whose configuration is saved in the `.run`
 This plugin is using the diagnostic logger at DEBUG level, that means the log events
 will be appended in the usual `idea.log`.
 
-However the log category has to be configured at DEBUG level, in order to do so
+However, the log category has to be configured at DEBUG level, in order to do so
 
 . Run the plugin configuration
 . Once the sand-boxed IDE is ready, open _Help | Diagnostic Tools | Debug Log Settings..._
