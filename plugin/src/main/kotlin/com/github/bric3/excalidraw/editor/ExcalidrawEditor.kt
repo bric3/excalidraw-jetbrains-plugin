@@ -68,7 +68,7 @@ class ExcalidrawEditor(
     private val propertyChangeSupport = PropertyChangeSupport(this)
     @Volatile private var modified = false
 
-    private val saveOperations = Phaser(1)
+    private val saveAndDisposePhaser = Phaser(1)
 
     init {
         //subscribe to changes of the theme
@@ -77,7 +77,7 @@ class ExcalidrawEditor(
         busConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
             override fun beforeAllDocumentsSaving() {
                 // This is the manual or auto save action of IntelliJ
-                debuggingLogWithThread("ExcalidrawEditor::beforeAllDocumentsSaving")
+                debuggingLogWithThread { "ExcalidrawEditor::beforeAllDocumentsSaving" }
                 saveEditor()
                 // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeAllDocumentsSaving
                 // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
@@ -168,7 +168,7 @@ class ExcalidrawEditor(
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
         viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
-            debuggingLogWithThread("content to save to $file")
+            debuggingLogWithThread { "content to save to $file" }
             if (!file.isWritable) {
                 return@adviseNotNull
             }
@@ -198,22 +198,22 @@ class ExcalidrawEditor(
 
     private fun saveCoroutines() {
 
-        debuggingLogWithThread("ExcalidrawEditor::saveCoroutines")
+        debuggingLogWithThread { "ExcalidrawEditor::saveCoroutines" }
         if (!file.isWritable) {
-            debuggingLogWithThread("bailing out save, file non writable")
+            debuggingLogWithThread { "bailing out save, file non writable" }
             return
         }
-        debuggingLogWithThread("starts saving editor")
+        debuggingLogWithThread { "starts saving editor" }
         val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()                                          
         val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
             ?: throw IllegalStateException("Excalidraw should have been identified")
 
-        saveOperations.register()
+        saveAndDisposePhaser.register()
         // wrap in runBlocking ?
         GlobalScope.launch(Dispatchers.Default) {
             val payload = viewController.saveAsCoroutines(type, saveOptions)
-            debuggingLogWithThread("received a payload!! : ${payload.substring(0, 10)}...")
-            saveOperations.arriveAndDeregister()
+            debuggingLogWithThread { "received a payload!! : ${payload.substring(0, 10)}..." }
+            saveAndDisposePhaser.arriveAndDeregister()
             val byteArrayPayload = when (type) {
                 ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> payload.toByteArray(UTF_8)
                 ExcalidrawImageType.PNG -> Base64.getDecoder().decode(payload.substringAfter("data:image/png;base64,"))
@@ -223,7 +223,7 @@ class ExcalidrawEditor(
                 type,
                 byteArrayPayload
             ).then {
-                debuggingLogWithThread("File ${file.name} saved")
+                debuggingLogWithThread { "File ${file.name} saved" }
                 toggleModifiedStatus(false)
 
             }
@@ -266,7 +266,7 @@ class ExcalidrawEditor(
         // if closing the editor it's preceded by
         // com.intellij.openapi.fileEditor.FileEditorManagerListener.Before.beforeFileClosed
         // changing (and current editor gets deselected) editor triggers
-        debuggingLogWithThread("ExcalidrawEditor::deselectNotify")
+        debuggingLogWithThread { "ExcalidrawEditor::deselectNotify" }
         saveEditor()
 
         // deselectNotify
@@ -291,12 +291,12 @@ class ExcalidrawEditor(
 
     override fun dispose() {
         GlobalScope.launch(Dispatchers.Default) {
-            debuggingLogWithThread("ExcalidrawEditor::dispose, save in progress: ${saveOperations.unarrivedParties - 1}")
-            saveOperations.arriveAndAwaitAdvance()
-            debuggingLogWithThread("ExcalidrawEditor::dispose")
+            debuggingLogWithThread { "ExcalidrawEditor::dispose, save in progress: ${saveAndDisposePhaser.unarrivedParties - 1}" }
+            saveAndDisposePhaser.arriveAndAwaitAdvance()
+            debuggingLogWithThread { "ExcalidrawEditor::dispose" }
             lifetimeDef.terminate(true)
             viewController.dispose()
-            saveOperations.arriveAndDeregister()
+            saveAndDisposePhaser.arriveAndDeregister()
         }
     }
 

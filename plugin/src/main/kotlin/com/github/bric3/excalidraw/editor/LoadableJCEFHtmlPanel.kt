@@ -94,7 +94,7 @@ class LoadableJCEFHtmlPanel(
     }
 
     override fun dispose() {
-        debuggingLogWithThread("LoadableJCEFHtmlPanel::dispose")
+        debuggingLogWithThread { "LoadableJCEFHtmlPanel::dispose" }
         alarm.dispose()
     }
 

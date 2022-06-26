@@ -116,7 +116,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
                 persistent: Boolean,
                 callback: CefQueryCallback?
             ): Boolean {
-                debuggingLogWithThread("CefMessageRouterHandlerAdapter::onQuery")
+                debuggingLogWithThread { "CefMessageRouterHandlerAdapter::onQuery" }
                 if (logger.isDebugEnabled) {
                     logger.debug("lifetime alive: ${lifetime.isAlive}, request: $request")
                 }
@@ -323,7 +323,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
     }
 
     suspend fun saveAsCoroutines(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): String {
-        debuggingLogWithThread("ExcalidrawWebViewController::saveAsCoroutines")
+        debuggingLogWithThread { "ExcalidrawWebViewController::saveAsCoroutines" }
 
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"

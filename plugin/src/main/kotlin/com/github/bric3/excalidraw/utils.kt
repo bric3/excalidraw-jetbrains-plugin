@@ -13,6 +13,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.concurrency.AsyncPromise
 import java.io.IOException
+import java.util.function.Supplier
 
 val logger = Logger.getInstance("com.github.bric3.excalidraw.utils")
 
@@ -26,7 +27,7 @@ val debugMode = ProcessHandle.current().info().arguments().map {
  *
  * Note this may return null if the project or editor the editor is not loaded and selected.
  *
- * @return An ExcalidrawEditor instance or null if the editor is not yet yet ready
+ * @return An ExcalidrawEditor instance or null if the editor is not yet ready
  */
 fun AnActionEvent.findEditor(): ExcalidrawEditor? {
     val project = this.project ?: return null
@@ -69,7 +70,7 @@ fun asyncWrite(
     val writeDone = AsyncPromise<Boolean>()
     ApplicationManager.getApplication().invokeLater {
         ApplicationManager.getApplication().runWriteAction {
-            debuggingLogWithThread("utils::asyncWrite")
+            debuggingLogWithThread { "utils::asyncWrite" }
             val file = destination.invoke()
             try {
                 file.getOutputStream(file).use { stream ->
@@ -90,8 +91,8 @@ fun asyncWrite(
     return writeDone
 }
 
-fun debuggingLogWithThread(message: String) {
+fun debuggingLogWithThread(message: Supplier<String>) {
     if (debugMode) {
-        println(Thread.currentThread().name + "(" + Thread.currentThread().id + "): " + message)
+        println(Thread.currentThread().name + "(" + Thread.currentThread().id + "): " + message.get())
     }
 }
