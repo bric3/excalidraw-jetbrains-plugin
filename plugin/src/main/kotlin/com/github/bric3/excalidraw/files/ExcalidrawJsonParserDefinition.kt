@@ -12,7 +12,7 @@ class ExcalidrawJsonParserDefinition : JsonParserDefinition() {
         private val EXCALIDRAW_JSON_FILE = IFileElementType(ExcalidrawJson)
     }
 
-    override fun createFile(fileViewProvider: FileViewProvider?): PsiFile? {
+    override fun createFile(fileViewProvider: FileViewProvider): PsiFile {
         return JsonFileImpl(fileViewProvider, ExcalidrawJson)
     }
 
