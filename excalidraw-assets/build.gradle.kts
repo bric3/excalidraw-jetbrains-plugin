@@ -37,6 +37,9 @@ tasks.named<AssembleTask>("assembleFrontend") {
 
 tasks.register<RunYarn>("yarnRunStart") {
     dependsOn(tasks.named("installFrontend"))
+    group = "Frontend"
+    description = "Starts yarn, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :3000)`)"
+
     script.set("run start")
     doFirst {
         logger.warn(
@@ -56,6 +59,7 @@ tasks.register<RunYarn>("yarnRunStart") {
 
 tasks.register<Copy>("copyProductionAssets") {
     dependsOn(tasks.named("installFrontend"))
+
     val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist"
     from(excalidrawDist)
     include("excalidraw-assets/*")  // production assets
