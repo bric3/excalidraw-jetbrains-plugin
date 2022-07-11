@@ -1,0 +1,89 @@
+= Excalidraw web-application
+
+This subproject represents the web-application that runs Excalidraw.
+
+This is a *React* based application, and it's written in *typescript*.
+
+== Overview
+
+[source]
+.project structure
+----
+.
+├── .yarn
+│   └── releases
+│       └── yarn-1.22.19.cjs <6>
+├── public <1>
+│   ├── index.html
+├── src <1>
+│   ├── App.tsx <3>
+│   ├── codec.ts <4>
+│   ├── constants.ts <4>
+│   ├── global.d.ts <4>
+│   ├── image.ts <4>
+│   ├── index.tsx <2>
+│   ├── react-app-env.d.ts
+│   └── styles.css
+├── .yarnrc.yml <6>
+├── build.gradle.kts <5>
+├── config-overrides.js <9>
+├── gulpfile.js <10>
+├── package.json <7>
+├── tsconfig.json <8>
+└── yarn.lock <7>
+----
+<1> Where the web application sources are located. The `index.html` is merely a placeholder/template,
+most the interesting application code is in the `src` directory. Notice the `<div id="root">` element that will be looked by `index.tsx`.
+<2> The main entry point for the application, this somehow generates the HTML for the application. Imports `App` and will render the app in element `root` (notice `document.getElementById("root")`).
+<3> The actual React application that plugs everything together. Imports `Excalidraw`.
+<4> Files copied from Excalidraw as some functions necessary for _import/export_ of images not exported.
+<5> Gradle script that drives _yarn_.
+<6> Yarn specific config files (see https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored[doc]). The exact file name of `.yarn/release/yarn-1.22.19.cjs` is not important as it's declared in `build.gradle.kts`.
+<7> Webapp dependencies, change stuff in `package.json`, `yarn.lock` should be updated on next `yarn install` (or by the dependency bot).
+<8> Since it's a typescript webapp, the `tsconfig.json` file is used to configure the compiler.
+<9> The `config-overrides.js` file is used to *override the default configuration of the React build* in order to ship the web-app with *source-maps* (otherwise it's a *pain* to debug in the *JCEF browser*), also the optimizer is disabled of the same reason, and it's not needed since the assets are served locally.
+<10> Gulp is used to customize the content of the final artefact, like packaging the actual-app as a single file and to include the *source-maps* in the build.
+
+[mermaid]
+----
+graph LR
+A(Plugin) -->|window.postMessage| B(Excalidraw web app)
+B(Excalidraw web app) -->|window.cefQuery| A(Plugin)
+----
+
+
+== Basic tasks
+
+This project is a web-app, most commands implies `yarn`, and they do work, but if `yarn` is not installed
+it's possible to rely on the gradle commands
+
+[cols="2", options="header"]
+|===
+a|*Yarn* +
+(assumes working dir is `excalidraw-assets/`)
+a|*gradle* +
+(assumes working dir is repository root)
+
+|`yarn install`
+|`./gradlew installFrontend`
+
+|`yarn start`
+|`./gradlew yarnRunStart`
+
+|===
+
+
+To debug the web app without running IntelliJ, run `./gradlew :excalidraw-assets:yarnRunStart`
+
+Then hit http://localhost:3000/ in the browser, you should see the Excalidraw interface.
+
+The exchange with the plugin is _**message based**_, so in order to trigger saving or loading a file we need to pass a message.
+
+E.g. to save the current sketch, pass the `save-as-svg` message in the browser console via `postMessage`.
+
+[source, javascript]
+----
+window.postMessage({ type: "save-as-svg", exportConfig:{}, correlationId: "aaaa" })
+----
+
+The Excalidraw assets app can also communicate back to the plugin by sending messages via `cefQuery`.
