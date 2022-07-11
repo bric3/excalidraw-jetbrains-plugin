@@ -1,7 +1,7 @@
 import React from "react";
-import Excalidraw, {exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
+import Excalidraw, {loadFromBlob, exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {decodePngMetadata, decodeSvgMetadata, encodePngMetadata, encodeSvgMetadata} from "./image";
+import {decodePngMetadata, decodeSvgMetadata, encodePngMetadata} from "./image";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
@@ -67,27 +67,30 @@ class ExcalidrawApiBridge {
             },
         });
     };
+
     readonly saveAsJson = () => {
         return serializeAsJSON(
             this.excalidraw().getSceneElements(),
             this.excalidraw().getAppState()
         )
     };
-    readonly saveAsSvg = async (exportParams: object) => {
+
+    readonly saveAsSvg = (exportParams: object) => {
         console.debug("saveAsSvg export config", exportParams);
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
 
-        const metadata = await encodeSvgMetadata({text: serializeAsJSON(sceneElements, appState)});
+        // const metadata = await encodeSvgMetadata({text: serializeAsJSON(sceneElements, appState)});
         return exportToSvg({
             elements: sceneElements,
             appState: {
                 ...appState,
-                ...exportParams
+                ...exportParams,
+                exportEmbedScene: true,
             },
-            metadata: metadata,
         });
     };
+
     readonly saveAsPng = (exportParams: object) => {
         console.debug("saveAsPng export config", exportParams);
         let sceneElements = this.excalidraw().getSceneElements();
@@ -135,8 +138,11 @@ class ExcalidrawApiBridge {
 
     dispatchToPlugin(message: object): void {
         console.debug("dispatchToPlugin: ", message);
-        // noinspection JSUnresolvedVariable
+
+        // cefQuery is only available in the JCEF browser
+        // noinspection TypeScriptUnresolvedVariable
         if (anyWindow.cefQuery) {
+            // noinspection TypeScriptUnresolvedFunction,JSUnusedGlobalSymbols
             anyWindow.cefQuery({
                 request: JSON.stringify(message),
                 persistent: false,
@@ -257,6 +263,7 @@ class ExcalidrawApiBridge {
             }
 
             case "save-as-svg": {
+                // noinspection TypeScriptUnresolvedVariable
                 const exportConfig = message.exportConfig ?? {};
                 this.saveAsSvg(exportConfig).then(svg => {
                     this.dispatchToPlugin({
@@ -269,9 +276,10 @@ class ExcalidrawApiBridge {
             }
 
             case "save-as-png": {
+                // noinspection TypeScriptUnresolvedVariable
                 const exportConfig = message.exportConfig ?? {};
                 const thisBridge = this;
-                this.saveAsPng(exportConfig).then((blob: any) => {
+                this.saveAsPng(exportConfig).then((blob: Blob) => {
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
                     reader.onloadend = function () {
@@ -292,7 +300,7 @@ class ExcalidrawApiBridge {
 let apiBridge: ExcalidrawApiBridge | null = null;
 
 
-export default function App() {
+export const App = () => {
     const excalidrawApiRef = React.useRef(null);
     apiBridge = new ExcalidrawApiBridge(excalidrawApiRef)
 

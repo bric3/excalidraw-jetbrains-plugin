@@ -4,12 +4,7 @@ import ReactDOM from "react-dom";
 // import "./styles.scss";
 import "./styles.css";
 
-import App from "./App";
+import {App} from "./App";
 
 const rootElement = document.getElementById("root");
-ReactDOM.render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>,
-    rootElement
-);
+ReactDOM.render(React.createElement(App), rootElement);

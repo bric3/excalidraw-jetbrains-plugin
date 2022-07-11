@@ -27,7 +27,7 @@
 import decodePng from "png-chunks-extract";
 import tEXt from "png-chunk-text";
 import encodePng from "png-chunks-encode";
-import {base64ToString, decode, encode, stringToBase64} from "./codec";
+import {base64ToString, decode, encode} from "./codec";
 import {EXPORT_DATA_TYPES, MIME_TYPES} from "./constants";
 
 // -----------------------------------------------------------------------------
@@ -113,25 +113,6 @@ export const decodePngMetadata = async (blob: Blob) => {
 // -----------------------------------------------------------------------------
 // SVG
 // -----------------------------------------------------------------------------
-
-// usage :
-// encodeSvgMetadata({
-//   text: serializeAsJSON(elements, appState),
-// })
-export const encodeSvgMetadata = async ({ text }: { text: string }) => {
-    const base64 = await stringToBase64(
-        JSON.stringify(await encode({ text })),
-        true /* is already byte string */,
-    );
-
-    let metadata = "";
-    metadata += `<!-- payload-type:${MIME_TYPES.excalidraw} -->`;
-    metadata += `<!-- payload-version:2 -->`;
-    metadata += "<!-- payload-start -->";
-    metadata += base64;
-    metadata += "<!-- payload-end -->";
-    return metadata;
-};
 
 export const decodeSvgMetadata = async ({ svg }: { svg: string }) => {
     if (svg.includes(`payload-type:${MIME_TYPES.excalidraw}`)) {
