@@ -24,7 +24,7 @@
 // as suggested in https://github.com/excalidraw/excalidraw/discussions/3756#discussioncomment-899556
 // keep as long as excalidraw is not able to read or write image file with embedded scene
 
-import {deflate, inflate} from "pako";
+import {deflate} from "pako";
 
 // -----------------------------------------------------------------------------
 // byte (binary) strings
@@ -46,36 +46,6 @@ export const toByteString = (data: string | Uint8Array): Promise<string> => {
         };
         reader.readAsBinaryString(blob);
     });
-};
-
-const byteStringToArrayBuffer = (byteString: string) => {
-    const buffer = new ArrayBuffer(byteString.length);
-    const bufferView = new Uint8Array(buffer);
-    for (let i = 0, len = byteString.length; i < len; i++) {
-        bufferView[i] = byteString.charCodeAt(i);
-    }
-    return buffer;
-};
-
-const byteStringToString = (byteString: string) => {
-    return new TextDecoder("utf-8").decode(byteStringToArrayBuffer(byteString));
-};
-
-// -----------------------------------------------------------------------------
-// base64
-// -----------------------------------------------------------------------------
-
-/**
- * @param isByteString set to true if already byte string to prevent bloat
- *  due to reencoding
- */
-export const stringToBase64 = async (str: string, isByteString = false) => {
-    return isByteString ? btoa(str) : btoa(await toByteString(str));
-};
-
-// async to align with stringToBase64
-export const base64ToString = async (base64: string, isByteString = false) => {
-    return isByteString ? atob(base64) : byteStringToString(atob(base64));
 };
 
 // -----------------------------------------------------------------------------
@@ -116,27 +86,4 @@ export const encode = async ({
         compressed: !!deflated,
         encoded: deflated || (await toByteString(text)),
     };
-};
-
-export const decode = async (data: EncodedData): Promise<string> => {
-    let decoded: string;
-
-    switch (data.encoding) {
-        case "bstring":
-            // if compressed, do not double decode the bstring
-            decoded = data.compressed
-                ? data.encoded
-                : await byteStringToString(data.encoded);
-            break;
-        default:
-            throw new Error(`decode: unknown encoding "${data.encoding}"`);
-    }
-
-    if (data.compressed) {
-        return inflate(new Uint8Array(byteStringToArrayBuffer(decoded)), {
-            to: "string",
-        });
-    }
-
-    return decoded;
 };

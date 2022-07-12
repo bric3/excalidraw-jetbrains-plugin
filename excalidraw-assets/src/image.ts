@@ -27,8 +27,8 @@
 import decodePng from "png-chunks-extract";
 import tEXt from "png-chunk-text";
 import encodePng from "png-chunks-encode";
-import {base64ToString, decode, encode} from "./codec";
-import {EXPORT_DATA_TYPES, MIME_TYPES} from "./constants";
+import {encode} from "./codec";
+import {MIME_TYPES} from "./constants";
 
 // -----------------------------------------------------------------------------
 // PNG

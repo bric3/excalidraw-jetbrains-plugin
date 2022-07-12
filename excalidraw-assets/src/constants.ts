@@ -29,8 +29,3 @@ export const MIME_TYPES = {
     excalidrawlib: "application/vnd.excalidrawlib+json",
 };
 
-export const EXPORT_DATA_TYPES = {
-    excalidraw: "excalidraw",
-    excalidrawClipboard: "excalidraw/clipboard",
-    excalidrawLibrary: "excalidrawlib",
-} as const;
