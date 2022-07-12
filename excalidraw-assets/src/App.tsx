@@ -1,7 +1,8 @@
 import React from "react";
 import Excalidraw, {loadFromBlob, exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {decodePngMetadata, decodeSvgMetadata, encodePngMetadata} from "./image";
+import {encodePngMetadata} from "./image";
+import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
@@ -176,59 +177,33 @@ class ExcalidrawApiBridge {
 
             case "load-from-file": {
                 const {fileToFetch} = message
-                fetch('/fs/' + fileToFetch)
+                fetch('/vfs/' + fileToFetch)
                     .then(response => response.blob())
-                    .then(async image => {
-                        // TODO continuous saving disabled for now,
+                    .then(async blob => {
                         // as the plugin uses IntelliJ's auto-saving mechanism instead.
                         this.continuousSavingEnabled = false
 
-                        switch (image.type) {
-                            case "image/png":
-                                try {
-                                    return await decodePngMetadata(image);
-                                } catch (error) {
-                                    console.error(error)
-                                    this.dispatchToPlugin({
-                                        type: "excalidraw-error",
-                                        errorMessage: "cannot load image"
-                                    })
-                                }
-                                break;
-                            case "image/svg+xml":
-                                try {
-                                    return await decodeSvgMetadata({
-                                        svg: await image.text(),
-                                    });
-                                } catch (error) {
-                                    console.error(error)
-                                    this.dispatchToPlugin({
-                                        type: "excalidraw-error",
-                                        errorMessage: "cannot load image"
-                                    })
-                                }
-                                break;
-                            default:
-                                console.error("Not a supported image type", image.type)
-                                this.dispatchToPlugin({
-                                    type: "excalidraw-error",
-                                    errorMessage: "cannot load image"
-                                })
-                                return null
+                        try {
+                            return loadFromBlob(blob, null, null);
+                        } catch (error) {
+                            console.error(error)
+                            this.dispatchToPlugin({
+                                type: "excalidraw-error",
+                                errorMessage: "cannot load image"
+                            })
                         }
                     })
-                    .then(jsonString => {
-                        if(jsonString == null) {
+                    .then((restoredState: RestoredDataState | undefined) => {
+                        if (!restoredState) {
                             return;
                         }
-                        let scene = JSON.parse(jsonString);
-
-                        const updateSceneVersion = getSceneVersion(scene.elements);
+                        
+                        const updateSceneVersion = getSceneVersion(restoredState.elements);
                         if (this.currentSceneVersion !== updateSceneVersion) {
                             this.currentSceneVersion = updateSceneVersion;
                             this.updateApp({
-                                elements: scene.elements || [],
-                                appState: {} // TODO load appState
+                                elements: restoredState.elements || [],
+                                appState: {}  // TODO load appState ? (restoredState.appState)
                             });
                         }
                     })
@@ -242,6 +217,7 @@ class ExcalidrawApiBridge {
             }
 
             case "toggle-scene-modes": {
+                // noinspection TypeScriptUnresolvedVariable
                 const modes = message.sceneModes ?? {};
                 if ("gridMode" in modes) this._setGridModeEnabled!(modes.gridMode);
                 if ("zenMode" in modes) this._setZenModeEnabled!(modes.zenMode);
