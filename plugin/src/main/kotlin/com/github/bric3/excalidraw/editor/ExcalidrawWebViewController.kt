@@ -66,7 +66,6 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
             CefApp.getInstance().clearSchemeHandlerFactories()
 
             // initialization ideas from docToolchain/diagrams.net-intellij-plugin
-            @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
             CefApp.getInstance().registerSchemeHandlerFactory(
                 "https", pluginDomain,
                 SchemeHandlerFactory { uri ->
@@ -128,27 +127,28 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
 
 
                 val message = mapper.readValue<Map<String, String>>(request!!)
+                val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
+                
                 when (message["type"]) {
                     "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
 
                     "continuous-update" -> _excalidrawPayload.set(message["content"]!!)
                     "json-content" -> {
-                        val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
                         runBlocking {
                             channel?.send(message["json"]!!)
+                            channel?.close()
                         }
-
                     }
                     "svg-content" -> {
-                        val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
                         runBlocking {
                             channel?.send(message["svg"]!!)
+                            channel?.close()
                         }
                     }
                     "png-base64-content" -> {
-                        val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
                         runBlocking {
                             channel?.send(message["png"]!!)
+                            channel?.close()
                         }
                     }
                     else -> logger.error("Unrecognized message request from excalidraw : $request")
@@ -334,7 +334,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
         val saveOptionsJson = mapper.writeValueAsString(saveOptions)
 
         val correlationId = UUID.randomUUID().toString()
-        val channel = Channel<String>()
+        val channel = Channel<String>(1)
         correlatedResponseMapChannel[correlationId] = channel
         logger.debug("notify excalidraw to save content as $imageType, correlation-id: $correlationId")
 
