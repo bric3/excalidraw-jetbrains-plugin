@@ -3,11 +3,10 @@ import Excalidraw, {loadFromBlob, exportToBlob, exportToSvg, getSceneVersion, se
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import {encodePngMetadata} from "./image";
 import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
+import {Theme} from "@excalidraw/excalidraw/types/element/types";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
-
-type ThemeName = "light" | "dark";
 
 const defaultInitialData = {
     readOnly: false,
@@ -21,8 +20,8 @@ const initialData = anyWindow.initialData ?? defaultInitialData;
 class ExcalidrawApiBridge {
     private readonly excalidrawRef: any;
     private continuousSavingEnabled = true;
-    private _setTheme: React.Dispatch<ThemeName> | null = null;
-    set setTheme(value: React.Dispatch<ThemeName>) {
+    private _setTheme: React.Dispatch<Theme> | null = null;
+    set setTheme(value: React.Dispatch<Theme>) {
         this._setTheme = value;
     }
 
@@ -72,9 +71,12 @@ class ExcalidrawApiBridge {
     };
 
     readonly saveAsJson = () => {
+        let binaryFiles = {};
         return serializeAsJSON(
             this.excalidraw().getSceneElements(),
-            this.excalidraw().getAppState()
+            this.excalidraw().getAppState(),
+            binaryFiles,
+            "local"
         )
     };
 
@@ -91,6 +93,7 @@ class ExcalidrawApiBridge {
                 ...exportParams,
                 exportEmbedScene: true,
             },
+            files: {},
         });
     };
 
@@ -99,16 +102,18 @@ class ExcalidrawApiBridge {
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
 
+        let binaryFiles = {};
         return exportToBlob({
             elements: this.excalidraw().getSceneElements(),
             appState: {
                 ...this.excalidraw().getAppState(),
                 ...exportParams
             },
+            files: binaryFiles,
         }).then(pngBlob => {
             return encodePngMetadata({
                 blob: pngBlob!,
-                metadata: serializeAsJSON(sceneElements, appState)
+                metadata: serializeAsJSON(sceneElements, appState, binaryFiles, "local"),
             })
         });
     };
@@ -288,7 +293,7 @@ export const App = () => {
     }, []);
 
     // React Hook "React.useState" cannot be called in a class component.
-    const [theme, setTheme] = React.useState<ThemeName>(initialData.theme);
+    const [theme, setTheme] = React.useState<Theme>(initialData.theme);
     apiBridge.setTheme = setTheme;
     const [viewModeEnabled, setViewModeEnabled] = React.useState<boolean>(initialData.readOnly);
     apiBridge.setViewModeEnabled = setViewModeEnabled;
