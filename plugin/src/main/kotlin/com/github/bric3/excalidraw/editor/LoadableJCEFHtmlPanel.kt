@@ -5,6 +5,7 @@ import com.intellij.CommonBundle
 import com.intellij.ide.plugins.MultiPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.EditorBundle
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
@@ -33,6 +34,7 @@ class LoadableJCEFHtmlPanel(
     url: String? = null, html: String? = null, openDevtools: Boolean = false,
     var timeoutCallback: String? = EditorBundle.message("message.html.editor.timeout")
 ) : Disposable {
+    private val logger = thisLogger()
     private val htmlPanelComponent = JCEFHtmlPanel(null)
     // source of memory leak ?
     private val loadingPanel = JBLoadingPanel(BorderLayout(), this).apply { setLoadingText(CommonBundle.getLoadingTreeNodeText()) }
@@ -94,7 +96,7 @@ class LoadableJCEFHtmlPanel(
     }
 
     override fun dispose() {
-        debuggingLogWithThread { "LoadableJCEFHtmlPanel::dispose" }
+        debuggingLogWithThread(logger) { "LoadableJCEFHtmlPanel::dispose" }
         alarm.dispose()
     }
 

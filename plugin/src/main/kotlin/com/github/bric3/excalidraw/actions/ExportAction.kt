@@ -46,7 +46,7 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
             "${excalidrawEditor.file.nameWithoutExtension}.${type.extension}"
         )
         if (destination != null) {
-            debuggingLogWithThread { "Export ${type.name} to destination : ${destination.file}" }
+            debuggingLogWithThread(logger) { "Export ${type.name} to destination : ${destination.file}" }
             if (destination.file.extension != type.extension) {
                 Notifications.Bus.notify(
                     Notification(
