@@ -27,6 +27,14 @@ frontend {
 tasks.named<InstallDependenciesTask>("installFrontend") {
     inputs.files("package.json")
     outputs.dir("node_modules")
+    finalizedBy("runYarnInstall")
+}
+
+tasks.register<RunYarn>("runYarnInstall") {
+    dependsOn(tasks.named("installFrontend"))
+    inputs.files("package.json")
+    outputs.files("yarn.lock")
+    script.set("install")
 }
 
 tasks.named<AssembleTask>("assembleFrontend") {
