@@ -43,7 +43,7 @@ tasks.named<AssembleTask>("assembleFrontend") {
     outputs.dirs(webappFiles)
 }
 
-tasks.register<RunYarn>("yarnRunStart") {
+tasks.register<RunYarn>("runYarnStart") {
     dependsOn(tasks.named("installFrontend"))
     group = "Frontend"
     description = "Starts yarn, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :3000)`)"

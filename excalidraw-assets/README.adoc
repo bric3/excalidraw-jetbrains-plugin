@@ -68,7 +68,7 @@ a|*gradle* +
 |`./gradlew installFrontend`
 
 |`yarn start`
-|`./gradlew yarnRunStart`
+|`./gradlew runYarnStart`
 
 |===
 
