@@ -1,0 +1,113 @@
+
+= Upgrade Excalidraw, interesting changes
+
+== https://github.com/excalidraw/excalidraw/releases/tag/v0.12.0[0.12.0]
+
+> Exported https://github.com/excalidraw/excalidraw/blob/v0.12.0/src/packages/excalidraw/README.md#loadSceneOrLibraryFromBlob[`loadSceneOrLibraryFromBlob`] function https://github.com/excalidraw/excalidraw/pull/5057[#5057].
+
+> Expose util https://github.com/excalidraw/excalidraw/blob/v0.12.0/src/packages/excalidraw/README.md#exportToClipboard[`exportToClipboard`] which allows to copy the scene contents to clipboard as `svg`, `png` or `json` https://github.com/excalidraw/excalidraw/pull/5103[#5103].
+
+> The https://github.com/excalidraw/excalidraw/blob/v0.12.0/src/packages/excalidraw/README.md#exportToBlob[`exportToBlob`] utility now supports the `exportEmbedScene` option when generating a `png` image https://github.com/excalidraw/excalidraw/pull/5047[#5047].
+
+> BREAKING CHANGE
+>
+> You will need to pass activeTool instead of elementType from now onwards in appState
+
+> Use `window.EXCALIDRAW_ASSET_PATH` for fonts when exporting to `svg` https://github.com/excalidraw/excalidraw/pull/5065[#5065].
+
+> BREAKING CHANGE
+>
+> You will need to import the named export from now onwards to use the component
+>
+> Using bundler 👇
+>
+> [source, typescript]
+> ----
+> import { Excalidraw } from "@excalidraw/excalidraw";
+> ----
+>
+> In Browser 👇
+>
+> [source, typescript]
+> ----
+> React.createElement(ExcalidrawLib.Excalidraw, opts);
+> ----
+
+
+== https://github.com/excalidraw/excalidraw/releases/tag/v0.11.0[0.11.0]
+
+> https://github.com/excalidraw/excalidraw/blob/v0.11.0/src/packages/excalidraw/README.md#exportToBlob[`exportToBlob`]
+now automatically sets `appState.exportBackground` to `true` if exporting to
+`image/jpeg` MIME type (to ensure that alpha channel is not compressed to
+black color) https://github.com/excalidraw/excalidraw/pull/4342[#4342].
+
+
+> Changes to `exportToCanvas` util function https://github.com/excalidraw/excalidraw/pull/4321[#4321]:
+>
+> * Add `maxWidthOrHeight?: number` attribute.
+> * `scale` returned from `getDimensions()` is now optional (default to `1`).
+
+
+> Image support added for host https://github.com/excalidraw/excalidraw/pull/4011[PR]
+>
+> General notes:
+>
+> * File data are encoded as DataURLs (base64) for portability reasons.
+>
+> https://github.com/excalidraw/excalidraw/blob/v0.11.0/src/packages/excalidraw/README.md#onLibraryChange[ExcalidrawAPI]:
+>
+> * added `getFiles()` to get current `BinaryFiles` (`Record<FileId, BinaryFileData>`). It may contain files that aren't referenced by any element, so if you're persisting the files to a storage, you should compare them against stored elements.
+>
+> Excalidraw app props:
+>
+> * added `generateIdForFile(file: File)` optional prop so you can generate your own ids for added files.
+> * `onChange(elements, appState, files)` prop callback is now passed BinaryFiles as third argument.
+> * `onPaste(data, event)` data prop should contain `data.files` (`BinaryFiles`) if the elements pasted are referencing new files.
+> * `initialData` object now supports additional files (`BinaryFiles`) attribute.
+>
+> Other notes:
+>
+> * `.excalidraw` files may now contain top-level `files` key in format of `Record<FileId, BinaryFileData>` when exporting any (image) elements.
+> * Changes were made to various export utilities exported from the package so that they take `files`, you can refer to the docs for the same.
+
+> Add `onLinkOpen` prop which will be triggered when clicked on element hyperlink if present https://github.com/excalidraw/excalidraw/pull/4694[#4694.]
+
+> BREAKING CHANGE
+>
+> The `Appearance` type is now removed and renamed to `Theme` so `Theme` type needs to be used.
+
+
+== https://github.com/excalidraw/excalidraw/releases/tag/v0.10.0[0.10.0]
+
+
+
+== https://github.com/excalidraw/excalidraw/releases/tag/v0.9.0[0.9.0]
+
+> https://github.com/excalidraw/excalidraw/blob/v0.9.0/src/packages/excalidraw/README.md#restore[restore(data, localAppState, localElements)]
+and https://github.com/excalidraw/excalidraw/blob/v0.9.0/src/packages/excalidraw/README.md#restoreElements[restoreElements(elements, localElements)]
+now take `localElements` argument which will be used to ensure existing elements'
+versions are used and incremented. This fixes an issue where importing the same
+file would resolve to elements with older versions, potentially causing issues
+when reconciling https://github.com/excalidraw/excalidraw/pull/3797[#3797].
+>
+> BREAKING CHANGE
+>
+> ** `localElements` argument is mandatory (can be `null`/`undefined`) if using TypeScript.
+
+
+> Expose https://github.com/excalidraw/excalidraw/blob/v0.9.0/src/packages/excalidraw/README.md#loadLibraryFromBlobY[`loadLibraryFromBlob`],
+https://github.com/excalidraw/excalidraw/blob/v0.9.0/src/packages/excalidraw/README.md#loadFromBlob[`loadFromBlob`],
+and https://github.com/excalidraw/excalidraw/blob/v0.9.0/src/packages/excalidraw/README.md#getFreeDrawSvgPath[`getFreeDrawSvgPath`]
+https://github.com/excalidraw/excalidraw/pull/3764[#3764].
+
+
+> Support `appState.exportEmbedScene` attribute in https://github.com/excalidraw/excalidraw/blob/v0.9.0/src/packages/excalidraw/README.md#exportToSvg[`exportToSvg`] which allows to embed the scene data https://github.com/excalidraw/excalidraw/pull/3777[#3777].
+>
+> BREAKING CHANGE
+>
+> ** The attribute `metadata` is now removed as `metadata` was only used to embed scene data which is now supported with the `appState.exportEmbedScene` attribute.
+> ** `exportToSvg` now resolves to a promise which resolves to svg of the exported drawing.
+
+
+> * Added prop `UIOptions.canvasActions.saveAsImage` to show/hide the _Save as image_ button in the canvas actions. Defaults to `true` hence the _Save as Image_ button is rendered https://github.com/excalidraw/excalidraw/pull/3662[#3662].
+

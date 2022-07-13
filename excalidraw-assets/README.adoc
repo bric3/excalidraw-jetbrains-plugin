@@ -17,16 +17,13 @@ This is a *React* based application, and it's written in *typescript*.
 │   ├── index.html
 ├── src <1>
 │   ├── App.tsx <3>
-│   ├── codec.ts <4>
-│   ├── constants.ts <4>
-│   ├── global.d.ts <4>
-│   ├── image.ts <4>
 │   ├── index.tsx <2>
 │   ├── react-app-env.d.ts
 │   └── styles.css
 ├── .yarnrc.yml <6>
 ├── build.gradle.kts <5>
 ├── config-overrides.js <9>
+├── excalidraw-interesting-changes.adoc <4>
 ├── gulpfile.js <10>
 ├── package.json <7>
 ├── tsconfig.json <8>
@@ -36,7 +33,7 @@ This is a *React* based application, and it's written in *typescript*.
 most the interesting application code is in the `src` directory. Notice the `<div id="root">` element that will be looked by `index.tsx`.
 <2> The main entry point for the application, this somehow generates the HTML for the application. Imports `App` and will render the app in element `root` (notice `document.getElementById("root")`).
 <3> The actual React application that plugs everything together. Imports `Excalidraw`.
-<4> Files copied from Excalidraw as some functions necessary for _import/export_ of images not exported.
+<4> Interesting items from the https://github.com/excalidraw/excalidraw/releases[Excalidraw release notes].
 <5> Gradle script that drives _yarn_.
 <6> Yarn specific config files (see https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored[doc]). The exact file name of `.yarn/release/yarn-1.22.19.cjs` is not important as it's declared in `build.gradle.kts`.
 <7> Webapp dependencies, change stuff in `package.json`, `yarn.lock` should be updated on next `yarn install` (or by the dependency bot).
@@ -83,7 +80,8 @@ E.g. to save the current sketch, pass the `save-as-svg` message in the browser c
 
 [source, javascript]
 ----
-window.postMessage({ type: "save-as-svg", exportConfig:{}, correlationId: "aaaa" })
+window.postMessage({ type: "save-as-svg", exportConfig:{}, correlationId: crypto.randomUUID() })
+window.postMessage({ type: "theme-change", theme:"dark", correlationId: crypto.randomUUID() })
 ----
 
 The Excalidraw assets app can also communicate back to the plugin by sending messages via `cefQuery`.

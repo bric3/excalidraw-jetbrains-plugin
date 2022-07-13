@@ -6,16 +6,12 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
-    "@excalidraw/excalidraw": "^0.11.0",
+    "@excalidraw/excalidraw": "^0.12.0",
     "@types/jest": "^28.0.0",
     "@types/node": "^16.11.41",
     "@types/react": "^17.0.11",
     "@types/react-dom": "^17.0.8",
     "awesome-debounce-promise": "^2.1.0",
-    "pako": "^1.0.11",
-    "png-chunk-text": "^1.0.0",
-    "png-chunks-encode": "^1.0.0",
-    "png-chunks-extract": "^1.0.0",
     "react": "^17.0.2",
     "react-app-rewired": "^2.1.8",
     "react-dom": "^17.0.2",
@@ -23,7 +19,7 @@
     "typescript": "^4.3.4"
   },
   "devDependencies": {
-    "@types/pako": "^1.0.1",
+    "@types/pako": "^2.0.0",
     "cross-env": "^7.0.2",
     "gulp": "^4.0.2",
     "gulp-inline-source-html": "^1.0.3",

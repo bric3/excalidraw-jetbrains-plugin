@@ -1,7 +1,13 @@
 import React from "react";
-import Excalidraw, {loadFromBlob, exportToBlob, exportToSvg, getSceneVersion, serializeAsJSON,} from "@excalidraw/excalidraw";
+import {
+    loadFromBlob,
+    exportToBlob,
+    exportToSvg,
+    getSceneVersion,
+    serializeAsJSON,
+    Excalidraw,
+} from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {encodePngMetadata} from "./image";
 import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
 import {Theme} from "@excalidraw/excalidraw/types/element/types";
 
@@ -104,17 +110,13 @@ class ExcalidrawApiBridge {
 
         let binaryFiles = {};
         return exportToBlob({
-            elements: this.excalidraw().getSceneElements(),
+            elements: sceneElements,
             appState: {
-                ...this.excalidraw().getAppState(),
-                ...exportParams
+                ...appState,
+                ...exportParams,
+                exportEmbedScene: true,
             },
             files: binaryFiles,
-        }).then(pngBlob => {
-            return encodePngMetadata({
-                blob: pngBlob!,
-                metadata: serializeAsJSON(sceneElements, appState, binaryFiles, "local"),
-            })
         });
     };
 
