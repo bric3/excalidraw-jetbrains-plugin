@@ -70,7 +70,7 @@ fun asyncWrite(
     val writeDone = AsyncPromise<Boolean>()
     ApplicationManager.getApplication().invokeLater {
         ApplicationManager.getApplication().runWriteAction {
-            debuggingLogWithThread { "utils::asyncWrite" }
+            debuggingLogWithThread(logger) { "utils::asyncWrite" }
             val file = destination.invoke()
             try {
                 file.getOutputStream(file).use { stream ->
@@ -91,8 +91,8 @@ fun asyncWrite(
     return writeDone
 }
 
-fun debuggingLogWithThread(message: Supplier<String>) {
+fun debuggingLogWithThread(logger: Logger, message: Supplier<String>) {
     if (debugMode) {
-        println(Thread.currentThread().name + "(" + Thread.currentThread().id + "): " + message.get())
+        logger.info("[${Thread.currentThread().name} (${Thread.currentThread().id})] ${message.get()}")
     }
 }

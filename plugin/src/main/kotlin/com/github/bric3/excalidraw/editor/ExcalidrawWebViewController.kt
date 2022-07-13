@@ -115,7 +115,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
                 persistent: Boolean,
                 callback: CefQueryCallback?
             ): Boolean {
-                debuggingLogWithThread { "CefMessageRouterHandlerAdapter::onQuery" }
+                debuggingLogWithThread(logger) { "CefMessageRouterHandlerAdapter::onQuery" }
                 if (logger.isDebugEnabled) {
                     logger.debug("lifetime alive: ${lifetime.isAlive}, request: $request")
                 }
@@ -323,7 +323,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
     }
 
     suspend fun saveAsCoroutines(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): String {
-        debuggingLogWithThread { "ExcalidrawWebViewController::saveAsCoroutines" }
+        debuggingLogWithThread(logger) { "ExcalidrawWebViewController::saveAsCoroutines" }
 
         val msgType = when (imageType) {
             ExcalidrawImageType.SVG -> "save-as-svg"
@@ -356,12 +356,18 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
 
     private fun runJS(jsOperation: String, @Language("JavaScript") js: String) {
         if (lifetime.isNotAlive) {
-            thisLogger().warn("runJS: lifetime is not alive for operation: $jsOperation")
+            logger.warn("runJS: lifetime is not alive for operation: $jsOperation")
             return
         }
-        jcefPanel.browser.cefBrowser.mainFrame.executeJavaScript(
+        val mainFrame = jcefPanel.browser.cefBrowser.mainFrame
+        if (mainFrame == null) {
+            logger.warn("runJS: mainFrame is null for operation: $jsOperation")
+            return
+        }
+
+        mainFrame.executeJavaScript(
             js.trimIndent(),
-            jcefPanel.browser.cefBrowser.mainFrame.url,
+            mainFrame.url,
             0
         )
     }

@@ -77,7 +77,7 @@ class ExcalidrawEditor(
         busConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
             override fun beforeAllDocumentsSaving() {
                 // This is the manual or auto save action of IntelliJ
-                debuggingLogWithThread { "ExcalidrawEditor::beforeAllDocumentsSaving" }
+                debuggingLogWithThread(logger) { "ExcalidrawEditor::beforeAllDocumentsSaving" }
                 saveEditor()
                 // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeAllDocumentsSaving
                 // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
@@ -168,7 +168,7 @@ class ExcalidrawEditor(
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
         viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
-            debuggingLogWithThread { "content to save to $file" }
+            debuggingLogWithThread(logger) { "content to save to $file" }
             if (!file.isWritable) {
                 return@adviseNotNull
             }
@@ -198,12 +198,12 @@ class ExcalidrawEditor(
 
     private fun saveCoroutines() {
 
-        debuggingLogWithThread { "ExcalidrawEditor::saveCoroutines" }
+        debuggingLogWithThread(logger) { "ExcalidrawEditor::saveCoroutines" }
         if (!file.isWritable) {
-            debuggingLogWithThread { "bailing out save, file non writable" }
+            debuggingLogWithThread(logger) { "bailing out save, file non writable" }
             return
         }
-        debuggingLogWithThread { "starts saving editor" }
+        debuggingLogWithThread(logger) { "starts saving editor" }
         val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()                                          
         val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
             ?: throw IllegalStateException("Excalidraw should have been identified")
@@ -212,7 +212,7 @@ class ExcalidrawEditor(
         // wrap in runBlocking ?
         GlobalScope.launch(Dispatchers.Default) {
             val payload = viewController.saveAsCoroutines(type, saveOptions)
-            debuggingLogWithThread { "received a payload!! : ${payload.substring(0, 10)}..." }
+            debuggingLogWithThread(logger) { "received a payload!! : ${payload.substring(0, 10)}..." }
             saveAndDisposePhaser.arriveAndDeregister()
             val byteArrayPayload = when (type) {
                 ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> payload.toByteArray(UTF_8)
@@ -223,7 +223,7 @@ class ExcalidrawEditor(
                 type,
                 byteArrayPayload
             ).then {
-                debuggingLogWithThread { "File ${file.name} saved" }
+                debuggingLogWithThread(logger) { "File ${file.name} saved" }
                 toggleModifiedStatus(false)
 
             }
@@ -266,7 +266,7 @@ class ExcalidrawEditor(
         // if closing the editor it's preceded by
         // com.intellij.openapi.fileEditor.FileEditorManagerListener.Before.beforeFileClosed
         // changing (and current editor gets deselected) editor triggers
-        debuggingLogWithThread { "ExcalidrawEditor::deselectNotify" }
+        debuggingLogWithThread(logger) { "ExcalidrawEditor::deselectNotify" }
         saveEditor()
 
         // deselectNotify
@@ -291,9 +291,9 @@ class ExcalidrawEditor(
 
     override fun dispose() {
         GlobalScope.launch(Dispatchers.Default) {
-            debuggingLogWithThread { "ExcalidrawEditor::dispose, save in progress: ${saveAndDisposePhaser.unarrivedParties - 1}" }
+            debuggingLogWithThread(logger) { "ExcalidrawEditor::dispose, save in progress: ${saveAndDisposePhaser.unarrivedParties - 1}" }
             saveAndDisposePhaser.arriveAndAwaitAdvance()
-            debuggingLogWithThread { "ExcalidrawEditor::dispose" }
+            debuggingLogWithThread(logger) { "ExcalidrawEditor::dispose" }
             lifetimeDef.terminate(true)
             viewController.dispose()
             saveAndDisposePhaser.arriveAndDeregister()
