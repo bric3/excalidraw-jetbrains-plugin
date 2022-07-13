@@ -7,6 +7,8 @@ import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
 
+type ThemeName = "light" | "dark";
+
 const defaultInitialData = {
     readOnly: false,
     gridMode: false,
@@ -19,8 +21,8 @@ const initialData = anyWindow.initialData ?? defaultInitialData;
 class ExcalidrawApiBridge {
     private readonly excalidrawRef: any;
     private continuousSavingEnabled = true;
-    private _setTheme: React.Dispatch<string> | null = null;
-    set setTheme(value: React.Dispatch<string>) {
+    private _setTheme: React.Dispatch<ThemeName> | null = null;
+    set setTheme(value: React.Dispatch<ThemeName>) {
         this._setTheme = value;
     }
 
@@ -286,13 +288,13 @@ export const App = () => {
     }, []);
 
     // React Hook "React.useState" cannot be called in a class component.
-    const [theme, setTheme] = React.useState(initialData.theme);
+    const [theme, setTheme] = React.useState<ThemeName>(initialData.theme);
     apiBridge.setTheme = setTheme;
-    const [viewModeEnabled, setViewModeEnabled] = React.useState(initialData.readOnly);
+    const [viewModeEnabled, setViewModeEnabled] = React.useState<boolean>(initialData.readOnly);
     apiBridge.setViewModeEnabled = setViewModeEnabled;
-    const [gridModeEnabled, setGridModeEnabled] = React.useState(initialData.gridMode);
+    const [gridModeEnabled, setGridModeEnabled] = React.useState<boolean>(initialData.gridMode);
     apiBridge.setGridModeEnabled = setGridModeEnabled;
-    const [zenModeEnabled, setZenModeEnabled] = React.useState(initialData.zenMode);
+    const [zenModeEnabled, setZenModeEnabled] = React.useState<boolean>(initialData.zenMode);
     apiBridge.setZenModeEnabled = setZenModeEnabled;
     // see https://codesandbox.io/s/excalidraw-forked-xsw0k?file=/src/App.js
 
