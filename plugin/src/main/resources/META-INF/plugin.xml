@@ -81,6 +81,11 @@
                 text="Toggle Zen Mode"
                 description="Toggle the zen mode"
                 icon="AllIcons.General.ReaderMode"/>
+        <action id="excalidraw.ToggleLightDarkMode"
+                class="com.github.bric3.excalidraw.actions.ToggleLightDarkModeAction"
+                text="Toggle Light/Dark Mode"
+                description="Toggle Light/Dark mode"
+                icon="AllIcons.Actions.IntentionBulb"/>
 
         <!-- AllIcons.Actions.InlayGlobe -->
 
@@ -98,6 +103,7 @@
             <separator/>
             <reference ref="excalidraw.ToggleGridMode" />
             <reference ref="excalidraw.ToggleZenMode" />
+            <reference ref="excalidraw.ToggleLightDarkMode" />
         </group>
 
     </actions>
