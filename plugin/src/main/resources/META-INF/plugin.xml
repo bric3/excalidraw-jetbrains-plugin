@@ -10,6 +10,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="Excalidraw sketch"
                   implementationClass="com.github.bric3.excalidraw.files.ExcalidrawFileType"
+                  language="Excalidraw"
                   fieldName="INSTANCE"
                   extensions="excalidraw;excalidraw.json"/>
 
