@@ -1,6 +1,8 @@
 
 import org.siouan.frontendgradleplugin.infrastructure.gradle.AssembleTask
+import org.siouan.frontendgradleplugin.infrastructure.gradle.EnableYarnBerryTask
 import org.siouan.frontendgradleplugin.infrastructure.gradle.InstallDependenciesTask
+import org.siouan.frontendgradleplugin.infrastructure.gradle.InstallYarnTask
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 plugins {
@@ -22,6 +24,16 @@ frontend {
     nodeInstallDirectory.set(project.layout.buildDirectory.dir("node"))
 
     assembleScript.set("run build") // "build" script in package.json
+}
+
+tasks.named<EnableYarnBerryTask>("enableYarnBerry") {
+    // inputs.property("yarnEnabled", frontend.yarnEnabled.get())
+    outputs.dir(".yarn/releases")
+}
+
+tasks.named<InstallYarnTask>("installYarn") {
+    // inputs.property("yarnVersion", frontend.yarnVersion.get())
+    outputs.dir(".yarn/releases")
 }
 
 tasks.named<InstallDependenciesTask>("installFrontend") {

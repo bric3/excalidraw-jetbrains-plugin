@@ -33,18 +33,14 @@ class SchemeHandlerFactory(val getStream: (uri: URI) -> InputStream?) : CefSchem
                 return true
             }
 
-            override fun getResponseHeaders(response: CefResponse, response_length: IntRef, redirectUrl: StringRef?) {
+            override fun getResponseHeaders(response: CefResponse, responseLength: IntRef, redirectUrl: StringRef?) {
 
-                if (uri.path.endsWith(".html")) {
-                    response.mimeType = "text/html"
-                } else if (uri.path.endsWith(".js")) {
-                    response.mimeType = "application/javascript"
-                } else if (uri.path.endsWith(".css")) {
-                    response.mimeType = "text/css"
-                } else if (uri.path.endsWith(".svg")) {
-                    response.mimeType = "image/svg+xml"
-                } else if (uri.path.endsWith(".png")) {
-                    response.mimeType = "image/png"
+                when {
+                    uri.path.endsWith(".html") -> response.mimeType = "text/html"
+                    uri.path.endsWith(".js") -> response.mimeType = "application/javascript"
+                    uri.path.endsWith(".css") -> response.mimeType = "text/css"
+                    uri.path.endsWith(".svg") -> response.mimeType = "image/svg+xml"
+                    uri.path.endsWith(".png") -> response.mimeType = "image/png"
                 }
 
                 if (myStream === null) {
@@ -54,22 +50,21 @@ class SchemeHandlerFactory(val getStream: (uri: URI) -> InputStream?) : CefSchem
                 }
             }
 
-            override fun readResponse(data_out: ByteArray, bytes_to_read: Int, bytes_read: IntRef, callback: CefCallback): Boolean {
+            override fun readResponse(dataOut: ByteArray, bytesToRead: Int, bytesRead: IntRef, callback: CefCallback): Boolean {
                 if (myStream === null) {
-                    bytes_read.set(0)
+                    bytesRead.set(0)
                     return false
                 }
                 try {
                     val availableSize = myStream.available()
                     return if (availableSize > 0) {
-                        bytes_read.set(myStream.read(data_out, 0, bytes_to_read.coerceAtMost(availableSize)))
+                        bytesRead.set(myStream.read(dataOut, 0, bytesToRead.coerceAtMost(availableSize)))
                         true
                     } else {
-                        bytes_read.set(0)
+                        bytesRead.set(0)
                         try {
                             myStream.close()
-                        } catch (ex: IOException) {
-
+                        } catch (_: IOException) {
                         }
 
                         false

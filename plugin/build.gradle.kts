@@ -6,10 +6,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.7.22"
-    id("org.jetbrains.intellij") version "1.10.0"
-    id("org.jetbrains.changelog") version "2.0.0"
+    java
+    id("jvm-test-suite")
+    kotlin("jvm") version libs.versions.kotlin.get()
+    alias(libs.plugins.jetbrains.changelog)
+    alias(libs.plugins.jetbrains.intellij)
 }
 
 group = properties("pluginGroup")
@@ -20,11 +21,6 @@ repositories {
 }
 
 dependencies {
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
-    testImplementation("org.assertj:assertj-core:3.23.1")
-    testImplementation("org.mockito:mockito-inline:4.9.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 }
 
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
@@ -52,22 +48,21 @@ changelog {
 }
 
 // Java 11 compat started in 2020.3
-val JVM_LANGUAGE_LEVEL = 11
+val jvmLanguageLevel = 17
 
 tasks {
-    // Java 11 compat started in 2020.3
     withType<JavaCompile> {
-        options.release.set(JVM_LANGUAGE_LEVEL)
+        options.release.set(jvmLanguageLevel)
     }
 
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "$JVM_LANGUAGE_LEVEL"
+            jvmTarget = "$jvmLanguageLevel"
 
             // Match the lowest supported version for this platform
             // See https://plugins.jetbrains.com/docs/intellij/kotlin.html#kotlin-standard-library
-            apiVersion = "1.4"
-            languageVersion = "1.4"
+            apiVersion = "1.6"
+            languageVersion = "1.6"
 
             // Generates default method in Kotlin interfaces to be usable from Java
             // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/
@@ -130,5 +125,46 @@ tasks {
 
     runIde {
         systemProperties["idea.log.debug.categories"] = "#com.github.bric3.excalidraw"
+    }
+}
+
+
+testing {
+    suites {
+        named("test", JvmTestSuite::class) {
+            dependencies {
+                implementation.add(libs.assertj.core)
+                implementation.bundle(libs.bundles.mockito)
+            }
+        }
+
+        withType(JvmTestSuite::class) {
+            useJUnitJupiter(libs.versions.junit.jupiter.get())
+
+            dependencies {
+                // IntelliJ seems to ship with an old version of the platform launcher which causes a ClassNotFound in Gradle, pull it in manually
+                runtimeOnly("org.junit.platform:junit-platform-launcher")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine")
+                runtimeOnly("org.junit.vintage:junit-vintage-engine")
+            }
+
+            targets.configureEach {
+                testTask.configure {
+                    useJUnitPlatform {
+                        includeEngines("junit-vintage", "junit-jupiter")
+                    }
+
+                    testLogging {
+                        showStackTraces = true
+                        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
+                        events = setOf(
+                            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+                            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+                        )
+                    }
+                }
+            }
+        }
     }
 }

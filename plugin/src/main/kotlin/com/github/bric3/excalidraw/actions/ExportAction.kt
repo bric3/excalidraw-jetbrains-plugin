@@ -2,9 +2,9 @@ package com.github.bric3.excalidraw.actions
 
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.asyncWrite
+import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
-import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -15,11 +15,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
     private val logger = thisLogger()
@@ -54,7 +50,6 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
                         "Image format non supported",
                         "This action only supports ${type.name} file exports",
                         NotificationType.ERROR,
-                        null
                     )
                 )
             }

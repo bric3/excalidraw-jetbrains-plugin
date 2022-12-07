@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7831be56-5e1c-476a-860e-c5f38f5a9ce0" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ExportAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ExportAction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ToggleLightDarkModeAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ToggleLightDarkModeAction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawActionPanel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawActionPanel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawEditor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawEditor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawWebViewController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawWebViewController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/SchemeHandlerFactory.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/SchemeHandlerFactory.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/utils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/test/kotlin/com/github/bric3/excalidraw/UtilsKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/test/kotlin/com/github/bric3/excalidraw/UtilsKtTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
@@ -9,16 +28,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="project.structure.last.edited" value="Modules" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
-  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Excalidraw&quot;
+    ]
+  }
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="3709b917-1181-4542-a830-82fb1d7cb963" name="Default Changelist" comment="" />
+      <changelist id="7831be56-5e1c-476a-860e-c5f38f5a9ce0" name="Default Changelist" comment="" />
       <created>1623590218119</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
