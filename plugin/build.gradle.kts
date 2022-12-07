@@ -48,16 +48,16 @@ changelog {
 }
 
 // Java 11 compat started in 2020.3
-val JVM_LANGUAGE_LEVEL = 17
+val jvmLanguageLevel = 17
 
 tasks {
     withType<JavaCompile> {
-        options.release.set(JVM_LANGUAGE_LEVEL)
+        options.release.set(jvmLanguageLevel)
     }
 
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "$JVM_LANGUAGE_LEVEL"
+            jvmTarget = "$jvmLanguageLevel"
 
             // Match the lowest supported version for this platform
             // See https://plugins.jetbrains.com/docs/intellij/kotlin.html#kotlin-standard-library

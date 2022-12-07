@@ -18,7 +18,7 @@ import java.util.function.Supplier
 val logger = Logger.getInstance("com.github.bric3.excalidraw.utils")
 
 val debugMode = ProcessHandle.current().info().arguments().map {
-    it.any { it.contains("-agentlib:jdwp") }
+    it.any { arg -> arg.contains("-agentlib:jdwp") }
 }.orElse(false)!!
 
 
@@ -57,7 +57,6 @@ fun notifyAboutWriteError(
             "Writing export to disk failed",
             "This action failed to write the ${type.name} content to disk.",
             NotificationType.ERROR,
-            null
         )
     )
 }

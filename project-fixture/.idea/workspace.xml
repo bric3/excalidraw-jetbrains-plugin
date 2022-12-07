@@ -2,14 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7831be56-5e1c-476a-860e-c5f38f5a9ce0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../excalidraw-assets/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../excalidraw-assets/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../plugin/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plugin/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/gradle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/files/ExcalidrawFileType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/files/ExcalidrawFileType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plugin/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/resources/META-INF/plugin.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ExportAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ExportAction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ToggleLightDarkModeAction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/actions/ToggleLightDarkModeAction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawActionPanel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawActionPanel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawEditor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawEditor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawWebViewController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/ExcalidrawWebViewController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/SchemeHandlerFactory.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/editor/SchemeHandlerFactory.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/main/kotlin/com/github/bric3/excalidraw/utils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plugin/src/test/kotlin/com/github/bric3/excalidraw/UtilsKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../plugin/src/test/kotlin/com/github/bric3/excalidraw/UtilsKtTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/random.png" beforeDir="false" afterPath="$PROJECT_DIR$/random.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/random.svg" beforeDir="false" afterPath="$PROJECT_DIR$/random.svg" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

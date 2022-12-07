@@ -145,7 +145,6 @@ class ExcalidrawEditor(
                     "Excalidraw not available",
                     "CEF is not available on this JVM, use Jetbrains runtime",
                     NotificationType.ERROR,
-                    null
                 )
             )
             return
@@ -167,7 +166,7 @@ class ExcalidrawEditor(
         }
 
         // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
-        viewController.excalidrawPayload.adviseNotNull(lifetime) { content ->
+        viewController.excalidrawPayload.adviseNotNull(lifetime) { _ ->
             debuggingLogWithThread(logger) { "content to save to $file" }
             if (!file.isWritable) {
                 return@adviseNotNull

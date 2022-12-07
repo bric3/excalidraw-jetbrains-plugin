@@ -11,7 +11,7 @@ class ExcalidrawActionPanel : JPanel(BorderLayout()) {
         val group = ActionManager.getInstance().getAction("excalidraw.ToolbarActionGroup")
         checkNotNull(group)
         check(group is ActionGroup)
-        ActionManager.getInstance().createActionToolbar("", group, true)
+        ActionManager.getInstance().createActionToolbar("excalidraw.ExcalidrawActionPanel", group, true)
     }
 
     init {
@@ -20,6 +20,6 @@ class ExcalidrawActionPanel : JPanel(BorderLayout()) {
     }
 
     fun setTargetComponent(component: JComponent) {
-        leftToolbar.setTargetComponent(component)
+        leftToolbar.targetComponent = component
     }
 }

@@ -7,8 +7,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.debugMode
-import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.debuggingLogWithThread
+import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
@@ -16,18 +16,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.lifetime.isAlive
 import com.jetbrains.rd.util.lifetime.isNotAlive
-import com.jetbrains.rd.util.lifetime.onTermination
 import com.jetbrains.rd.util.reactive.IPropertyView
 import com.jetbrains.rd.util.reactive.Property
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import org.cef.CefApp
 import org.cef.CefSettings
-import org.cef.CefSettings.LogSeverity.LOGSEVERITY_ERROR
-import org.cef.CefSettings.LogSeverity.LOGSEVERITY_FATAL
-import org.cef.CefSettings.LogSeverity.LOGSEVERITY_INFO
-import org.cef.CefSettings.LogSeverity.LOGSEVERITY_VERBOSE
-import org.cef.CefSettings.LogSeverity.LOGSEVERITY_WARNING
+import org.cef.CefSettings.LogSeverity.*
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.browser.CefMessageRouter
@@ -84,7 +79,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
         }
     }
 
-    val jcefPanel = LoadableJCEFHtmlPanel(
+    private val jcefPanel = LoadableJCEFHtmlPanel(
         url = pluginUrl,
         openDevtools = debugMode
     )
