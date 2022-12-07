@@ -16,6 +16,7 @@ data class SceneModes(
     var gridMode: Boolean? = null,
     var zenMode: Boolean? = null,
     var readOnlyMode: Boolean? = null,
+    var lightMode: Boolean? = null, // allow overriding uiTheme for the editor window
 ) {
     companion object {
         val SCENE_MODES_KEY: Key<SceneModes> = Key.create(SceneModes::javaClass.name)
