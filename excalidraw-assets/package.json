@@ -10,7 +10,7 @@
     "@types/jest": "^29.0.0",
     "@types/node": "^16.11.41",
     "@types/react": "^17.0.11",
-    "@types/react-dom": "^17.0.8",
+    "@types/react-dom": "^18.0.0",
     "awesome-debounce-promise": "^2.1.0",
     "react": "^17.0.2",
     "react-app-rewired": "^2.1.8",
