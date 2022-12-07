@@ -10,6 +10,7 @@ import {
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
 import {Theme} from "@excalidraw/excalidraw/types/element/types";
+import {ExcalidrawImperativeAPI} from "@excalidraw/excalidraw/types/types";
 
 // hack to access the non typed window object (any) to add old school javascript
 let anyWindow = (window as any);
@@ -46,7 +47,7 @@ class ExcalidrawApiBridge {
         this._setZenModeEnabled = value;
     }
 
-    constructor(excalidrawRef: React.MutableRefObject<null>) {
+    constructor(excalidrawRef: React.MutableRefObject<ExcalidrawImperativeAPI | null>) {
         this.excalidrawRef = excalidrawRef;
         window.addEventListener(
             "message",
@@ -286,10 +287,10 @@ let apiBridge: ExcalidrawApiBridge | null = null;
 
 
 export const App = () => {
-    const excalidrawApiRef = React.useRef(null);
+    const excalidrawApiRef = React.useRef<ExcalidrawImperativeAPI | null>(null);
     apiBridge = new ExcalidrawApiBridge(excalidrawApiRef)
 
-    const excalidrawRef = React.useCallback((excalidrawApi) => {
+    const excalidrawRef = React.useCallback((excalidrawApi: ExcalidrawImperativeAPI) => {
         excalidrawApiRef.current = excalidrawApi;
         apiBridge!.dispatchToPlugin({type: "ready"})
     }, []);
