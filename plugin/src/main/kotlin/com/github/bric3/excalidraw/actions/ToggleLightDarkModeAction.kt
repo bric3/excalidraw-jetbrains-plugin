@@ -7,17 +7,15 @@ import com.intellij.util.ui.UIUtil
 
 class ToggleLightDarkModeAction() : ToggleSceneModeAction() {
 
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
+    override fun setSelected(event: AnActionEvent, lightModeState: Boolean) {
         val sceneModes = event.getSceneModes() ?: return
 
-        toggle(sceneModes, state)
+        toggle(sceneModes, lightModeState)
 
         // This SceneMode value gets passed to a different
         // method than other scene mode toggles
 
-        var mode = "dark";
-        if(state)
-            mode = "light"
+        var mode = if (lightModeState) "light" else "dark"
 
         event.findEditor()!!.viewController.changeTheme(mode)
     }
