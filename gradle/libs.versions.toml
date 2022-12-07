@@ -1,0 +1,31 @@
+[versions]
+assertj = "3.23.1"
+junit = "4.13.2"
+junit-jupiter = "5.9.1"
+mockito = "4.9.0"
+mockito-kotlin = "4.1.0"
+
+detekt = "1.21.0"
+
+# plugin versions
+kotlin = "1.7.22"
+changelog-plugin = "2.0.0"
+intellij-plugin = "1.11.0-SNAPSHOT"
+
+[libraries]
+# tests
+junit = { module = "junit:junit", version.ref = "junit" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+junit-jupiter-vintage-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+[bundles]
+junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine", "junit-jupiter-vintage-engine"]
+mockito = ["mockito-core", "mockito-kotlin"]
+
+[plugins]
+jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog-plugin" }
+jetbrains-intellij = { id = "org.jetbrains.intellij", version.ref = "intellij-plugin" }

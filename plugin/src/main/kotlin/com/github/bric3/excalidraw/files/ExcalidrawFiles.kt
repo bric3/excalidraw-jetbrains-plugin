@@ -66,7 +66,7 @@ class ExcalidrawFiles private constructor() {
                                 return@use true
                             }
                         } catch (ioe: IOException) {
-                            logger.warn("Couldn't read $file", ioe)
+                            logger.info("Couldn't read $file", ioe)
                         }
                         false
                     }
@@ -95,9 +95,9 @@ class ExcalidrawFiles private constructor() {
                     }
                 }
             } catch (ioe: IOException) {
-                logger.warn("Unable to read this SVG file, maybe it is malformed, file: '$file'", ioe)
+                logger.info("Unable to read this SVG file, maybe it is malformed, file: '$file'", ioe)
             } catch (xse: XMLStreamException) {
-                logger.warn("Unable to read this SVG file, maybe it is malformed, file: '$file'", xse)
+                logger.info("Unable to read this SVG file, maybe it is malformed, file: '$file'", xse)
             }
             return false
         }
@@ -130,7 +130,7 @@ class ExcalidrawFiles private constructor() {
                     }
                 }
             } catch (ioe: IOException) {
-                logger.warn("Unable to read this PNG file, maybe it is malformed, file: '$file'", ioe)
+                logger.info("Unable to read this PNG file, maybe it is malformed, file: '$file'", ioe)
             }
 
             return null

@@ -3,15 +3,13 @@ package com.github.bric3.excalidraw.files
 import com.github.bric3.excalidraw.files.ExcalidrawFiles.Companion.isExcalidrawFile
 import com.intellij.testFramework.BinaryLightVirtualFile
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
-
-class ExcalidrawFileUtilTest : BasePlatformTestCase() {
+internal class ExcalidrawFileUtilTest {
     @Test
-    fun should_accept_svg_with_embedded_excalidraw_payload() {
+    fun `should accept svg with embedded excalidraw payload`() {
         @Language("xml") val svgFile =
             """
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 46" width="128" height="92">
@@ -35,7 +33,7 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_discard_svg_without_embedded_excalidraw_payload() {
+    fun `should discard svg without embedded excalidraw payload`() {
         @Language("xml") val svgFile =
             """
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 46" width="128" height="92">
@@ -61,7 +59,7 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_not_accept_malformed_svg_file() {
+    fun `should not accept malformed svg file`() {
         val malformedSvg =
             """
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 46" width="128" height="92">
@@ -75,13 +73,13 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_accept_file_with_declared_excalidraw_extension() {
+    fun `should accept file with declared excalidraw extension`() {
         assertThat(isExcalidrawFile(virtualFile("sketch.excalidraw", "content ignored"))).isTrue
         assertThat(isExcalidrawFile(virtualFile("sketch.excalidraw.json", "content ignored"))).isTrue
     }
 
     @Test
-    fun should_not_accept_file_with_non_excalidraw_extension() {
+    fun `should not accept file with non excalidraw extension`() {
         assertThat(isExcalidrawFile(virtualFile("sketch.psd", "content ignored"))).isFalse
         assertThat(isExcalidrawFile(virtualFile("sketch.java", "content ignored"))).isFalse
 
@@ -89,7 +87,7 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_discover_excalidraw_scene_in_png() {
+    fun `should discover excalidraw scene in png`() {
         val virtualFile = BinaryLightVirtualFile(
             "random-with-scene.png",
             null,
@@ -99,7 +97,7 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_accept_excalidraw_file_with_json_extension() {
+    fun `should accept excalidraw file with json extension`() {
         @Language("json") val excalidrawJsonContent =
             """
             {
@@ -147,13 +145,13 @@ class ExcalidrawFileUtilTest : BasePlatformTestCase() {
     }
 
     @Test
-    fun should_not_accept_non_excalidraw_json_file() {
+    fun `should not accept non excalidraw json file`() {
         @Language("json") val malformedJson = """ { "whatever": "whatever" }"""
         assertThat(isExcalidrawFile(virtualFile("malformed.json", malformedJson))).isFalse
     }
 
     @Test
-    fun should_not_accept_malformed_json_file() {
+    fun `should not accept malformed json file`() {
         val malformedJson = """ { "malformed_json: "whatever" }"""
         assertThat(isExcalidrawFile(virtualFile("malformed.json", malformedJson))).isFalse
     }
