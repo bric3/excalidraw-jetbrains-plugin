@@ -22,8 +22,8 @@ class ToggleLightDarkModeAction() : ToggleSceneModeAction() {
         event.findEditor()!!.viewController.changeTheme(mode)
     }
 
-    override fun toggle(sceneModes: SceneModes, state: Boolean) {
-        sceneModes.lightMode = state
+    override fun toggle(sceneModes: SceneModes, lightModeState: Boolean) {
+        sceneModes.lightMode = lightModeState
     }
 
     // Default selected state is dervived from the UI theme
