@@ -14,4 +14,6 @@ object ExcalidrawFileType : LanguageFileType(ExcalidrawJson, true)
     override fun getDescription() = "Excalidraw sketch file"
     override fun getDefaultExtension() = "excalidraw"
     override fun getIcon() = ExcalidrawIcons.ExcalidrawFileIcon
+    override fun getDisplayName() = "Excalidraw sketch"
+    override fun isSecondary() = false
 }
