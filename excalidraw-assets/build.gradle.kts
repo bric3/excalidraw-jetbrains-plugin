@@ -45,7 +45,8 @@ val port = providers.provider {
  */
 tasks {
     installNode {
-        outputs.cacheIf { true }
+        inputs.property("nodeVersion", frontend.nodeVersion)
+        outputs.dir(frontend.nodeInstallDirectory)
     }
 
     enableYarnBerry {
@@ -60,10 +61,11 @@ tasks {
     }
 
     installYarnGlobally {
-        outputs.cacheIf { true }
-        // put yarn else where to not polute Node install folder
-        // outputs.dir(frontend.nodeInstallDirectory.map { "$it/lib/node_modules/yarn" })
-        outputs.dir(project.layout.buildDirectory.dir("yarn"))
+////        outputs.cacheIf { true }
+//        // put yarn else where to not pollute Node install folder
+//         outputs.dir(frontend.nodeInstallDirectory.map { "$it/lib/node_modules/yarn" })
+////        outputs.dir(project.layout.buildDirectory.dir("yarn"))
+        onlyIf { frontend.nodeInstallDirectory.map { !file("${it}/lib/node_modules/yarn").exists() }.get() }
     }
 
     val runYarnInstall by registering(RunYarn::class) {
@@ -91,7 +93,7 @@ tasks {
     }
 
     installFrontend {
-        inputs.files("package.json", "yarn.lock")
+        inputs.files("package.json", ".yarnrc.yml", "yarn.lock")
         outputs.dir("node_modules")
         finalizedBy(runYarnInstall)
     }
@@ -108,6 +110,7 @@ tasks {
         onlyIf {
             val output = ByteArrayOutputStream()
             exec {
+                isIgnoreExitValue = true
                 commandLine("lsof","-t", "-i", ":${port.get()}")
                 standardOutput = output
             }
