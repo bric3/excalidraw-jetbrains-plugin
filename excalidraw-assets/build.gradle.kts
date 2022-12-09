@@ -1,9 +1,6 @@
 
-import org.siouan.frontendgradleplugin.infrastructure.gradle.AssembleTask
-import org.siouan.frontendgradleplugin.infrastructure.gradle.EnableYarnBerryTask
-import org.siouan.frontendgradleplugin.infrastructure.gradle.InstallDependenciesTask
-import org.siouan.frontendgradleplugin.infrastructure.gradle.InstallYarnTask
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+import java.io.ByteArrayOutputStream
 
 plugins {
     id("org.siouan.frontend-jdk11") version "6.0.0"
@@ -17,7 +14,7 @@ frontend {
     nodeVersion.set("16.15.1")
     yarnEnabled.set(true)
     yarnVersion.set("1.22.19")
-    // DONT use the `build` directory if it also the output of the `react-scripts`
+    // DON'T use the `build` directory if it also the output of the `react-scripts`
     // otherwise it causes 'Error: write EPIPE' because node location is also
     // in the location of the output folder of react-scripts.
     // This projects set up the BUILD_PATH=./build/react-build/ for react-scripts
@@ -26,65 +23,120 @@ frontend {
     assembleScript.set("run build") // "build" script in package.json
 }
 
-tasks.named<EnableYarnBerryTask>("enableYarnBerry") {
-    // inputs.property("yarnEnabled", frontend.yarnEnabled.get())
-    outputs.dir(".yarn/releases")
-}
-
-tasks.named<InstallYarnTask>("installYarn") {
-    // inputs.property("yarnVersion", frontend.yarnVersion.get())
-    outputs.dir(".yarn/releases")
-}
-
-tasks.named<InstallDependenciesTask>("installFrontend") {
-    inputs.files("package.json")
-    outputs.dir("node_modules")
-    finalizedBy("runYarnInstall")
-}
-
-tasks.register<RunYarn>("runYarnInstall") {
-    dependsOn(tasks.named("installFrontend"))
-    inputs.files("package.json")
-    outputs.files("yarn.lock")
-    script.set("install")
-}
-
-tasks.named<AssembleTask>("assembleFrontend") {
-    dependsOn(tasks.named("copyProductionAssets"))
-    inputs.files("package.json", "gulpfile.js", "src", "public")
-    outputs.dirs(webappFiles)
-}
-
-tasks.register<RunYarn>("runYarnStart") {
-    dependsOn(tasks.named("installFrontend"))
-    group = "Frontend"
-    description = "Starts yarn, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :3000)`)"
-
-    script.set("run start")
-    doFirst {
-        logger.warn(
-            """
-            Unfortunately node won't be killed on ctrl+c, you to actively kill it:
-                $ kill ${'$'}(lsof -t -i :3000)
-
-            A better alternative would be (from the project's root folder):
-                $ yarn --cwd excalidraw-assets start
-
-            """.trimIndent())
-    }
-    doLast {
-        logger.warn("""test after""")
+val port = providers.provider {
+    // PORT might be is in package.json "/scripts/start" value
+    // dumb solution to extract the port if possible
+    val defaultPort = 3000
+    file("package.json").useLines { lines ->
+        val startScriptRegex = Regex("\"start\"\\s?:\\s?\"[^\"]+\"")
+        lines
+            .filter { startScriptRegex.containsMatchIn(it) }
+            .map { Regex("\".*PORT=(\\d+).*\"").find(it)?.groups?.get(1)?.value }
+            .map { it?.toInt() }
+            .first() ?: defaultPort
     }
 }
+/**
+ * Note for future me:
+ * Build cache doc : https://docs.gradle.org/current/userguide/build_cache.html
+ * Debug task cacheability: -Dorg.gradle.caching.debug=true
+ *
+ * Disabling `outputs.cacheIf { true }` as it somehow breaks up-to-date check
+ */
+tasks {
+    installNode {
+        outputs.cacheIf { true }
+    }
 
-tasks.register<Copy>("copyProductionAssets") {
-    dependsOn(tasks.named("installFrontend"))
+    enableYarnBerry {
+        outputs.dir(".yarn/releases/")
+        // yarnBerryEnableScript = "set version berry"
+    }
 
-    val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist"
-    from(excalidrawDist)
-    include("excalidraw-assets/*")  // production assets
-    into(webappAssets)
+    installYarn {
+        yarnVersion.set(frontend.yarnVersion)
+        outputs.file(frontend.yarnVersion.map { ".yarn/releases/yarn-$it.cjs" })
+        // yarnInstallScript = "set version 1.22.19"
+    }
+
+    installYarnGlobally {
+        outputs.cacheIf { true }
+        // put yarn else where to not polute Node install folder
+        // outputs.dir(frontend.nodeInstallDirectory.map { "$it/lib/node_modules/yarn" })
+        outputs.dir(project.layout.buildDirectory.dir("yarn"))
+    }
+
+    val runYarnInstall by registering(RunYarn::class) {
+        dependsOn(installFrontend)
+        group = "frontend"
+        description = "Runs the yarn install command to fetch packages described in `package.json`"
+        
+        inputs.files("package.json")
+        outputs.files("yarn.lock")
+        script.set("install")
+    }
+
+    val copyProductionAssets by registering(Copy::class) {
+        dependsOn(installFrontend)
+        group = "frontend"
+        description = "copy necessary files to run the embedded app"
+
+        val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist"
+        from(excalidrawDist)
+        include("excalidraw-assets/*")  // production assets
+        into(webappAssets)
+
+        inputs.dir(excalidrawDist)
+        outputs.dir(webappAssets)
+    }
+
+    installFrontend {
+        inputs.files("package.json", "yarn.lock")
+        outputs.dir("node_modules")
+        finalizedBy(runYarnInstall)
+    }
+
+    assembleFrontend {
+        dependsOn(copyProductionAssets)
+        inputs.files("package.json", "gulpfile.js", "src", "public")
+        outputs.dirs(webappFiles)
+    }
+
+    val stopYarnServer by registering(Exec::class) {
+        commandLine("bash", "-c", "kill ${'$'}(lsof -t -i :${port.get()})")
+
+        onlyIf {
+            val output = ByteArrayOutputStream()
+            exec {
+                commandLine("lsof","-t", "-i", ":${port.get()}")
+                standardOutput = output
+            }
+
+            return@onlyIf output.toString().isNotEmpty()
+        }
+    }
+
+    register<RunYarn>("runYarnStart") {
+        dependsOn(installFrontend, stopYarnServer)
+        group = "frontend"
+        description = "Starts yarn, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :${port.get()})`)"
+
+        script.set("run start")
+
+        doFirst {
+            logger.warn(
+                """
+                Unfortunately node won't be killed on ctrl+c, you to actively kill it:
+                    $ kill ${'$'}(lsof -t -i :${port.get()})
     
-    inputs.dir(excalidrawDist)
-    outputs.dir(webappAssets)
+                An alternative would be (from the project's root folder):
+                    $ yarn --cwd excalidraw-assets start
+    
+                """.trimIndent()
+            )
+        }
+        doLast {
+            logger.warn("""test after""")
+        }
+    }
 }

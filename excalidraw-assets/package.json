@@ -31,7 +31,7 @@
     ]
   },
   "scripts": {
-    "start": "BROWSER=none cross-env NODE_ENV=development react-app-rewired start",
+    "start": "PORT=3006 BROWSER=none cross-env NODE_ENV=development react-app-rewired start",
     "build": "BUILD_PATH=./build/react-build/ react-app-rewired build && npx gulp",
     "test": "react-app-rewired test --env=jsdom"
   },
