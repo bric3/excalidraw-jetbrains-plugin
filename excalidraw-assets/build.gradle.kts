@@ -147,6 +147,12 @@ tasks {
         group = "frontend"
         description = "Run yarn script, e.g. for 'yarn add -D eslint', you can use './gradlew yarn --command=\"add -D eslint\"'"
     }
+
+    clean {
+        delete(
+            "node_modules"
+        )
+    }
 }
 
 open class YarnProxy @Inject constructor(
