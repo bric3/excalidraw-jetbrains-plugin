@@ -100,7 +100,7 @@ tasks {
 
     assembleFrontend {
         dependsOn(copyProductionAssets)
-        inputs.files("package.json", "gulpfile.js", "src", "public")
+        inputs.files("package.json", "gulpfile.mjs", "src", "public")
         outputs.dirs(webappFiles)
     }
 

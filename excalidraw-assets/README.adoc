@@ -24,7 +24,7 @@ This is a *React* based application, and it's written in *typescript*.
 ├── build.gradle.kts <5>
 ├── config-overrides.js <9>
 ├── excalidraw-interesting-changes.adoc <4>
-├── gulpfile.js <10>
+├── gulpfile.mjs <10>
 ├── package.json <7>
 ├── tsconfig.json <8>
 └── yarn.lock <7>

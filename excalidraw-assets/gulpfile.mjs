@@ -1,13 +1,15 @@
 // Ideas from https://www.labnol.org/code/bundle-react-app-single-file-200514
 
-const path = require('path');
-const del = require('del');
-const {task, series, src, dest} = require('gulp');
-const replace = require('gulp-replace')
-const inlineSource = require('gulp-inline-source-html');
+import path from 'path';
+import { deleteAsync } from 'del';
+import gulp from 'gulp';
+const { series, parallel, src, dest, task } = gulp;
+
+import replace from "gulp-replace";
+import inlineSource from 'gulp-inline-source-html';
 
 task('clean', () => {
-    return del('build/gulp-dist', {force:true});
+    return deleteAsync('build/gulp-dist', {force:true});
 });
 
 task('inline-html', () => {
