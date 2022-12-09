@@ -142,4 +142,31 @@ tasks {
             logger.warn("""test after""")
         }
     }
+
+    register<YarnProxy>("yarn") {
+        group = "frontend"
+        description = "Run yarn script, e.g. for 'yarn add -D eslint', you can use './gradlew yarn --command=\"add -D eslint\"'"
+    }
+}
+
+open class YarnProxy @Inject constructor(
+    projectLayout: ProjectLayout,
+    objectFactory: ObjectFactory,
+    execOperations: ExecOperations
+) : RunYarn(
+    projectLayout,
+    objectFactory,
+    execOperations
+) {
+    @Suppress("UnstableApiUsage")
+    @set:Option(option = "command", description = "The command to pass to yarn")
+    @get:Input
+    var script: String = ""
+        set(value) {
+            super.getScript().set(value)
+        }
+
+    init {
+        super.getScript().set(script)
+    }
 }
