@@ -121,26 +121,24 @@ Enable UI Inspector : _Tools > Internal Actions > UI > UI Inspector_
 
 == Dependencies source code
 
-Unfortunately only IntelliJ open API sources are available.
+Unfortunately, some dependencies sources are not available, in particular `rd`.
+This project was bumped to 2022.2 and gradle-intellij-plugin is now able to pull
+the sources, which now embed the ones of JCef are embedded.
 
-There are two things that was useful to grep JCEF (Java Chrominium Embedded Frame)
-and `rd` (aka Jetbrains'own reactive distributed library).
-
-.JCEF
-In order to access the sources of JCEF, clone [JetBrains/jcef](https://github.com/JetBrains/jcef) repository:
-`git clone git@github.com:JetBrains/jcef.git`. Then open a JCEF type
-like `org.cef.CefApp`, identify the version of the jar, eg `jcef-81.2.24-gc0b313d-chromium-81.0.4044.113-api-1.1.jar`,
-then checkout the matching branch `git checkout cef-81.2.24`. Finally,
-point the source location to the `java/` folder at the root of the cloned
-repository.
+> If this is ever interesting to you, it's possible to clone sources of
+[JetBrains/jcef](https://github.com/JetBrains/jcef). Whe running the app
+one can use the JCEF type `org.cef.CefApp`, and get the version something along
+`CefApp.getInstance().getVersion()` then checkout the matching branch e.g. `git checkout cef-81.2.24`.
 
 .JetBrains/rd
 Part of this code is generated from C/C#, however types that are interacted with
-are available in this https://github.com/JetBrains/rd[project]. To get the correct version locate
-the actual jar version, eg `rd-core-0.203.181.jar`, checkout branch `203`
+are available in this https://github.com/JetBrains/rd[_rd_ project]. Since updating to 2022.2
+the jar don't have the version in its name, so unsure about what's following but the releases
+seems somewhat aligned to IntelliJ releases so https://github.com/JetBrains/rd/releases/tag/2022.2.5[2022.5]
+then navigate the repo to the https://github.com/JetBrains/rd/tree/2022.2.5[associated tag].
 
-- https://github.com/JetBrains/rd/blob/203/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt[IPropertyView]
-- https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/SourceEx.kt[IPropertyView extension methods]
+- https://github.com/JetBrains/rd/blob/2022.2.5/rd-kt/rd-core/src/main/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt[IPropertyView]
+- https://github.com/JetBrains/rd/blob/2022.2.5/rd-kt/rd-core/src/main/kotlin/com/jetbrains/rd/util/reactive/SourceEx.kt[IPropertyView extension methods]
 - Lifetime or LifetimeDef types are generated.
 
 
