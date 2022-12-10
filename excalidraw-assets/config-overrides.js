@@ -1,3 +1,4 @@
+// part of 'react-app-rewired' to disable minification
 // overrides the react-script config file found here
 // ./node_modules/react-scripts/config/webpack.config.js
 
@@ -10,8 +11,7 @@ module.exports = function override(config, env) {
 
     // https://webpack.js.org/configuration/devtool/
     console.log("Inline SourceMaps (config-overrides.js)");
-    config.devtool = 'inline-source-maps'
-
+    config.devtool = "inline-source-map"
 
     return config;
 };

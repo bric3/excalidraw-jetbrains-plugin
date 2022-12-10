@@ -46,31 +46,28 @@ It might be worth tracking upstream change if they can be applied there too.
 excalidraw-assets
 ├── build.gradle.kts <1>
 ├── config-overrides.js <2>
-├── gulpfile.js <3>
-├── node_modules <9>
-├── package.json <4>
-├── public <5>
+├── node_modules <8>
+├── package.json <3>
+├── public <4>
 │   └── index.html
-├── src <6>
+├── src <5>
 │   ├── App.tsx
 │   ├── index.tsx
 │   ├── react-app-env.d.ts
 │   └── styles.css
-├── tsconfig.json <7>
-└── yarn.lock <8>
+├── tsconfig.json <6>
+└── yarn.lock <7>
 ----
 <1> The gradle build configuration, configure `node` and `yarn` tasks,
 also defines input/output for better cache-ability.
 <2> This is a webpack override configuration, used by `react-app-rewired`, in particular it allows to
 inline source maps to allow debugging in a JCEF devtools.
-<3> This is a _gulp_ script that performs additional inlining after the react app has been built,
-these task cannot be easily merged in the webpack config override if that's even possible.
-<4> Usual `package.json` that declares dependencies, with unbounded ranges.
-<5> The location of the `index.html`
-<6> The location of the React app sources in typescript.
-<7> Configuration file necessary for typescript.
-<8> A Yarn lock file represents the exact dependencies, it allows reproducible builds.
-<9> The `node_modules` folder is where the dependencies are downloaded. Its location is hardcoded in `node` or `npm`.
+<3> Usual `package.json` that declares dependencies, with unbounded ranges.
+<4> The location of the `index.html`
+<5> The location of the React app sources in typescript.
+<6> Configuration file necessary for typescript.
+<7> A Yarn lock file represents the exact dependencies, it allows reproducible builds.
+<8> The `node_modules` folder is where the dependencies are downloaded. Its location is hardcoded in `node` or `npm`.
 
 
 .A note about the Excalidraw React Web App

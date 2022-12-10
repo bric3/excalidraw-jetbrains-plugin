@@ -33,7 +33,7 @@ val port = providers.provider {
     }
 }
 val webappExcalidrawAssets by extra("${project.buildDir}/assets")
-val webappFiles by extra("${project.buildDir}/gulp-dist")
+val webappFiles by extra("${project.buildDir}/react-build")
 
 /**
  * Note for future me:
@@ -99,7 +99,7 @@ tasks {
 
     assembleFrontend {
         dependsOn(copyExcalidrawAssets)
-        inputs.files("package.json", "gulpfile.mjs", "src", "public")
+        inputs.files("package.json", "src", "public")
         outputs.dirs(webappFiles)
     }
 

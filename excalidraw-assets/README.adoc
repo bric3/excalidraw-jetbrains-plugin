@@ -24,7 +24,6 @@ This is a *React* based application, and it's written in *typescript*.
 ├── build.gradle.kts <5>
 ├── config-overrides.js <9>
 ├── excalidraw-interesting-changes.adoc <4>
-├── gulpfile.mjs <10>
 ├── package.json <7>
 ├── tsconfig.json <8>
 └── yarn.lock <7>
@@ -39,7 +38,6 @@ most the interesting application code is in the `src` directory. Notice the `<di
 <7> Webapp dependencies, change stuff in `package.json`, `yarn.lock` should be updated on next `yarn install` (or by the dependency bot).
 <8> Since it's a typescript webapp, the `tsconfig.json` file is used to configure the compiler.
 <9> The `config-overrides.js` file is used to *override the default configuration of the React build* in order to ship the web-app with *source-maps* (otherwise it's a *pain* to debug in the *JCEF browser*), also the optimizer is disabled of the same reason, and it's not needed since the assets are served locally.
-<10> Gulp is used to customize the content of the final artefact, like packaging the actual-app as a single file and to include the *source-maps* in the build.
 
 [mermaid]
 ----
