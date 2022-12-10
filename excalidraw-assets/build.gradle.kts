@@ -9,7 +9,7 @@ plugins {
 frontend {
     nodeVersion.set("16.15.1")
     yarnEnabled.set(true)
-    yarnVersion.set("1.22.19")
+    yarnVersion.set("3.3.0")
     // DON'T use the `build` directory if it also the output of the `react-scripts`
     // otherwise it causes 'Error: write EPIPE' because node location is also
     // in the location of the output folder of react-scripts.
