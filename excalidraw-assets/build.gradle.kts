@@ -6,10 +6,6 @@ plugins {
     id("org.siouan.frontend-jdk11") version "6.0.0"
 }
 
-
-val webappAssets by extra("build/assets")
-val webappFiles by extra("build/gulp-dist")
-
 frontend {
     nodeVersion.set("16.15.1")
     yarnEnabled.set(true)
@@ -36,6 +32,9 @@ val port = providers.provider {
             .first() ?: defaultPort
     }
 }
+val webappExcalidrawAssets by extra("${project.buildDir}/assets")
+val webappFiles by extra("${project.buildDir}/gulp-dist")
+
 /**
  * Note for future me:
  * Build cache doc : https://docs.gradle.org/current/userguide/build_cache.html
@@ -78,7 +77,7 @@ tasks {
         script.set("install")
     }
 
-    val copyProductionAssets by registering(Copy::class) {
+    val copyExcalidrawAssets by registering(Copy::class) {
         dependsOn(installFrontend)
         group = "frontend"
         description = "copy necessary files to run the embedded app"
@@ -86,10 +85,10 @@ tasks {
         val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist"
         from(excalidrawDist)
         include("excalidraw-assets/*")  // production assets
-        into(webappAssets)
+        into(webappExcalidrawAssets)
 
         inputs.dir(excalidrawDist)
-        outputs.dir(webappAssets)
+        outputs.dir(webappExcalidrawAssets)
     }
 
     installFrontend {
@@ -99,7 +98,7 @@ tasks {
     }
 
     assembleFrontend {
-        dependsOn(copyProductionAssets)
+        dependsOn(copyExcalidrawAssets)
         inputs.files("package.json", "gulpfile.mjs", "src", "public")
         outputs.dirs(webappFiles)
     }
@@ -150,7 +149,9 @@ tasks {
 
     clean {
         delete(
-            "node_modules"
+            "node_modules",
+            webappFiles,
+            webappExcalidrawAssets,
         )
     }
 }
