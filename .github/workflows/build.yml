@@ -11,7 +11,6 @@
 # - GitHub Actions: https://help.github.com/en/actions
 # - IntelliJ Plugin Verifier GitHub Action: https://github.com/ChrisCarini/intellij-platform-plugin-verifier-action
 #
-## JBIJPPTPL
 
 name: Build
 on:
@@ -21,96 +20,38 @@ on:
   # Trigger the workflow on any pull request
   pull_request:
 
+concurrency:
+  group: ci-tests-${{ github.ref }}-1
+  cancel-in-progress: true
+  
 jobs:
-
-  # Run Gradle Wrapper Validation Action to verify the wrapper's checksum
   gradleValidation:
     name: Gradle Wrapper
     runs-on: ubuntu-latest
     steps:
-
-      # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v3
 
-      # Validate wrapper
       - name: Gradle Wrapper Validation
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/wrapper-validation-action@v1.0.5
 
-  # Run verifyPlugin and test Gradle tasks
-  test:
+  build:
     name: Test
     needs: gradleValidation
-    runs-on: ubuntu-latest
-    steps:
-      # Check out current repository
-      - name: Fetch Sources
-        uses: actions/checkout@v3
-
-      # Setup Java 11 environment for the next steps
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: zulu
-          java-version: 11
-          cache: gradle
-
-      # Set environment variables
-      - name: Export Properties
-        id: properties
-        shell: bash
-        run: |
-          PROPERTIES="$(./gradlew :plugin:properties --console=plain -q)"
-          IDE_VERSIONS="$(echo "$PROPERTIES" | grep "^pluginVerifierIdeVersions:" | base64)"
-          echo "::set-output name=ideVersions::$IDE_VERSIONS"
-          echo "::set-output name=pluginVerifierHomeDir::~/.pluginVerifier"
-
-      # Cache Plugin Verifier IDEs
-      - name: Setup Plugin Verifier IDEs Cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
-          key: ${{ runner.os }}-plugin-verifier-${{ steps.properties.outputs.ideVersions }}
-
-      # Run Qodana inspections
-      - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v2022.3.0
-
-      # Run verifyPlugin Gradle task
-      - name: Run Tests
-        run: ./gradlew test
-
-      # Run verifyPlugin Gradle task
-      - name: Verify Plugin
-        run: ./gradlew verifyPlugin
-
-      # Run IntelliJ Plugin Verifier action using GitHub Action
-      - name: Run Plugin Verifier
-        run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=${{ steps.properties.outputs.pluginVerifierHomeDir }}
-
-  # Build plugin with buildPlugin Gradle task and provide the artifact for the next workflow jobs
-  # Requires test job to be passed
-  build:
-    name: Build
-    needs: test
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.properties.outputs.version }}
       changelog: ${{ steps.properties.outputs.changelog }}
     steps:
-      # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v3
 
-      # Setup Java 11 environment for the next steps
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: zulu
           java-version: 11
-          cache: gradle
 
-      # Set environment variables
       - name: Export Properties
         id: properties
         shell: bash
@@ -127,16 +68,75 @@ jobs:
           echo "::set-output name=name::$NAME"
           echo "::set-output name=changelog::$CHANGELOG"
 
-      # Build artifact using buildPlugin Gradle task
+      - name: Setup Plugin Verifier IDEs Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
+          key: ${{ runner.os }}-plugin-verifier-${{ steps.properties.outputs.ideVersions }}
+
+      - name: Qodana - Code Inspection
+        uses: JetBrains/qodana-action@v2022.3.0
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Run Tests
+        run: ./gradlew test
+
       - name: Build Plugin
         run: ./gradlew buildPlugin
 
-      # Upload plugin artifact to make it available in the next jobs
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: "${{ steps.properties.outputs.name }} - ${{ steps.properties.outputs.version }}"
           path: ./plugin/build/distributions/*
+
+  pluginVerifier:
+    name: Plugin Verifier
+    needs: gradleValidation
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: 11
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Export Properties
+        id: properties
+        shell: bash
+        run: |
+          echo "::set-output name=pluginVerifierHomeDir::~/.pluginVerifier"
+
+      - name: List Products Releases
+        run: ./gradlew listProductsReleases
+
+      # Cache Plugin Verifier IDEs
+      - name: Setup Plugin Verifier IDEs Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.properties.outputs.pluginVerifierHomeDir }}/ides
+          key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
+
+      # Run Verify Plugin task and IntelliJ Plugin Verifier tool
+      - name: Run Plugin Verification tasks
+        run: ./gradlew runPluginVerifier -Pplugin.verifier.home.dir=${{ steps.properties.outputs.pluginVerifierHomeDir }}
+
+      # Collect Plugin Verifier Result
+      - name: Collect Plugin Verifier Result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: pluginVerifier-result.zip
+          path: ${{ github.workspace }}/build/reports/pluginVerifier
 
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
@@ -146,12 +146,9 @@ jobs:
     needs: [ build ]
     runs-on: ubuntu-latest
     steps:
-
-      # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v3
 
-      # Remove old release drafts by using the curl request for the available releases with draft flag
       - name: Remove Old Release Drafts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,7 +156,7 @@ jobs:
           gh api repos/{owner}/{repo}/releases \
             --jq '.[] | select(.draft == true) | .id' \
             | xargs -I '{}' gh api -X DELETE repos/{owner}/{repo}/releases/{}
-      # Create new release draft - which is not publicly visible and requires manual acceptance
+
       - name: Create Release Draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
