@@ -25,14 +25,6 @@ concurrency:
   cancel-in-progress: true
   
 jobs:
-  qodana:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch Sources
-        uses: actions/checkout@v3
-      - name: Qodana scan
-        uses: JetBrains/qodana-action@v2022.3.0
-        
   gradleValidation:
     name: Gradle Wrapper
     runs-on: ubuntu-latest
