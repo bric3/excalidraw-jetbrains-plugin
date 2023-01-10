@@ -2,7 +2,7 @@
 assertj = "3.24.1"
 junit = "4.13.2"
 junit-jupiter = "5.9.2"
-mockito = "4.10.0"
+mockito = "4.11.0"
 mockito-kotlin = "4.1.0"
 
 detekt = "1.21.0"
