@@ -10,7 +10,7 @@ detekt = "1.21.0"
 # plugin versions
 kotlin = "1.7.22"
 changelog-plugin = "2.1.0"
-intellij-plugin = "1.13.3"
+intellij-plugin = "1.14.0"
 
 [libraries]
 # tests
