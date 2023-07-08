@@ -3,7 +3,7 @@ import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 import java.io.ByteArrayOutputStream
 
 plugins {
-    id("org.siouan.frontend-jdk11") version "6.0.0"
+    id("org.siouan.frontend-jdk11") version "7.0.0"
 }
 
 frontend {
