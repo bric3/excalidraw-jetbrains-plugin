@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1.1.0
@@ -44,7 +44,7 @@ jobs:
       changelog: ${{ steps.properties.outputs.changelog }}
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -96,7 +96,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Remove Old Release Drafts
         env:
