@@ -1,4 +1,5 @@
 
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpm
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 import java.io.ByteArrayOutputStream
 
@@ -7,9 +8,9 @@ plugins {
 }
 
 frontend {
-    nodeVersion.set("16.15.1")
+    nodeVersion.set("20.9.0")
     yarnEnabled.set(true)
-    yarnVersion.set("3.3.0")
+    yarnVersion.set("4.0.2")
     // DON'T use the `build` directory if it also the output of the `react-scripts`
     // otherwise it causes 'Error: write EPIPE' because node location is also
     // in the location of the output folder of react-scripts.
@@ -32,12 +33,14 @@ val port = providers.provider {
             .first() ?: defaultPort
     }
 }
-val webappExcalidrawAssets by extra("${project.buildDir}/assets")
-val webappFiles by extra("${project.buildDir}/react-build")
+val webappExcalidrawAssets by extra(project.layout.buildDirectory.dir("assets"))
+val webappFiles by extra(project.layout.buildDirectory.dir("react-build"))
+
+
 
 /**
  * Note for future me:
- * Build cache doc : https://docs.gradle.org/current/userguide/build_cache.html
+ * Build cache doc: https://docs.gradle.org/current/userguide/build_cache.html
  * Debug task cacheability: -Dorg.gradle.caching.debug=true
  *
  * Disabling `outputs.cacheIf { true }` as it somehow breaks up-to-date check
@@ -59,6 +62,19 @@ tasks {
         // yarnInstallScript = "set version 1.22.19"
     }
 
+    val updateBrowserList by registering(RunNpm::class) {
+        group = "frontend"
+        description = "npx update-browserslist-db@latest"
+        // Browserslist: caniuse-lite is outdated. Please run:
+        //   npx update-browserslist-db@latest
+        //   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+        script = "exec -- update-browserslist-db@latest"
+    }
+
+    installFrontend {
+        dependsOn(updateBrowserList)
+    }
+
     installYarnGlobally {
 ////        outputs.cacheIf { true }
 //        // put yarn else where to not pollute Node install folder
@@ -78,7 +94,7 @@ tasks {
     }
 
     val copyExcalidrawAssets by registering(Copy::class) {
-        dependsOn(installFrontend)
+        dependsOn(runYarnInstall, installFrontend)
         group = "frontend"
         description = "copy necessary files to run the embedded app"
 
@@ -165,7 +181,6 @@ open class YarnProxy @Inject constructor(
     objectFactory,
     execOperations
 ) {
-    @Suppress("UnstableApiUsage")
     @set:Option(option = "command", description = "The command to pass to yarn")
     @get:Input
     var script: String = ""

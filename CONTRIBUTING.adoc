@@ -17,7 +17,7 @@
 == Navigating the code base
 
 This plugin has been bootstrapped from the https://github.com/JetBrains/intellij-platform-plugin-template[IntelliJ Platform Plugin Template].
-It might be worth tracking upstream change if they can be applied there too.
+It might be worth tracking upstream changes if they can be applied there too.
 
 [source]
 ----
@@ -32,10 +32,10 @@ It might be worth tracking upstream change if they can be applied there too.
 └── settings.gradle.kts <5>
 ----
 <1> The changelog to manually edit
-<2> This the Excalidraw *React* web-app, this a gradle project
-<3> This the actual IntelliJ plugin code base, it's a gradle project
+<2> This is the Excalidraw *React* web-app, this is a Gradle project
+<3> This is the actual IntelliJ plugin code base, it's a Gradle project
 <4> Simple project to open in the sand-boxed IDE.
-<5> Usual declaration of the gradle sub-projects (`excalidraw-assets` and `plugin`)
+<5> Usual declaration of the gradle subprojects (`excalidraw-assets` and `plugin`)
 <6> GitHub Action workflows
 <7> IntelliJ IDEA's run configurations (_Run Plugin_, etc.)
 
@@ -58,7 +58,7 @@ excalidraw-assets
 ├── tsconfig.json <6>
 └── yarn.lock <7>
 ----
-<1> The gradle build configuration, configure `node` and `yarn` tasks,
+<1> The Gradle build configuration, configure `node` and `yarn` tasks,
 also defines input/output for better cache-ability.
 <2> This is a webpack override configuration, used by `react-app-rewired`, in particular it allows to
 inline source maps to allow debugging in a JCEF devtools.
@@ -71,11 +71,11 @@ inline source maps to allow debugging in a JCEF devtools.
 
 
 .A note about the Excalidraw React Web App
-JS and React are stranger things to me, their official documentation can be overwhelming at first,
+JS and React are stranger things to me, their official documentation can be overwhelming at first;
 I found this https://medium.com/swlh/react-without-create-react-app-setting-up-a-dev-build-from-scratch-fefd5d9d6baa[blog post]
 useful to introduce me to basic concepts.
 
-On the same topic here's a https://www.carlrippon.com/creating-react-app-with-typescript-eslint-with-webpack5/[blog post with the typescript angle].
+On the same topic, here's a https://www.carlrippon.com/creating-react-app-with-typescript-eslint-with-webpack5/[blog post with the typescript angle].
 
 
 === Plugin code base

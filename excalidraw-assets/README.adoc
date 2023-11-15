@@ -2,7 +2,7 @@
 
 This subproject represents the web-application that runs Excalidraw.
 
-This is a *React* based application, and it's written in *typescript*.
+This is a *React*-based application, and it's written in *typescript*.
 
 == Overview
 
@@ -72,9 +72,9 @@ To debug the web app without running IntelliJ, run `./gradlew :excalidraw-assets
 
 Then hit http://localhost:3000/ in the browser, you should see the Excalidraw interface.
 
-The exchange with the plugin is _**message based**_, so in order to trigger saving or loading a file we need to pass a message.
+The exchange with the plugin is _**message-based**_, so to trigger saving or loading a file, we need to pass a message.
 
-E.g. to save the current sketch, pass the `save-as-svg` message in the browser console via `postMessage`.
+E.g., to save the current sketch, pass the `save-as-svg` message in the browser console via `postMessage`.
 
 [source, javascript]
 ----

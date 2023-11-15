@@ -78,12 +78,12 @@ tasks {
 
     processResources {
         dependsOn(":excalidraw-assets:assemble")
-        from("${project(":excalidraw-assets").extra["webappFiles"]}") {
+        from(project(":excalidraw-assets").extra["webappFiles"] ?: error("webappFiles not found")) {
             into("assets")
         }
         // local assets will only be loaded if the following variable is set before Excalidraw loads
         // window.EXCALIDRAW_ASSET_PATH = "/";
-        from("${project(":excalidraw-assets").extra["webappExcalidrawAssets"]}") {
+        from(project(":excalidraw-assets").extra["webappExcalidrawAssets"] ?: error("webappExcalidrawAssets not found")) {
             into("assets")
         }
     }
