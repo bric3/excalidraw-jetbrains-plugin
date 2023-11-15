@@ -1697,13 +1697,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@excalidraw/excalidraw@npm:^0.13.0":
-  version: 0.13.0
-  resolution: "@excalidraw/excalidraw@npm:0.13.0"
+"@excalidraw/excalidraw@npm:^0.16.1":
+  version: 0.16.1
+  resolution: "@excalidraw/excalidraw@npm:0.16.1"
   peerDependencies:
     react: ^17.0.2 || ^18.2.0
     react-dom: ^17.0.2 || ^18.2.0
-  checksum: c61ea22d682753951dd5ac52039e5bc8e6bd22963bf3c96f7e6ee3857831dc0ad6ecf3efc7170fda99b2af66bf2321da855473fa29ac46d3f9b92f413a2da8dd
+  checksum: e9dfbe89c1c678954f8947ce37ce0c95cc2567e57f801c5df38fa28af716d2beab90beea02bd265aa3d5cc42e9e50798c8144bd6aba196ab4c154fc93686d3c6
   languageName: node
   linkType: hard
 
@@ -5802,7 +5802,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "excalidraw-plugin-assets@workspace:."
   dependencies:
-    "@excalidraw/excalidraw": "npm:^0.13.0"
+    "@excalidraw/excalidraw": "npm:^0.16.1"
     "@types/jest": "npm:^29.0.0"
     "@types/node": "npm:^20.9.0"
     "@types/pako": "npm:^2.0.0"
@@ -5816,7 +5816,7 @@ __metadata:
     react-app-rewired: "npm:^2.1.8"
     react-dom: "npm:^18.0.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^4.3.4"
+    typescript: "npm:^4.9.5"
   languageName: unknown
   linkType: soft
 
@@ -11890,23 +11890,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.3.4":
-  version: 4.9.4
-  resolution: "typescript@npm:4.9.4"
+"typescript@npm:^4.9.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 1f2cc85edcd1e3ae978d139ff906714f509256a955669bf5b1e51f4d004e3e42cd64436175ef770ce2e6b3954412d32fd0ddc1e68147fdfff2809dc5e4c06b49
+  checksum: 458f7220ab11e0fc191514cc41be1707645ec9a8c2d609448a448e18c522cef9646f58728f6811185a4c35613dacdf6c98cf8965c88b3541d0288c47291e4300
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^4.3.4#optional!builtin<compat/typescript>":
-  version: 4.9.4
-  resolution: "typescript@patch:typescript@npm%3A4.9.4#optional!builtin<compat/typescript>::version=4.9.4&hash=289587"
+"typescript@patch:typescript@npm%3A^4.9.5#optional!builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ba4a4e17588978b841063149387dd880b8f6db8dac81ef30ae437498b07aa1eb415a79e42e03e341dc02cee58e8db21d564680285e4e86b1de8df04f0fcdbc95
+  checksum: 5659316360b5cc2d6f5931b346401fa534107b68b60179cf14970e27978f0936c1d5c46f4b5b8175f8cba0430f522b3ce355b4b724c0ea36ce6c0347fab25afd
   languageName: node
   linkType: hard
 

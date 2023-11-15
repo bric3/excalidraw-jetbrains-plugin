@@ -6,6 +6,7 @@ import {
     getSceneVersion,
     serializeAsJSON,
     Excalidraw,
+    MainMenu,
 } from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
@@ -329,16 +330,33 @@ export const App = () => {
                     onDrawingChange(elements, state).then(ignored => {
                     })
                 }}
-                onCollabButtonClick={() =>
-                    window.alert("Not supported")
-                }
                 viewModeEnabled={viewModeEnabled}
                 zenModeEnabled={zenModeEnabled}
                 gridModeEnabled={gridModeEnabled}
                 theme={theme}
                 // UIOptions={{ canvasActions: { clearCanvas: false, export: false, loadScene: false, saveScene: false } }}
-                UIOptions={{canvasActions: {loadScene: false}}}
-            />
+                UIOptions={{
+                    canvasActions: {
+                        loadScene: false,
+                        saveAsImage: false,
+                        saveToActiveFile: false,
+                    }
+                }}
+            >
+                { /*
+                Customize main menu.
+                 * See list ogf available items
+                    https://github.com/excalidraw/excalidraw/blob/v0.17.0/src/components/main-menu/DefaultItems.tsx
+                 * Default menu
+                    https://github.com/excalidraw/excalidraw/blob/v0.17.0/excalidraw-app/components/AppMainMenu.tsx
+                */}
+                <MainMenu>
+                    <MainMenu.DefaultItems.Help />
+                    <MainMenu.DefaultItems.ClearCanvas />
+                    <MainMenu.Separator />
+                    <MainMenu.DefaultItems.ChangeCanvasBackground />
+                </MainMenu>
+            </Excalidraw>
         </div>
     );
 }
