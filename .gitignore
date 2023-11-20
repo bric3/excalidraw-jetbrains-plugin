@@ -8,6 +8,9 @@ out
 
 # NodeJs modules
 **/node_modules/
+**/.frontend-gradle-plugin/
+**/.yarn/cache/
+**/.yarn/install-state.gz
 
 ### jenv ###
 .java-version

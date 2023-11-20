@@ -82,6 +82,8 @@ On the same topic, here's a https://www.carlrippon.com/creating-react-app-with-t
 
 The `plugin` is a usual Gradle project, most of the sources are written in Kotlin.
 
+Also a JDK 17+ is now needed to run Gradle.
+
 TODO : describe `plugin.xml`, and package structure.
 
 == Running the plugin in the sand-boxed environment

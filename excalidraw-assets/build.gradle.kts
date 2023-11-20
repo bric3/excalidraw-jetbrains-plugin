@@ -2,22 +2,26 @@
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpm
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
 
 plugins {
-    id("org.siouan.frontend-jdk11") version "6.0.0"
+    id("org.siouan.frontend-jdk17") version "8.0.0"
 }
 
 frontend {
     nodeVersion.set("20.9.0")
-    yarnEnabled.set(true)
-    yarnVersion.set("4.0.2")
     // DON'T use the `build` directory if it also the output of the `react-scripts`
-    // otherwise it causes 'Error: write EPIPE' because node location is also
-    // in the location of the output folder of react-scripts.
+    // otherwise it causes 'Error: write EPIPE' because `node` location is also
+    // in the output folder of react-scripts.
     // This projects set up the BUILD_PATH=./build/react-build/ for react-scripts
     nodeInstallDirectory.set(project.layout.buildDirectory.dir("node"))
 
     assembleScript.set("run build") // "build" script in package.json
+    // not implemented yet ?
+    //   cleanScript.set("run clean")
+    //   checkScript.set("run check")
+    verboseModeEnabled.set(true)
 }
 
 val port = providers.provider {
@@ -46,48 +50,32 @@ val webappFiles by extra(project.layout.buildDirectory.dir("react-build"))
  * Disabling `outputs.cacheIf { true }` as it somehow breaks up-to-date check
  */
 tasks {
-    installNode {
-        inputs.property("nodeVersion", frontend.nodeVersion)
-        outputs.dir(frontend.nodeInstallDirectory)
-    }
-
-    enableYarnBerry {
-        outputs.dir(".yarn/releases/")
-        // yarnBerryEnableScript = "set version berry"
-    }
-
-    installYarn {
-        yarnVersion.set(frontend.yarnVersion)
-        outputs.file(frontend.yarnVersion.map { ".yarn/releases/yarn-$it.cjs" })
-        // yarnInstallScript = "set version 1.22.19"
-    }
-
     val updateBrowserList by registering(RunNpm::class) {
         group = "frontend"
+        // Note npx is deprecated, use `npm exec` instead
+        // https://docs.npmjs.com/cli/v10/commands/npm-exec#npx-vs-npm-exec
         description = "npx update-browserslist-db@latest"
         // Browserslist: caniuse-lite is outdated. Please run:
         //   npx update-browserslist-db@latest
         //   Why you should do it regularly: https://github.com/browserslist/update-db#readme
         script = "exec -- update-browserslist-db@latest"
+
+        onlyIf {
+            gradle.startParameter.taskNames.run {
+                contains("assemble") || contains("updateBrowserList")
+            }
+        }
     }
 
     installFrontend {
         dependsOn(updateBrowserList)
     }
 
-    installYarnGlobally {
-////        outputs.cacheIf { true }
-//        // put yarn else where to not pollute Node install folder
-//         outputs.dir(frontend.nodeInstallDirectory.map { "$it/lib/node_modules/yarn" })
-////        outputs.dir(project.layout.buildDirectory.dir("yarn"))
-        onlyIf { frontend.nodeInstallDirectory.map { !file("${it}/lib/node_modules/yarn").exists() }.get() }
-    }
-
     val runYarnInstall by registering(RunYarn::class) {
         dependsOn(installFrontend)
         group = "frontend"
         description = "Runs the yarn install command to fetch packages described in `package.json`"
-        
+
         inputs.files("package.json")
         outputs.files("yarn.lock")
         script.set("install")
@@ -108,9 +96,26 @@ tasks {
     }
 
     installFrontend {
+        finalizedBy(runYarnInstall)
         inputs.files("package.json", ".yarnrc.yml", "yarn.lock")
         outputs.dir("node_modules")
-        finalizedBy(runYarnInstall)
+
+        val lockFilePath = "${projectDir}/yarn.lock"
+        // The naive configuration below allows to skip the task if the last
+        // successful execution did not change neither the `package.json` file,
+        // nor the lock file, nor the `node_modules` directory.
+        // Any other scenario where, for example, the lock file is regenerated
+        // will lead to another execution before the task is "up-to-date" because
+        // the lock file is both an input and an output of the task.
+        val retainedMetadataFileNames = buildSet {
+            add("${projectDir}/package.json")
+            if (Files.exists(Path.of(lockFilePath))) {
+                add(lockFilePath)
+            }
+        }
+
+        inputs.files(retainedMetadataFileNames).withPropertyName("metadataFiles")
+        outputs.dir("${projectDir}/node_modules").withPropertyName("nodeModulesDirectory")
     }
 
     assembleFrontend {
@@ -146,10 +151,10 @@ tasks {
                 """
                 Unfortunately node won't be killed on ctrl+c, you to actively kill it:
                     $ kill ${'$'}(lsof -t -i :${port.get()})
-    
+
                 An alternative would be (from the project's root folder):
                     $ yarn --cwd excalidraw-assets start
-    
+
                 """.trimIndent()
             )
         }
@@ -164,8 +169,20 @@ tasks {
     }
 
     clean {
+        // It seems that these tasks are called upon clean
+        listOf(
+            installNode,
+            installPackageManager,
+            installFrontend,
+        ).forEach {
+            it.get().onlyIf { false }
+        }
+
+        dependsOn(stopYarnServer)
         delete(
-            "node_modules",
+            "${projectDir}/node_modules/",
+            "${projectDir}/.yarn/cache/",
+            "${projectDir}/.yarn/install-state.gz",
             webappFiles,
             webappExcalidrawAssets,
         )
@@ -183,12 +200,12 @@ open class YarnProxy @Inject constructor(
 ) {
     @set:Option(option = "command", description = "The command to pass to yarn")
     @get:Input
-    var script: String = ""
+    var yarnArgs: String = ""
         set(value) {
             super.getScript().set(value)
         }
 
     init {
-        super.getScript().set(script)
+        super.getScript().set(yarnArgs)
     }
 }
