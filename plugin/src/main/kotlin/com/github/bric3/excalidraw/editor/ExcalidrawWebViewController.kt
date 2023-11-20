@@ -22,7 +22,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import org.cef.CefApp
 import org.cef.CefSettings
-import org.cef.CefSettings.LogSeverity.*
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_ERROR
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_FATAL
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_INFO
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_VERBOSE
+import org.cef.CefSettings.LogSeverity.LOGSEVERITY_WARNING
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.browser.CefMessageRouter
@@ -36,10 +40,14 @@ import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentHashMap
 import javax.swing.BorderFactory
 
-class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) : Disposable {
+class ExcalidrawWebViewController(
+    val fileName: String,
+    val lifetime: Lifetime,
+    var uiTheme: String
+) : Disposable {
     val logger = thisLogger()
 
     companion object {
@@ -112,11 +120,11 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
             ): Boolean {
                 debuggingLogWithThread(logger) { "CefMessageRouterHandlerAdapter::onQuery" }
                 if (logger.isDebugEnabled) {
-                    logger.debug("lifetime alive: ${lifetime.isAlive}, request: $request")
+                    logger.debug("$fileName: lifetime alive: ${lifetime.isAlive}, request: $request")
                 }
 
                 if (!lifetime.isAlive) {
-                    logger.debug("not alive")
+                    logger.debug("$fileName: not alive")
                     return false
                 }
 
@@ -125,7 +133,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
                 val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
                 
                 when (message["type"]) {
-                    "ready" -> { /* no op : reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
+                    "ready" -> { /* no-op: reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
 
                     "continuous-update" -> _excalidrawPayload.set(message["content"]!!)
                     "json-content" -> {
@@ -155,7 +163,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
             messageRouter.addHandler(routerHandler, true)
             jcefPanel.browser.jbCefClient.cefClient.addMessageRouter(messageRouter)
             lifetime.onTermination {
-                logger.debug("removing message router")
+                logger.debug("$fileName: removing message router")
                 jcefPanel.browser.jbCefClient.cefClient.removeMessageRouter(messageRouter)
                 messageRouter.dispose()
             }
@@ -171,6 +179,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
                 // properties https://github.com/excalidraw/excalidraw/tree/master/src/packages/excalidraw#props
 
                 frame?.executeJavaScript(
+                    // language=JavaScript
                     """
                     window.EXCALIDRAW_ASSET_PATH = "/"; // loads excalidraw assets from plugin (instead of CDN)
                     
@@ -208,10 +217,10 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
                 line: Int
             ): Boolean {
                 if (level == null || message == null || source == null) {
-                    logger.warn("Some of required message values were null!")
-                    logger.warn("level: $level source: $source:$line\n\tmessage: $message")
+                    logger.warn("$fileName: Some of required message values were null!")
+                    logger.warn("$fileName: level: $level source: $source:$line\n\tmessage: $message")
                 } else {
-                    val formattedMessage = "[$level][$source:$line]:\n${message}"
+                    val formattedMessage = "$fileName: [$level][$source:$line]:\n${message}"
 
                     when (level) {
                         LOGSEVERITY_ERROR, LOGSEVERITY_FATAL -> logger.error(formattedMessage)
@@ -331,7 +340,7 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
         val correlationId = UUID.randomUUID().toString()
         val channel = Channel<String>(1)
         correlatedResponseMapChannel[correlationId] = channel
-        logger.debug("notify excalidraw to save content as $imageType, correlation-id: $correlationId")
+        logger.debug("$fileName: notify excalidraw to save content as $imageType, correlation-id: $correlationId")
 
         runJS(
             "saveAsCoroutines",
@@ -351,12 +360,12 @@ class ExcalidrawWebViewController(val lifetime: Lifetime, var uiTheme: String) :
 
     private fun runJS(jsOperation: String, @Language("JavaScript") js: String) {
         if (lifetime.isNotAlive) {
-            logger.warn("runJS: lifetime is not alive for operation: $jsOperation")
+            logger.warn("$fileName: runJS: lifetime is not alive for operation: $jsOperation")
             return
         }
         val mainFrame = jcefPanel.browser.cefBrowser.mainFrame
         if (mainFrame == null) {
-            logger.warn("runJS: mainFrame is null for operation: $jsOperation")
+            logger.warn("$fileName: runJS: mainFrame is null for operation: $jsOperation")
             return
         }
 

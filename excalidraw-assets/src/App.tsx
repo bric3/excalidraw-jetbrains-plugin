@@ -196,8 +196,11 @@ class ExcalidrawApiBridge {
 
                         try {
                             return loadFromBlob(blob, null, null);
-                        } catch (error) {
-                            console.error(error)
+                        } catch (error: unknown) {
+                            // Javascript/Typescript errors can be of any type really, even null.
+                            let errorStr = error instanceof Error ? error.toString() : JSON.stringify(error);
+                            console.error(errorStr)
+                            // Also, maybe error can be passed to the dispatcher?
                             this.dispatchToPlugin({
                                 type: "excalidraw-error",
                                 errorMessage: "cannot load image"

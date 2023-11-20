@@ -2,9 +2,9 @@ package com.github.bric3.excalidraw.editor
 
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.asyncWrite
+import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.EXCALIDRAW_IMAGE_TYPE
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
-import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
 import com.intellij.AppTopics
 import com.intellij.notification.Notification
@@ -66,12 +66,13 @@ class ExcalidrawEditor(
     private val actionPanel = ExcalidrawActionPanel()
     private val toolbarAndWebView: JPanel
     private val propertyChangeSupport = PropertyChangeSupport(this)
-    @Volatile private var modified = false
+    @Volatile
+    private var modified = false
 
     private val saveAndDisposePhaser = Phaser(1)
 
     init {
-        //subscribe to changes of the theme
+        // subscribe to changes of the theme
         val busConnection = ApplicationManager.getApplication().messageBus.connect(this)
         busConnection.subscribe(EditorColorsManager.TOPIC, this)
         busConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
@@ -121,6 +122,7 @@ class ExcalidrawEditor(
                             add(actionPanel, BorderLayout.NORTH)
                             add(viewController.component, BorderLayout.CENTER)
                         }
+
                         else -> add(jcefUnsupported, BorderLayout.CENTER)
                     }
                 }
@@ -136,7 +138,11 @@ class ExcalidrawEditor(
 
     private fun initViewIfSupported() {
         if (JBCefApp.isSupported()) {
-            viewController = ExcalidrawWebViewController(lifetime, uiThemeFromConfig().key)
+            viewController = ExcalidrawWebViewController(
+                file.name,
+                lifetime,
+                uiThemeFromConfig().key
+            )
             Disposer.register(this, viewController)
         } else {
             Notifications.Bus.notify(
@@ -183,9 +189,11 @@ class ExcalidrawEditor(
         modified = newModificationStatus
         ApplicationManager.getApplication().invokeLater {
             ApplicationManager.getApplication().runWriteAction {
-                propertyChangeSupport.firePropertyChange(FileEditor.PROP_MODIFIED,
-                                                         oldModificationStatus,
-                                                         newModificationStatus)
+                propertyChangeSupport.firePropertyChange(
+                    FileEditor.PROP_MODIFIED,
+                    oldModificationStatus,
+                    newModificationStatus
+                )
             }
         }
     }
@@ -203,7 +211,7 @@ class ExcalidrawEditor(
             return
         }
         debuggingLogWithThread(logger) { "starts saving editor" }
-        val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()                                          
+        val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()
         val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
             ?: throw IllegalStateException("Excalidraw should have been identified")
 
@@ -275,7 +283,7 @@ class ExcalidrawEditor(
         // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write promise
         // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write done promise
         // AWT-EventQueue-0 : 26 : asyncWrite
-        
+
         // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeFileClosed random.excalidraw
         // AWT-EventQueue-0 : 26 : ExcalidrawEditor::deselectNotify
         // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
