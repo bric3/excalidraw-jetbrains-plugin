@@ -174,8 +174,12 @@ tasks {
             installNode,
             installPackageManager,
             installFrontend,
-        ).forEach {
-            it.get().onlyIf { false }
+        ).forEach { task ->
+            task.get().onlyIf {
+                gradle.startParameter.taskNames.run {
+                    none { it.endsWith("clean") }
+                }
+            }
         }
 
         dependsOn(stopYarnServer)

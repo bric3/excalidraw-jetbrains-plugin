@@ -124,6 +124,7 @@ tasks {
     }
 
     runIde {
+        dependsOn(processResources)
         systemProperties["idea.log.debug.categories"] = "#com.github.bric3.excalidraw"
     }
 }
