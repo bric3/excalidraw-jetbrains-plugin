@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000">
-  <rect width="1000" height="1000" rx="200" ry="200" fill="#fff"/>
+  <rect width="1000" height="1000" rx="200" ry="200" fill="#222"/>
   <svg viewBox="0 0 107 101" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
        xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
     <path style="fill:none" d="M24 17h121v121H24z" transform="matrix(.8843 0 0 .83471 -21.223 -14.19)"/>
