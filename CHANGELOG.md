@@ -3,6 +3,13 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+### New
+- Toggle between light and dark separated from the current theme by @michael-pratt, see [#92](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/92) 
+
+### Changed
+- New plugin icon, matching the new excalidraw icon
+- Upgraded excalidraw to version 0.16.0
+- Opens Excalidraw editor rather than JSON by @michael-pratt, see [#93](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/93) 
 
 ## [0.3.2] - 2021-09-14
 ### New
