@@ -160,7 +160,9 @@ class ExcalidrawEditor(
             if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
                 file.inputStream.bufferedReader(UTF_8).use {
                     val jsonPayload = it.readText()
-                    viewController.loadJsonPayload(jsonPayload)
+                    if (jsonPayload.isNotEmpty()) {
+                        viewController.loadJsonPayload(jsonPayload)
+                    }
                 }
             }
 
