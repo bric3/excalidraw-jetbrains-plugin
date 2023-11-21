@@ -22,3 +22,12 @@ body {
 kbd {
     color: var(--text-primary-color);
 }
+
+/*
+Hide library for now, causes crash with JCEF
+- NPE in JCef https://github.com/bric3/excalidraw-jetbrains-plugin/issues/177
+- Library support https://github.com/bric3/excalidraw-jetbrains-plugin/issues/16
+ */
+label[title="Library"] {
+    display: none !important;
+}
