@@ -30,16 +30,8 @@
 
         <fileEditorProvider implementation="com.github.bric3.excalidraw.editor.ExcalidrawEditorProvider"/>
 
-        <applicationService serviceImplementation="com.github.bric3.excalidraw.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.bric3.excalidraw.services.MyProjectService"/>
-
         <notificationGroup id="excalidraw.error" displayType="BALLOON" bundle="messages.MyBundle" key="title.excalidraw.usage.error"/>
     </extensions>
-
-    <applicationListeners>
-        <listener class="com.github.bric3.excalidraw.listeners.NoOpProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
 
     <actions>
         <!-- New File Menu -->
