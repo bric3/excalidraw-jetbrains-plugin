@@ -73,6 +73,13 @@ tasks {
 
     val runYarnInstall by registering(RunYarn::class) {
         dependsOn(installFrontend)
+        // this task is being run when the `clean` task is invoked, making this one fail
+        // because `excalidraw-assets/build/node/bin/yarn` has been removed.
+        onlyIf {
+            gradle.startParameter.taskNames.run {
+                !contains("clean")
+            }
+        }
         group = "frontend"
         description = "Runs the yarn install command to fetch packages described in `package.json`"
 
