@@ -1,7 +1,43 @@
-// Config options: https://github.com/renovatebot/renovate/blob/main/docs/usage/configuration-options.md
+// Options doc https://docs.renovatebot.com/configuration-options/
+// validate with
+// docker run --mount type=bind,source=$(pwd)/.github/renovate.json5,target=/usr/src/app/renovate.json5,readonly -it renovate/renovate renovate-config-validator
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
-    ":preserveSemverRanges"
+    "config:base"
+  ],
+  "labels": [
+    "dependency-update"
+  ],
+  // automerge minor deps
+  "packageRules": [
+    {
+      "description": "Automatically merge minor and patch-level updates",
+      "matchUpdateTypes": [
+        // where version is: major.minor.patch
+        "minor",
+        "patch"
+      ],
+      "automerge": true,
+      // Do not create a PR to avoid PR-related email spam, if tests succeed merge directly
+      // otherwise make a PR if tests fail
+      "automergeType": "branch"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "description": "Automatically merge vulnerability fixes",
+    "labels": [
+      "vulnerability-fix"
+    ],
+    "automerge": true,
+  },
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 5,
+  // Schedule the bot to run before morning
+  "timezone": "UTC",
+  "schedule": [
+    "before 9am"
+    // "before 9am on monday" // once a week before monday morning
   ]
 }
