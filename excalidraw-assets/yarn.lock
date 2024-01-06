@@ -2707,9 +2707,9 @@ __metadata:
   linkType: hard
 
 "@types/pako@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@types/pako@npm:2.0.0"
-  checksum: 0352946565b65232d536483856e6353d4d4e9d2afc0566155f6c46f741663cc48f5e6e7d4e594d268d0e56f2252022944bbea98e6ca29e5c7c05229dcf3b68bf
+  version: 2.0.3
+  resolution: "@types/pako@npm:2.0.3"
+  checksum: afa618a0a05a931216703a30f4cba6902ce5cd4db8170a480f95bc8e268afebb3bb8deea4444e8292aba86348e400e068af1b5f4c75b9185b3a7efd1999fb78e
   languageName: node
   linkType: hard
 
