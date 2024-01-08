@@ -13,5 +13,5 @@ object ExcalidrawPngFileType : FileType {
     override fun getDefaultExtension() = "excalidraw.png"
     override fun getIcon() = ExcalidrawIcons.ExcalidrawFileIcon
     override fun isBinary() = true
-    override fun getCharset(file: VirtualFile, content: ByteArray?): String? = null
+    override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
 }
