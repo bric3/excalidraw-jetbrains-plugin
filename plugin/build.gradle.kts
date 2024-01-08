@@ -61,8 +61,8 @@ tasks {
 
             // Match the lowest supported version for this platform
             // See https://plugins.jetbrains.com/docs/intellij/kotlin.html#kotlin-standard-library
-            apiVersion = "1.6"
-            languageVersion = "1.6"
+            apiVersion = "1.8"
+            languageVersion = "1.8"
 
             // Generates default method in Kotlin interfaces to be usable from Java
             // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/
@@ -135,7 +135,7 @@ testing {
         named("test", JvmTestSuite::class) {
             dependencies {
                 implementation.add(libs.assertj.core)
-                implementation.bundle(libs.bundles.mockito)
+                implementation.add(libs.mockk)
             }
         }
 

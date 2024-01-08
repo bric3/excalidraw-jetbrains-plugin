@@ -2,13 +2,12 @@
 assertj = "3.25.1"
 junit = "4.13.2"
 junit-jupiter = "5.10.1"
-mockito = "5.8.0"
-mockito-kotlin = "5.1.0"
+mockk = "1.13.9"
 
 detekt = "1.21.0"
 
 # plugin versions
-kotlin = "1.7.22"
+kotlin = "1.9.22"
 changelog-plugin = "2.2.0"
 intellij-plugin = "1.16.1"
 
@@ -18,13 +17,11 @@ junit = { module = "junit:junit", version.ref = "junit" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
 junit-jupiter-vintage-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [bundles]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine", "junit-jupiter-vintage-engine"]
-mockito = ["mockito-core", "mockito-kotlin"]
 
 [plugins]
 jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog-plugin" }

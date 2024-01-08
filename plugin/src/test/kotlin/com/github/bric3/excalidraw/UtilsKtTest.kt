@@ -4,9 +4,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.mock
 
 internal class UtilsKtTest {
     @Test
@@ -15,13 +15,13 @@ internal class UtilsKtTest {
             null,
             {
                 when (it) {
-                    CommonDataKeys.PROJECT.name -> mock<Project>()
+                    CommonDataKeys.PROJECT.name -> mockk<Project>()
                     else -> null
                 }
             },
             "Place",
             Presentation(),
-            mock(),
+            mockk(),
             0
         )
 
