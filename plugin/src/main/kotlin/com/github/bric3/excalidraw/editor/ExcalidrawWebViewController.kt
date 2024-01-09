@@ -220,6 +220,10 @@ class ExcalidrawWebViewController(
         }
     }
 
+    fun openDevTools() {
+        jcefPanel.openDevTools()
+    }
+
     fun loadJsonPayload(jsonPayload: String) {
         payload.value = null
 

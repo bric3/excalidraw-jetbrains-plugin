@@ -80,6 +80,11 @@
                 class="com.github.bric3.excalidraw.actions.ToggleLightDarkModeAction"
                 text="Toggle Light/Dark Mode"
                 description="Toggle Light/Dark mode"/>
+        <action id="excalidraw.OpenDevTools"
+                class="com.github.bric3.excalidraw.actions.OpenDeveloperToolsAction"
+                text="Open DevTools"
+                description="Open DevTools"
+                icon="AllIcons.General.ExternalTools"/>
 
         <!-- AllIcons.Actions.InlayGlobe -->
 
@@ -98,9 +103,9 @@
             <reference ref="excalidraw.ToggleGridMode" />
             <reference ref="excalidraw.ToggleZenMode" />
             <reference ref="excalidraw.ToggleLightDarkMode" />
+            <separator/>
+            <reference ref="excalidraw.OpenDevTools" />
         </group>
 
     </actions>
-
-
 </idea-plugin>
