@@ -36,7 +36,7 @@ jobs:
         uses: gradle/wrapper-validation-action@v1.1.0
 
   build:
-    name: Test
+    name: Build and Test
     needs: gradleValidation
     runs-on: ubuntu-latest
     outputs:
@@ -64,9 +64,9 @@ jobs:
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
 
-          echo "::set-output name=version::$VERSION"
-          echo "::set-output name=name::$NAME"
-          echo "::set-output name=changelog::$CHANGELOG"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
 
       - name: Setup Plugin Verifier IDEs Cache
         uses: actions/cache@v3
@@ -111,7 +111,7 @@ jobs:
         id: properties
         shell: bash
         run: |
-          echo "::set-output name=pluginVerifierHomeDir::~/.pluginVerifier"
+          echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
 
       - name: List Products Releases
         run: ./gradlew listProductsReleases
