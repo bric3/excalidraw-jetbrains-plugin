@@ -8,6 +8,7 @@ import com.github.bric3.excalidraw.writePayloadToFile
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
@@ -22,6 +23,8 @@ import kotlinx.coroutines.launch
 
 abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
     private val logger = thisLogger()
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(event: AnActionEvent) {
         // Using the event, evaluate the context, and enable or disable the action.

@@ -12,10 +12,9 @@ class ExcalidrawNewFileAction : CreateFileFromTemplateAction(
     "Excalidraw File",
     "Create new Excalidraw file",
     ExcalidrawIcons.ExcalidrawFileIcon
-),
-                                DumbAware {
+), DumbAware {
     override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
-        // templates src/main/resources/fileTemplates.internal
+        // templates src/main/resources/fileTemplates/internal
         builder
             .setTitle("New Excalidraw Sketch")
             .addKind(".excalidraw file", ExcalidrawIcons.ExcalidrawFileIcon, "new-sketch")

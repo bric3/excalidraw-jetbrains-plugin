@@ -2,10 +2,13 @@ package com.github.bric3.excalidraw.actions
 
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.findEditor
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
 abstract class ToggleSaveOptionAction : ToggleAction() {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun setSelected(event: AnActionEvent, state: Boolean) {
         val saveOptions = event.getSaveOptions() ?: return
 

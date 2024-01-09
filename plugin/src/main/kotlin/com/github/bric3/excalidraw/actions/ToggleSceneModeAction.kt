@@ -2,10 +2,13 @@ package com.github.bric3.excalidraw.actions
 
 import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.findEditor
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
 abstract class ToggleSceneModeAction : ToggleAction() {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun setSelected(event: AnActionEvent, state: Boolean) {
         val sceneModes = event.getSceneModes() ?: return
 
