@@ -43,10 +43,9 @@
 
         <!-- Editor Toolbar -->
         <action id="excalidraw.ToggleSaveWithDarkMode"
-                class="com.github.bric3.excalidraw.actions.ToggleDarkmodeSaveOptionAction"
+                class="com.github.bric3.excalidraw.actions.ToggleLightDarkModeSaveOptionAction"
                 text="Toggle Dark Mode When Saving as Image"
-                description="Toggle Dark Mode when saving as image"
-                icon="AllIcons.Actions.IntentionBulbGrey"/>
+                description="Toggle Dark Mode when saving as image"/>
         <action id="excalidraw.ToggleSaveWithBackground"
                 class="com.github.bric3.excalidraw.actions.ToggleBackgroundSaveOptionAction"
                 text="Toggle Background When Saving as Image"
