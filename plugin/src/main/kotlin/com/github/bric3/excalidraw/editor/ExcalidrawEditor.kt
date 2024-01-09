@@ -3,7 +3,11 @@ package com.github.bric3.excalidraw.editor
 import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.EXCALIDRAW_IMAGE_TYPE
-import com.github.bric3.excalidraw.files.ExcalidrawImageType
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.EXCALIDRAW
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.JPG
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.PNG
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.SVG
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.WEBP
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
 import com.github.bric3.excalidraw.writePayloadToDocument
 import com.github.bric3.excalidraw.writePayloadToFile
@@ -245,16 +249,15 @@ class ExcalidrawEditor(
                     ?: throw IllegalStateException("Excalidraw should have been identified")
 
                 when (type) {
-                    ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> {
+                    EXCALIDRAW, SVG -> {
                         writePayloadToDocument(
                             { file },
                             payload
                         )
                     }
 
-                    ExcalidrawImageType.PNG -> {
-                        val bytes = Base64.getDecoder()
-                            .decode(payload.substringAfter("data:image/png;base64,"))
+                    PNG, JPG, WEBP -> {
+                        val bytes = Base64.getDecoder().decode(payload.substringAfter(type.base64Header))
 
                         writePayloadToFile(
                             { file },

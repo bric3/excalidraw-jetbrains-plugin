@@ -1,12 +1,12 @@
 import React from "react";
 import {
-    loadFromBlob,
+    Excalidraw,
     exportToBlob,
     exportToSvg,
     getSceneVersion,
-    serializeAsJSON,
-    Excalidraw,
+    loadFromBlob,
     MainMenu,
+    serializeAsJSON,
 } from "@excalidraw/excalidraw";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
@@ -93,7 +93,7 @@ class ExcalidrawApiBridge {
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
 
-        // const metadata = await encodeSvgMetadata({text: serializeAsJSON(sceneElements, appState)});
+        // Doc: https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils/export#exporttosvg
         return exportToSvg({
             elements: sceneElements,
             appState: {
@@ -105,12 +105,13 @@ class ExcalidrawApiBridge {
         });
     };
 
-    readonly saveAsPng = (exportParams: object) => {
+    readonly saveAsBlob = (exportParams: object, mimeType: string) => {
         console.debug("saveAsPng export config", exportParams);
         let sceneElements = this.excalidraw().getSceneElements();
         let appState = this.excalidraw().getAppState();
 
         let binaryFiles = {};
+        // Doc: https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils/export#exporttoblob
         return exportToBlob({
             elements: sceneElements,
             appState: {
@@ -119,6 +120,7 @@ class ExcalidrawApiBridge {
                 exportEmbedScene: true,
             },
             files: binaryFiles,
+            mimeType: mimeType,
         });
     };
 
@@ -151,10 +153,10 @@ class ExcalidrawApiBridge {
     dispatchToPlugin(message: object): void {
         console.debug("dispatchToPlugin: ", message);
 
-        // cefQuery is only available in the JCEF browser
-        // noinspection TypeScriptUnresolvedVariable
+        // `cefQuery` is only declared and available in the JCEF browser, which explains why it's not resolved here.
+        // noinspection JSUnresolvedReference
         if (anyWindow.cefQuery) {
-            // noinspection TypeScriptUnresolvedFunction,JSUnusedGlobalSymbols
+            // noinspection JSUnresolvedReference
             anyWindow.cefQuery({
                 request: JSON.stringify(message),
                 persistent: false,
@@ -231,7 +233,6 @@ class ExcalidrawApiBridge {
             }
 
             case "toggle-scene-modes": {
-                // noinspection TypeScriptUnresolvedVariable
                 const modes = message.sceneModes ?? {};
                 if ("gridMode" in modes) this._setGridModeEnabled!(modes.gridMode);
                 if ("zenMode" in modes) this._setZenModeEnabled!(modes.zenMode);
@@ -253,7 +254,6 @@ class ExcalidrawApiBridge {
             }
 
             case "save-as-svg": {
-                // noinspection TypeScriptUnresolvedVariable
                 const exportConfig = message.exportConfig ?? {};
                 this.saveAsSvg(exportConfig).then(svg => {
                     this.dispatchToPlugin({
@@ -265,18 +265,18 @@ class ExcalidrawApiBridge {
                 break;
             }
 
-            case "save-as-png": {
-                // noinspection TypeScriptUnresolvedVariable
+            case "save-as-binary-image": {
                 const exportConfig = message.exportConfig ?? {};
+                const mimeType = message.mimeType ?? "image/png";
                 const thisBridge = this;
-                this.saveAsPng(exportConfig).then((blob: Blob) => {
+                this.saveAsBlob(exportConfig, mimeType).then((blob: Blob) => {
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
                     reader.onloadend = function () {
                         let base64data = reader.result;
                         thisBridge.dispatchToPlugin({
-                            type: "png-base64-content",
-                            png: base64data,
+                            type: "binary-image-base64-content",
+                            base64Payload: base64data,
                             correlationId: message.correlationId ?? null
                         });
                     };

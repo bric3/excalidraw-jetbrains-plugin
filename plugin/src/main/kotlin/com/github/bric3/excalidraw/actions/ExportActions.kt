@@ -4,6 +4,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
+import com.github.bric3.excalidraw.toHex
 import com.github.bric3.excalidraw.writePayloadToFile
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -20,6 +21,8 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.*
 
 abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
     private val logger = thisLogger()
@@ -73,5 +76,37 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
 
 
     protected abstract fun convertToByteArray(payload: String): ByteArray
-
 }
+
+class ExportToSvgAction : ExportAction(ExcalidrawImageType.SVG) {
+    override fun convertToByteArray(payload: String) = payload.toByteArray(UTF_8)
+}
+
+abstract class BinaryImageExportAction(type: ExcalidrawImageType) : ExportAction(type) {
+    override fun convertToByteArray(payload: String): ByteArray {
+        return Base64.getDecoder().decode(payload.substringAfter(type.base64Header))
+    }
+}
+
+class ExportToPngAction : BinaryImageExportAction(ExcalidrawImageType.PNG) {
+    override fun convertToByteArray(payload: String): ByteArray {
+        return super.convertToByteArray(payload).also {
+            assertPngHeader(it)
+        }
+    }
+
+    private fun assertPngHeader(decoded: ByteArray) {
+        val pngHeader = byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
+        if (decoded.size <= 7) throw IllegalArgumentException("Not a PNG file, got '${decoded.toHex()}'")
+        decoded.sliceArray(0..7).also {
+            if(!pngHeader.contentEquals(pngHeader)) {
+                throw IllegalArgumentException("Not a PNG file, got '${it.toHex()}'")
+            }
+        }
+    }
+}
+
+class ExportToJpgAction : BinaryImageExportAction(ExcalidrawImageType.JPG)
+
+class ExportToWebpAction : BinaryImageExportAction(ExcalidrawImageType.WEBP)
+

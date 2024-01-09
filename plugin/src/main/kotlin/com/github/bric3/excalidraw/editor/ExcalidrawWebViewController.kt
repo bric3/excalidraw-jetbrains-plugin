@@ -9,6 +9,11 @@ import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.debugMode
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.EXCALIDRAW
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.JPG
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.PNG
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.SVG
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.WEBP
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -122,9 +127,9 @@ class ExcalidrawWebViewController(
                         }
                     }
 
-                    "png-base64-content" -> {
+                    "binary-image-base64-content" -> {
                         runBlocking {
-                            channel?.send(message["png"]!!)
+                            channel?.send(message["base64Payload"]!!)
                             channel?.close()
                         }
                     }
@@ -304,17 +309,18 @@ class ExcalidrawWebViewController(
         debuggingLogWithThread(logger) { "ExcalidrawWebViewController::saveAsCoroutines" }
 
         val msgType = when (imageType) {
-            ExcalidrawImageType.SVG -> "save-as-svg"
-            ExcalidrawImageType.PNG -> "save-as-png"
-            ExcalidrawImageType.EXCALIDRAW -> "save-as-json"
+            SVG -> "save-as-svg"
+            PNG, JPG, WEBP -> "save-as-binary-image"
+            EXCALIDRAW -> "save-as-json"
         }
+        val mimeType = imageType.mimeType
 
         val saveOptionsJson = mapper.writeValueAsString(saveOptions)
 
         val correlationId = UUID.randomUUID().toString()
         val channel = Channel<String>(1)
         correlatedResponseMapChannel[correlationId] = channel
-        logger.debug("$fileName: notify excalidraw to save content as $imageType, correlation-id: $correlationId")
+        logger.debug("$fileName: notify excalidraw to save content as $imageType ($mimeType), correlation-id: $correlationId")
 
         runJS(
             "saveAsCoroutines",
@@ -323,6 +329,7 @@ class ExcalidrawWebViewController(
 
             window.postMessage({
                 type: "$msgType",
+                mimeType: "$mimeType",
                 exportConfig: json,
                 correlationId: "$correlationId" 
             }, 'https://$pluginDomain')

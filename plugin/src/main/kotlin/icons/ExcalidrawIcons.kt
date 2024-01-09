@@ -10,6 +10,12 @@ object ExcalidrawIcons {
     val SaveAsPng = IconLoader.getIcon("icons/actions/save-as-png.svg", javaClass)
 
     @JvmField
+    val SaveAsJpg = IconLoader.getIcon("icons/actions/save-as-jpg.svg", javaClass)
+
+    @JvmField
+    val SaveAsWebp = IconLoader.getIcon("icons/actions/save-as-webp.svg", javaClass)
+
+    @JvmField
     val ExcalidrawFileIcon = IconLoader.getIcon("icons/excalidraw-file-icon.svg", javaClass)
 
     @JvmField

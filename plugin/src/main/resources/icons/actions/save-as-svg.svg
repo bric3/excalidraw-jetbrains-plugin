@@ -37,15 +37,12 @@
      fill-rule="evenodd"
      id="g21">
     <polygon
-       fill="#F26522"
-       fill-opacity=".7"
-       points="1 16 16 16 16 9 1 9"
-       id="rect" />
-    <polygon
        fill="#6e6e6e"
        points="7,5 7,1 9,1 9,5 12,5 8,9 4,5 "
        id="down-arrow" />
   </g>
+
+  <rect id="text-rect" x="1" y="9" width="15" height="7" rx="1" ry="1" fill="#F26522" fill-opacity=".7" />
   <g
      aria-label="SVG"
      id="text2922"
