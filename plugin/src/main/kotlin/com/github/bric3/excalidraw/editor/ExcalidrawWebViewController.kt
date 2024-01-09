@@ -10,15 +10,15 @@ import com.github.bric3.excalidraw.debugMode
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.jetbrains.rd.util.lifetime.Lifetime
-import com.jetbrains.rd.util.lifetime.isAlive
-import com.jetbrains.rd.util.lifetime.isNotAlive
-import com.jetbrains.rd.util.reactive.IPropertyView
-import com.jetbrains.rd.util.reactive.Property
+import com.intellij.ui.jcef.JBCefApp
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.cef.CefApp
 import org.cef.CefSettings
@@ -36,70 +36,43 @@ import org.cef.handler.CefLoadHandlerAdapter
 import org.cef.handler.CefMessageRouterHandlerAdapter
 import org.cef.network.CefRequest
 import org.intellij.lang.annotations.Language
-import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
 import java.io.BufferedInputStream
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.BorderFactory
 
 class ExcalidrawWebViewController(
+    private val parentDisposable: Disposable,
     val fileName: String,
-    val lifetime: Lifetime,
     var uiTheme: String
 ) : Disposable {
+    private var isDisposed: Boolean = false
+
     val logger = thisLogger()
 
-    companion object {
-        private const val pluginDomain = "excalidraw-jetbrains-plugin"
-        const val pluginUrl = "https://$pluginDomain/index.html"
-
-        val mapper = jacksonObjectMapper().apply {
-            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        }
-
-        private val fsMapping = ConcurrentHashMap<String, VirtualFile>()
-
-        private var didRegisterSchemeHandler = false
-        fun initializeSchemeHandler() {
-            didRegisterSchemeHandler = true
-
-            // clear old scheme handler factories in case this is a re-initialization with an updated theme
-            CefApp.getInstance().clearSchemeHandlerFactories()
-
-            // initialization ideas from docToolchain/diagrams.net-intellij-plugin
-            CefApp.getInstance().registerSchemeHandlerFactory(
-                "https", pluginDomain,
-                SchemeHandlerFactory { uri ->
-                    val matchingFile = fsMapping.entries.firstOrNull { uri.path.endsWith(it.key) }
-                    val stream = matchingFile?.value?.inputStream
-
-                    if (matchingFile != null) {
-                        fsMapping - matchingFile.key
-                    }
-
-                    BufferedInputStream(
-                        stream ?: ExcalidrawWebViewController::class.java.getResourceAsStream("/assets${uri.path}")
-                    )
-                }
-            ).also { successful -> assert(successful) }
-        }
-    }
-
     private val jcefPanel = LoadableJCEFHtmlPanel(
+        parentDisposable = this,
         url = pluginUrl,
         openDevtools = debugMode
     )
+
     val component = jcefPanel.component
 
     private val correlatedResponseMapChannel = ConcurrentHashMap<String, Channel<String>>()
 
+    private val debounceAutoSaveInMs = 1000
+
+    val payload = MutableStateFlow<String?>(null)
+
+    val whenReady = MutableSharedFlow<Unit>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
     init {
+        Disposer.register(parentDisposable, this)
         initJcefPanel()
     }
-
-    private val debounceAutoSaveInMs = 1000
 
     private fun initJcefPanel() {
         initializeSchemeHandler()
@@ -119,41 +92,43 @@ class ExcalidrawWebViewController(
                 callback: CefQueryCallback?
             ): Boolean {
                 debuggingLogWithThread(logger) { "CefMessageRouterHandlerAdapter::onQuery" }
-                if (logger.isDebugEnabled) {
-                    logger.debug("$fileName: lifetime alive: ${lifetime.isAlive}, request: $request")
-                }
+                logger.debug { "$fileName disposed: ${isDisposed}, request: $request" }
 
-                if (!lifetime.isAlive) {
-                    logger.debug("$fileName: not alive")
+                if (isDisposed) {
+                    logger.debug("$fileName: disposed")
                     return false
                 }
 
 
                 val message = mapper.readValue<Map<String, String>>(request!!)
                 val channel = correlatedResponseMapChannel.remove(message["correlationId"] ?: "")
-                
-                when (message["type"]) {
-                    "ready" -> { /* no-op: reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */ }
 
-                    "continuous-update" -> _excalidrawPayload.set(message["content"]!!)
+                when (message["type"]) {
+                    "ready" -> { /* no-op: reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */
+                    }
+
+                    "continuous-update" -> payload.value = message["content"]!!
                     "json-content" -> {
                         runBlocking {
                             channel?.send(message["json"]!!)
                             channel?.close()
                         }
                     }
+
                     "svg-content" -> {
                         runBlocking {
                             channel?.send(message["svg"]!!)
                             channel?.close()
                         }
                     }
+
                     "png-base64-content" -> {
                         runBlocking {
                             channel?.send(message["png"]!!)
                             channel?.close()
                         }
                     }
+
                     else -> logger.error("Unrecognized message request from excalidraw : $request")
                 }
 
@@ -161,10 +136,10 @@ class ExcalidrawWebViewController(
             }
         }.also { routerHandler ->
             messageRouter.addHandler(routerHandler, true)
-            jcefPanel.browser.jbCefClient.cefClient.addMessageRouter(messageRouter)
-            lifetime.onTermination {
+            jcefPanel.jbCefBrowser.jbCefClient.cefClient.addMessageRouter(messageRouter)
+            Disposer.register(this) {
                 logger.debug("$fileName: removing message router")
-                jcefPanel.browser.jbCefClient.cefClient.removeMessageRouter(messageRouter)
+                jcefPanel.jbCefBrowser.jbCefClient.cefClient.removeMessageRouter(messageRouter)
                 messageRouter.dispose()
             }
         }
@@ -198,13 +173,14 @@ class ExcalidrawWebViewController(
 
             override fun onLoadEnd(browser: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
                 if (frame?.url == pluginUrl) {
-                    _initializedPromise.setResult(Unit)
+                    whenReady.tryEmit(Unit)
                 }
             }
         }.also { loadHandler ->
-            jcefPanel.browser.jbCefClient.addLoadHandler(loadHandler, jcefPanel.browser.cefBrowser)
-            lifetime.onTermination {
-                jcefPanel.browser.jbCefClient.removeLoadHandler(loadHandler, jcefPanel.browser.cefBrowser)
+            jcefPanel.jbCefBrowser.jbCefClient.addLoadHandler(loadHandler, jcefPanel.jbCefBrowser.cefBrowser)
+            Disposer.register(this) {
+                logger.debug("$fileName: removing load handler")
+                jcefPanel.jbCefBrowser.jbCefClient.removeLoadHandler(loadHandler, jcefPanel.jbCefBrowser.cefBrowser)
             }
         }
 
@@ -233,25 +209,19 @@ class ExcalidrawWebViewController(
                 return super.onConsoleMessage(browser, level, message, source, line)
             }
         }.also { displayHandler ->
-            jcefPanel.browser.jbCefClient.addDisplayHandler(displayHandler, jcefPanel.browser.cefBrowser)
-            lifetime.onTermination {
-                jcefPanel.browser.jbCefClient.removeDisplayHandler(displayHandler, jcefPanel.browser.cefBrowser)
+            jcefPanel.jbCefBrowser.jbCefClient.addDisplayHandler(displayHandler, jcefPanel.jbCefBrowser.cefBrowser)
+            Disposer.register(this) {
+                logger.debug("$fileName: removing display handler")
+                jcefPanel.jbCefBrowser.jbCefClient.removeDisplayHandler(
+                    displayHandler,
+                    jcefPanel.jbCefBrowser.cefBrowser
+                )
             }
         }
     }
 
-    // Usage inspired by diagrams.net integration plugin
-    // usage of the reactive distributed framework to communicate changes
-    private val _excalidrawPayload = Property<String?>(null)
-    val excalidrawPayload: IPropertyView<String?> = _excalidrawPayload
-
-    private var _initializedPromise = AsyncPromise<Unit>()
-    fun initialized(): Promise<Unit> {
-        return _initializedPromise
-    }
-
     fun loadJsonPayload(jsonPayload: String) {
-        _excalidrawPayload.set(null)
+        payload.value = null
 
         runJS(
             "loadJsonPayload",
@@ -268,8 +238,8 @@ class ExcalidrawWebViewController(
         )
     }
 
-    fun loadFromFile(file: VirtualFile) {
-        _excalidrawPayload.set(null)
+    fun loadFromImageFile(file: VirtualFile) {
+        payload.value = null
 
         fsMapping[file.name] = file
 
@@ -326,7 +296,7 @@ class ExcalidrawWebViewController(
         )
     }
 
-    suspend fun saveAsCoroutines(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): String {
+    suspend fun triggerSnapshot(imageType: ExcalidrawImageType, saveOptions: SaveOptions?): String {
         debuggingLogWithThread(logger) { "ExcalidrawWebViewController::saveAsCoroutines" }
 
         val msgType = when (imageType) {
@@ -355,15 +325,17 @@ class ExcalidrawWebViewController(
             """
         )
 
-        return channel.receive()
+        val fromJcefView = channel.receive()
+        payload.value = fromJcefView
+        return fromJcefView
     }
 
     private fun runJS(jsOperation: String, @Language("JavaScript") js: String) {
-        if (lifetime.isNotAlive) {
-            logger.warn("$fileName: runJS: lifetime is not alive for operation: $jsOperation")
+        if (isDisposed) {
+            logger.warn("$fileName: runJS: controller is disposed: $jsOperation")
             return
         }
-        val mainFrame = jcefPanel.browser.cefBrowser.mainFrame
+        val mainFrame = jcefPanel.jbCefBrowser.cefBrowser.mainFrame
         if (mainFrame == null) {
             logger.warn("$fileName: runJS: mainFrame is null for operation: $jsOperation")
             return
@@ -377,5 +349,45 @@ class ExcalidrawWebViewController(
     }
 
     override fun dispose() {
+        isDisposed = true
+    }
+
+    companion object {
+        private const val pluginDomain = "excalidraw-jetbrains-plugin"
+        const val pluginUrl = "https://$pluginDomain/index.html"
+
+        val mapper = jacksonObjectMapper().apply {
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        }
+
+        private val fsMapping = ConcurrentHashMap<String, VirtualFile>()
+
+        private var didRegisterSchemeHandler = false
+        fun initializeSchemeHandler() {
+            didRegisterSchemeHandler = true
+
+            // clear old scheme handler factories in case this is a re-initialization with an updated theme
+            CefApp.getInstance().clearSchemeHandlerFactories()
+
+            // initialization ideas from docToolchain/diagrams.net-intellij-plugin
+            CefApp.getInstance().registerSchemeHandlerFactory(
+                "https", pluginDomain,
+                SchemeHandlerFactory { uri ->
+                    val matchingFile = fsMapping.entries.firstOrNull { uri.path.endsWith(it.key) }
+                    val stream = matchingFile?.value?.inputStream
+
+                    if (matchingFile != null) {
+                        fsMapping - matchingFile.key
+                    }
+
+                    BufferedInputStream(
+                        stream ?: ExcalidrawWebViewController::class.java.getResourceAsStream("/assets${uri.path}")
+                    )
+                }
+            ).also { successful -> assert(successful) }
+        }
+
+        val isSupported = JBCefApp.isSupported()
     }
 }

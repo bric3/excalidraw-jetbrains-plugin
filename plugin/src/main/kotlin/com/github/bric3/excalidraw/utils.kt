@@ -7,11 +7,12 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.readAndWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.concurrency.AsyncPromise
+import com.intellij.openapi.vfs.findDocument
 import java.io.IOException
 import java.util.function.Supplier
 
@@ -25,9 +26,9 @@ val debugMode = ProcessHandle.current().info().arguments().map {
 /**
  * Return a matching editor.
  *
- * Note this may return null if the project or editor the editor is not loaded and selected.
+ * Note this may return null if the project or the editor is not loaded and selected.
  *
- * @return An ExcalidrawEditor instance or null if the editor is not yet ready
+ * @return An `ExcalidrawEditor` instance or null if the editor is not yet ready
  */
 fun AnActionEvent.findEditor(): ExcalidrawEditor? {
     val project = this.project ?: return null
@@ -61,15 +62,14 @@ fun notifyAboutWriteError(
     )
 }
 
-fun asyncWrite(
+suspend fun writePayloadToFile(
     destination: () -> VirtualFile,
     type: ExcalidrawImageType,
     byteArrayPayload: ByteArray
-): AsyncPromise<Boolean> {
-    val writeDone = AsyncPromise<Boolean>()
-    ApplicationManager.getApplication().invokeLater {
-        ApplicationManager.getApplication().runWriteAction {
-            debuggingLogWithThread(logger) { "utils::asyncWrite" }
+) {
+    readAndWriteAction {
+        writeAction {
+            debuggingLogWithThread(logger) { "utils::writePayloadToFile" }
             val file = destination.invoke()
             try {
                 file.getOutputStream(file).use { stream ->
@@ -77,17 +77,30 @@ fun asyncWrite(
                         write(byteArrayPayload)
                     }
                 }
-                writeDone.setResult(true)
             } catch (e: IOException) {
-                writeDone.setError(e)
                 notifyAboutWriteError(type, file, e)
             } catch (e: IllegalArgumentException) {
-                writeDone.setError(e)
                 notifyAboutWriteError(type, file, e)
             }
         }
     }
-    return writeDone
+}
+
+suspend fun writePayloadToDocument(
+    destination: () -> VirtualFile,
+    strPayload: CharSequence
+) {
+    val file = destination()
+    val doc = readAction(file::findDocument)
+    readAndWriteAction {
+        writeAction {
+            debuggingLogWithThread(logger) { "utils::writePayloadToDocument" }
+            doc?.let { document ->
+                document.setText(strPayload)
+                return@writeAction
+            } ?: logger.debug("Could not find document for $file")
+        }
+    }
 }
 
 fun debuggingLogWithThread(logger: Logger, message: Supplier<String>) {

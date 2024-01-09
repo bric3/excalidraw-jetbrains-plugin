@@ -1,16 +1,19 @@
 package com.github.bric3.excalidraw.editor
 
 import com.github.bric3.excalidraw.SaveOptions
-import com.github.bric3.excalidraw.asyncWrite
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.EXCALIDRAW_IMAGE_TYPE
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
+import com.github.bric3.excalidraw.writePayloadToDocument
+import com.github.bric3.excalidraw.writePayloadToFile
 import com.intellij.AppTopics
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.colors.EditorColorsListener
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -21,43 +24,46 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
-import com.intellij.ui.jcef.JBCefApp
 import com.intellij.util.ui.UIUtil
-import com.jetbrains.rd.util.lifetime.LifetimeDefinition
-import com.jetbrains.rd.util.reactive.adviseNotNull
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeSupport
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.*
-import java.util.concurrent.Phaser
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.milliseconds
 
 
+@OptIn(FlowPreview::class)
 class ExcalidrawEditor(
     private val project: Project,
     private val file: VirtualFile
-) : FileEditor,
+) : UserDataHolderBase(),
+    FileEditor,
     EditorColorsListener,
     DumbAware {
 
+    private var isDisposed: Boolean = false
     private val logger = thisLogger()
-
-    private val lifetimeDef = LifetimeDefinition()
-    private val lifetime = lifetimeDef.lifetime
-    private val userDataHolder = UserDataHolderBase()
 
     override fun getFile() = file
 
@@ -66,50 +72,55 @@ class ExcalidrawEditor(
     private val actionPanel = ExcalidrawActionPanel()
     private val toolbarAndWebView: JPanel
     private val propertyChangeSupport = PropertyChangeSupport(this)
+
     @Volatile
     private var modified = false
 
-    private val saveAndDisposePhaser = Phaser(1)
+    private val coroutineScope: CoroutineScope =
+        CoroutineScope(SupervisorJob() + CoroutineName("${this::class.java.simpleName}:${file.name}"))
 
     init {
         // subscribe to changes of the theme
         val busConnection = ApplicationManager.getApplication().messageBus.connect(this)
-        busConnection.subscribe(EditorColorsManager.TOPIC, this)
-        busConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
-            override fun beforeAllDocumentsSaving() {
-                // This is the manual or auto save action of IntelliJ
-                debuggingLogWithThread(logger) { "ExcalidrawEditor::beforeAllDocumentsSaving" }
-                saveEditor()
-                // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeAllDocumentsSaving
-                // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
-                // AWT-EventQueue-0 : 26 : ExcalidrawWebViewController::saveAs
-                // AWT-AppKit : 23 : CefMessageRouterHandlerAdapter::onQuery
-                // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write promise
-                // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write done promise
-                // AWT-EventQueue-0 : 26 : asyncWrite
-            }
-        })
+        with(busConnection) {
+            subscribe(EditorColorsManager.TOPIC, this@ExcalidrawEditor)
+            subscribe(EditorColorsManager.TOPIC, this@ExcalidrawEditor)
+            subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
+                override fun beforeAllDocumentsSaving() {
+                    // This is the manual or auto save action of IntelliJ
+                    debuggingLogWithThread(logger) { "ExcalidrawEditor::beforeAllDocumentsSaving" }
+                    saveEditor()
+                    // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeAllDocumentsSaving
+                    // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
+                    // AWT-EventQueue-0 : 26 : ExcalidrawWebViewController::saveAs
+                    // AWT-AppKit : 23 : CefMessageRouterHandlerAdapter::onQuery
+                    // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write promise
+                    // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write done promise
+                    // AWT-EventQueue-0 : 26 : asyncWrite
+                }
+            })
 
-//        // Before file close
-//        busConnection.subscribe(
-//            FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
-//            object : FileEditorManagerListener.Before {
-//                override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
-//                    logWithThread("ExcalidrawEditor::beforeFileClosed ${file.name}")
-//                }
-//            })
+            // // Before file close
+            // busConnection.subscribe(
+            //     FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
+            //     object : FileEditorManagerListener.Before {
+            //         override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
+            //             logWithThread("ExcalidrawEditor::beforeFileClosed ${file.name}")
+            //         }
+            //     })
 
-        busConnection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
-            override fun after(events: MutableList<out VFileEvent>) {
-                events
-                    .filterIsInstance<VFilePropertyChangeEvent>()
-                    .filter { it.file == file && it.propertyName == "writable" }
-                    .forEach {
-                        viewController.toggleReadOnly(file.isWritable.not())
-                        logger.debug("${it.javaClass.simpleName}: ${it.file.name} writable : ${it.file.isWritable}")
-                    }
-            }
-        })
+            subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
+                override fun after(events: MutableList<out VFileEvent>) {
+                    events
+                        .filterIsInstance<VFilePropertyChangeEvent>()
+                        .filter { it.file == file && it.propertyName == "writable" }
+                        .forEach {
+                            viewController.toggleReadOnly(file.isWritable.not())
+                            logger.debug("${it.javaClass.simpleName}: ${it.file.name} writable : ${it.file.isWritable}")
+                        }
+                }
+            })
+        }
 
         // TODO listen to settings change, something like: busConnection.subscribe(ExcalidrawSettingsChangedListener.TOPIC, this)
 
@@ -135,19 +146,20 @@ class ExcalidrawEditor(
         else -> ExcalidrawColorScheme.LIGHT
     }
 
-
     private fun initViewIfSupported() {
-        if (JBCefApp.isSupported()) {
+        if (ExcalidrawWebViewController.isSupported) {
             viewController = ExcalidrawWebViewController(
+                this,
                 file.name,
-                lifetime,
                 uiThemeFromConfig().key
             )
-            Disposer.register(this, viewController)
+            launchModifiedStatusJob()
+            launchSaveJob()
+            loadFileWhenReady()
         } else {
             Notifications.Bus.notify(
                 Notification(
-                    "Plugin Error",
+                    "excalidraw.error",
                     "Excalidraw not available",
                     "CEF is not available on this JVM, use Jetbrains runtime",
                     NotificationType.ERROR,
@@ -155,88 +167,118 @@ class ExcalidrawEditor(
             )
             return
         }
+    }
 
-        viewController.initialized().then {
-            if (file.name.endsWith("excalidraw") || file.name.endsWith("json")) {
-                file.inputStream.bufferedReader(UTF_8).use {
-                    val jsonPayload = it.readText()
-                    if (jsonPayload.isNotEmpty()) {
-                        viewController.loadJsonPayload(jsonPayload)
+    private fun loadFileWhenReady() {
+        coroutineScope.launch(Dispatchers.IO) {
+            viewController.whenReady.collectLatest {
+                when {
+                    file.name.endsWith("excalidraw") || file.name.endsWith("json") -> {
+                        val document = readAction(file::findDocument)
+
+                        if (document != null) document.let {
+                            viewController.loadJsonPayload(it.text)
+                        } else {
+                            file.inputStream.bufferedReader(UTF_8).use {
+                                val jsonPayload = it.readText()
+                                if (jsonPayload.isNotEmpty()) {
+                                    viewController.loadJsonPayload(jsonPayload)
+                                }
+                            }
+                        }
                     }
+
+                    file.name.endsWith("svg") || file.name.endsWith("png") -> {
+                        viewController.loadFromImageFile(file)
+                    }
+
+                    else -> logger.warn("Unsupported file type ${file.name}")
                 }
-            }
 
-            if (file.name.endsWith("svg") || file.name.endsWith("png")) {
-                viewController.loadFromFile(file)
-
+                viewController.toggleReadOnly(file.isWritable.not())
             }
-            viewController.toggleReadOnly(file.isWritable.not())
-        }
-
-        // https://github.com/JetBrains/rd/blob/211/rd-kt/rd-core/src/commonMain/kotlin/com/jetbrains/rd/util/reactive/Interfaces.kt#L17
-        viewController.excalidrawPayload.adviseNotNull(lifetime) { _ ->
-            debuggingLogWithThread(logger) { "content to save to $file" }
-            if (!file.isWritable) {
-                return@adviseNotNull
-            }
-            toggleModifiedStatus(true)
         }
     }
 
-    private fun toggleModifiedStatus(newModificationStatus: Boolean) {
+    private suspend fun toggleModifiedStatus(newModificationStatus: Boolean) {
         val oldModificationStatus = modified
         if (oldModificationStatus == newModificationStatus) {
             return
         }
         modified = newModificationStatus
-        ApplicationManager.getApplication().invokeLater {
-            ApplicationManager.getApplication().runWriteAction {
-                propertyChangeSupport.firePropertyChange(
-                    FileEditor.PROP_MODIFIED,
-                    oldModificationStatus,
-                    newModificationStatus
-                )
-            }
+
+        withContext(Dispatchers.EDT) {
+            propertyChangeSupport.firePropertyChange(
+                FileEditor.PROP_MODIFIED,
+                oldModificationStatus,
+                newModificationStatus
+            )
         }
     }
 
-    private fun saveEditor() {
-        // TODO add scene version in file user data
-        saveCoroutines()
-    }
-
-    private fun saveCoroutines() {
-
-        debuggingLogWithThread(logger) { "ExcalidrawEditor::saveCoroutines" }
-        if (!file.isWritable) {
-            debuggingLogWithThread(logger) { "bailing out save, file non writable" }
-            return
-        }
-        debuggingLogWithThread(logger) { "starts saving editor" }
+    // TODO add scene version in file user data
+    // This will trigger the saveJob
+    private fun saveEditor() = coroutineScope.launch {
         val saveOptions = getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()
         val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
             ?: throw IllegalStateException("Excalidraw should have been identified")
 
-        saveAndDisposePhaser.register()
-        // wrap in runBlocking ?
-        GlobalScope.launch(Dispatchers.Default) {
-            val payload = viewController.saveAsCoroutines(type, saveOptions)
-            debuggingLogWithThread(logger) { "received a payload!! : ${payload.substring(0, 10)}..." }
-            saveAndDisposePhaser.arriveAndDeregister()
-            val byteArrayPayload = when (type) {
-                ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> payload.toByteArray(UTF_8)
-                ExcalidrawImageType.PNG -> Base64.getDecoder().decode(payload.substringAfter("data:image/png;base64,"))
-            }
-            asyncWrite(
-                { file },
-                type,
-                byteArrayPayload
-            ).then {
+        viewController.triggerSnapshot(type, saveOptions)
+    }
+
+    private fun launchSaveJob() = coroutineScope.launch {
+        viewController.payload
+            .debounce(250.milliseconds)
+            .filterNotNull()
+            .collectLatest { payload ->
+                if (isDisposed) {
+                    debuggingLogWithThread(logger) { "Saving aborted: disposed" }
+                    return@collectLatest
+                }
+
+                debuggingLogWithThread(logger) { "Saving started" }
+                if (!file.isWritable) {
+                    debuggingLogWithThread(logger) { "Bailing out save, file non writable" }
+                    return@collectLatest
+                }
+                val type = file.getUserData(EXCALIDRAW_IMAGE_TYPE)
+                    ?: throw IllegalStateException("Excalidraw should have been identified")
+
+                when (type) {
+                    ExcalidrawImageType.EXCALIDRAW, ExcalidrawImageType.SVG -> {
+                        writePayloadToDocument(
+                            { file },
+                            payload
+                        )
+                    }
+
+                    ExcalidrawImageType.PNG -> {
+                        val bytes = Base64.getDecoder()
+                            .decode(payload.substringAfter("data:image/png;base64,"))
+
+                        writePayloadToFile(
+                            { file },
+                            type,
+                            bytes
+                        )
+                    }
+                }
+
                 debuggingLogWithThread(logger) { "File ${file.name} saved" }
                 toggleModifiedStatus(false)
-
             }
-        }
+    }
+
+    private fun launchModifiedStatusJob() = coroutineScope.launch {
+        viewController.payload
+            .filterNotNull()
+            .collectLatest {
+                debuggingLogWithThread(logger) { "content to save to $file" }
+                if (!file.isWritable) {
+                    return@collectLatest
+                }
+                toggleModifiedStatus(true)
+            }
     }
 
     @Override
@@ -299,21 +341,9 @@ class ExcalidrawEditor(
     }
 
     override fun dispose() {
-        GlobalScope.launch(Dispatchers.Default) {
-            debuggingLogWithThread(logger) { "ExcalidrawEditor::dispose, save in progress: ${saveAndDisposePhaser.unarrivedParties - 1}" }
-            saveAndDisposePhaser.arriveAndAwaitAdvance()
-            debuggingLogWithThread(logger) { "ExcalidrawEditor::dispose" }
-            lifetimeDef.terminate(true)
-            viewController.dispose()
-            saveAndDisposePhaser.arriveAndDeregister()
-        }
-    }
+        isDisposed = true
 
-    override fun <T : Any?> getUserData(key: Key<T>): T? {
-        return userDataHolder.getUserData(key)
-    }
-
-    override fun <T : Any?> putUserData(key: Key<T>, value: T?) {
-        userDataHolder.putUserData(key, value)
+        // TODO proper cancel ?
+        coroutineScope.cancel()
     }
 }

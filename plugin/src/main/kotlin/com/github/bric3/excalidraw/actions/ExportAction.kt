@@ -1,10 +1,10 @@
 package com.github.bric3.excalidraw.actions
 
 import com.github.bric3.excalidraw.SaveOptions
-import com.github.bric3.excalidraw.asyncWrite
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
+import com.github.bric3.excalidraw.writePayloadToFile
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -15,7 +15,10 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
     private val logger = thisLogger()
@@ -28,9 +31,8 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
         val excalidrawEditor = event.findEditor() ?: return
         val saveOptions = excalidrawEditor.getUserData(SaveOptions.SAVE_OPTIONS_KEY) ?: SaveOptions()
 
-
         val descriptor = FileSaverDescriptor(
-            "Export Image to",
+            "Export Image To",
             "Choose the image destination",
             type.extension
         )
@@ -54,17 +56,14 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
                 )
             }
 
-            runBlocking {
-                GlobalScope.launch {
-                    withContext(Dispatchers.Default) {
-                        val payload = excalidrawEditor.viewController.saveAsCoroutines(type, saveOptions)
-                        asyncWrite(
-                            { destination.getVirtualFile(true)!! },
-                            type,
-                            convertToByteArray(payload)
-                        )
-                    }
-                }
+            CoroutineScope(Dispatchers.IO + CoroutineName(this::class.java.simpleName)).launch {
+                val payload = excalidrawEditor.viewController.triggerSnapshot(type, saveOptions)
+
+                writePayloadToFile(
+                    { destination.getVirtualFile(true)!! },
+                    type,
+                    convertToByteArray(payload)
+                )
             }
         }
     }
