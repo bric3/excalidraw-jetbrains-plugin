@@ -77,8 +77,7 @@
         <action id="excalidraw.ToggleLightDarkMode"
                 class="com.github.bric3.excalidraw.actions.ToggleLightDarkModeAction"
                 text="Toggle Light/Dark Mode"
-                description="Toggle Light/Dark mode"
-                icon="AllIcons.Actions.IntentionBulb"/>
+                description="Toggle Light/Dark mode"/>
 
         <!-- AllIcons.Actions.InlayGlobe -->
 

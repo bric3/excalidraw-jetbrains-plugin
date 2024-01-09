@@ -11,4 +11,10 @@ object ExcalidrawIcons {
 
     @JvmField
     val ExcalidrawFileIcon = IconLoader.getIcon("icons/excalidraw-file-icon.svg", javaClass)
+
+    @JvmField
+    val darkMode = IconLoader.getIcon("icons/darkMode.svg", javaClass)
+
+    @JvmField
+    val lightMode = IconLoader.getIcon("icons/lightMode.svg", javaClass)
 }
