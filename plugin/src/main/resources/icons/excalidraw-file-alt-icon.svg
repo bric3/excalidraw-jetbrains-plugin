@@ -1,4 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 2048 2048">
-	<rect fill-opacity="0.6" x="64" y="64" width="1920" height="1920" rx="384" ry="384" fill="#dde0ce" style="stroke: rgb(223, 224, 181); stroke-width: 128px; stroke-opacity: 1;"></rect>
-	<g transform="scale(0.77)"><path fill-opacity="0.7" transform="translate(103.44999999999999, 2027.04) rotate(180) scale(-1, 1)" fill="#231f20" d="M344 1493h885l-33 -170h-684l-86 -442h653l-32 -170h-654l-104 -541h702l-33 -170h-905z"></path><path fill-opacity="0.7" transform="translate(1336.45, 2027.04) rotate(180) scale(-1, 1)" fill="#231f20" d="M1208 1120l-512 -547l318 -573h-197l-244 444l-417 -444h-226l564 596l-293 524h196l217 -395l369 395h225z"></path></g>
-</svg>

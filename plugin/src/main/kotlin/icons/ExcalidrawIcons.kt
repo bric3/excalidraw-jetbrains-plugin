@@ -10,5 +10,5 @@ object ExcalidrawIcons {
     val SaveAsPng = IconLoader.getIcon("icons/actions/save-as-png.svg", javaClass)
 
     @JvmField
-    val ExcalidrawFileIcon = IconLoader.getIcon("icons/excalidraw-file-sketch-icon.svg", javaClass)
+    val ExcalidrawFileIcon = IconLoader.getIcon("icons/excalidraw-file-icon.svg", javaClass)
 }

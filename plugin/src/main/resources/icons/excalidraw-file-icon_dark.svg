@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 1000 1000">
   <rect width="1000" height="1000" rx="200" ry="200" fill="#222"/>
     <!--
-        Makes the nested SVG have a the width and height so it's displayed correctly in IJ viewer
-        https://youtrack.jetbrains.com/issue/IDEA-338886/Image-editor-not-properly-displaying-nested-svg-view-box
+      Makes the nested SVG have a the width and height so it's displayed correctly in IJ viewer
+      https://youtrack.jetbrains.com/issue/IDEA-338886/Image-editor-not-properly-displaying-nested-svg-view-box
     -->
     <svg width="1000" height="1000" viewBox="0 0 107 101" xmlns="http://www.w3.org/2000/svg"
          xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2">
