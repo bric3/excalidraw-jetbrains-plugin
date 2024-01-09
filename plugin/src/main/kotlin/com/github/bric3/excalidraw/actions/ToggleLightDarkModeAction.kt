@@ -13,6 +13,11 @@ class ToggleLightDarkModeAction : ToggleSceneModeAction() {
             ExcalidrawIcons.darkMode
         else
             ExcalidrawIcons.lightMode
+
+        e.presentation.text = if (isSelected(e))
+            "Switch to Dark Mode"
+        else
+            "Switch to Light Mode"
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
