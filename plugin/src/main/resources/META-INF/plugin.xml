@@ -59,13 +59,13 @@
 
         <action id="excalidraw.ExportToSvgAction"
                 class="com.github.bric3.excalidraw.actions.ExportToSvgAction"
-                text="Export to SVG"
-                description="Export current Excalidraw drawing to SVG"
+                text="Export to SVG (Embeds Excalidraw Scene)"
+                description="Export current Excalidraw drawing to SVG, this embeds the Excalidraw scene"
                 icon="ExcalidrawIcons.SaveAsSvg"/>
         <action id="excalidraw.ExportToPngAction"
                 class="com.github.bric3.excalidraw.actions.ExportToPngAction"
-                text="Export to PNG"
-                description="Export current Excalidraw drawing to PNG"
+                text="Export to PNG (Embeds Excalidraw Scene)"
+                description="Export current Excalidraw drawing to PNG, this embeds the Excalidraw scene"
                 icon="ExcalidrawIcons.SaveAsPng"/>
         <action id="excalidraw.ExportToJpgAction"
                 class="com.github.bric3.excalidraw.actions.ExportToJpgAction"
