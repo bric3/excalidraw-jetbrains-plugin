@@ -1729,13 +1729,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@excalidraw/excalidraw@npm:^0.16.1":
-  version: 0.16.1
-  resolution: "@excalidraw/excalidraw@npm:0.16.1"
+"@excalidraw/excalidraw@npm:^0.17.0":
+  version: 0.17.2
+  resolution: "@excalidraw/excalidraw@npm:0.17.2"
   peerDependencies:
     react: ^17.0.2 || ^18.2.0
     react-dom: ^17.0.2 || ^18.2.0
-  checksum: e9dfbe89c1c678954f8947ce37ce0c95cc2567e57f801c5df38fa28af716d2beab90beea02bd265aa3d5cc42e9e50798c8144bd6aba196ab4c154fc93686d3c6
+  checksum: b034dbe283bab7cbb44dafc2ced7161f93aeb277ee26cbea555284999c4e1aca40a912fc3eee2a4d7d2016db90a9187078e92dcc1432801aee307f314e94e002
   languageName: node
   linkType: hard
 
@@ -4145,9 +4145,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001400, caniuse-lite@npm:^1.0.30001426":
-  version: 1.0.30001563
-  resolution: "caniuse-lite@npm:1.0.30001563"
-  checksum: dab23d85ddba75c4230348a1e491bb95bb9978f6b9dd78df6445cce9aede18ef97a2a24ce54d02aff3c67169a021221aaa04711f13d469ab4f72a487aa36205c
+  version: 1.0.30001576
+  resolution: "caniuse-lite@npm:1.0.30001576"
+  checksum: 51632942733593f310e581bd91c9558b8d75fbf67160a39f8036d2976cd7df9183e96d4c9d9e6f18e0205950b940d9c761bcfb7810962d7899f8a1179fde6e3f
   languageName: node
   linkType: hard
 
@@ -5849,7 +5849,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "excalidraw-plugin-assets@workspace:."
   dependencies:
-    "@excalidraw/excalidraw": "npm:^0.16.1"
+    "@excalidraw/excalidraw": "npm:^0.17.0"
     "@types/jest": "npm:^29.0.0"
     "@types/node": "npm:^20.9.0"
     "@types/pako": "npm:^2.0.0"

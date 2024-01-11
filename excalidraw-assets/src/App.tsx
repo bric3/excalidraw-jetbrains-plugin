@@ -319,7 +319,7 @@ export const App = () => {
     return (
         <div className="excalidraw-wrapper">
             <Excalidraw
-                ref={excalidrawRef}
+                excalidrawAPI={excalidrawRef}
                 // initialData={InitialData}
                 // initialData={{ elements: initialElements, appState: initialAppState, libraryItems: libraryItems }}
                 initialData={{
