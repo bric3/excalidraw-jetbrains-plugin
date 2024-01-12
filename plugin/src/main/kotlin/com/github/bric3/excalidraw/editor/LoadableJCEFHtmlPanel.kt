@@ -37,6 +37,7 @@ class LoadableJCEFHtmlPanel(
 
     val jbCefBrowser = JBCefBrowser.createBuilder()
         .setEnableOpenDevToolsMenuItem(openDevtools)
+        .setOffScreenRendering(useOsr)
         .build()
 
     private val loadingPanel = JBLoadingPanel(BorderLayout(), this).apply {
@@ -114,5 +115,7 @@ class LoadableJCEFHtmlPanel(
     companion object {
         private const val LOADING_KEY = 1
         private const val CONTENT_KEY = 0
+        private val useOsr
+            get() = Registry.`is`("excalidraw.viewer.use.jcef.osr.view")
     }
 }
