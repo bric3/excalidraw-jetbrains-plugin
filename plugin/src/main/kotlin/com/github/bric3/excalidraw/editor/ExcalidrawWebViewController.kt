@@ -253,7 +253,8 @@ class ExcalidrawWebViewController(
             
             window.postMessage({
                 type: "update",
-                elements: json.elements
+                elements: json.elements,
+                files: json.files
             }, 'https://$pluginDomain')
             """
         )
