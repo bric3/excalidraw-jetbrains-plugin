@@ -73,6 +73,9 @@ class LoadableJCEFHtmlPanel(
                 frame: CefFrame?,
                 transitionType: CefRequest.TransitionType?
             ) {
+                if (openDevtools) {
+                    jbCefBrowser.openDevtools()
+                }
                 alarm.addRequest(
                     { jbCefBrowser.loadHTML(timeoutCallback!!) },
                     Registry.intValue("html.editor.timeout", 10000)
