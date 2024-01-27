@@ -11,7 +11,6 @@
 ### Changed
 - New plugin icon, matching the new excalidraw icon
 - Upgraded excalidraw to version 0.17.0
-- Bumping to Excalidraw introduced a bug, when exporting to SVG files, the font links are incorrect [excalidraw/excalidraw#7543](https://github.com/excalidraw/excalidraw/issues/7543)
 - Opens Excalidraw editor rather than JSON by [@michael-pratt](https://github.com/michael-pratt), see [#93](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/93)
 - Switched to offscreen rendering [#17](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/17)
 - Bumped the minimum platform to 2023.2
@@ -20,6 +19,8 @@
 - Fixed various errors by rewriting the saving mechanism (now using kotlin coroutines), to fix asynchronous writes.
 - Saving and Continuous saving doesn't work with images with embedded excalidraw. [#70](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/70)
   Unfortunately Excalidraw files with embedded images cannot be loaded due to [excalidraw/excalidraw#7553](https://github.com/excalidraw/excalidraw/discussions/7553).
+- Workaround for Excalidraw issue when exporting to SVG files, the font links are incorrect, see [excalidraw/excalidraw#7543](https://github.com/excalidraw/excalidraw/issues/7543).
+
 
 ## [0.3.2] - 2021-09-14
 ### New
