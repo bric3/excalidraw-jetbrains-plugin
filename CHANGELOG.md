@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 ### Added
-- Toggle between light and dark separated from the current theme by @michael-pratt, see [#92](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/92)
+- Toggle between light and dark separated from the current theme by [@michael-pratt](https://github.com/michael-pratt), see [#92](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/92)
 - Supports scratch files [#90](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/90) [#22](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/22)
 - Exports to JPG and WEBP [#69](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/69)
 
@@ -12,14 +12,14 @@
 - New plugin icon, matching the new excalidraw icon
 - Upgraded excalidraw to version 0.17.0
 - Bumping to Excalidraw introduced a bug, when exporting to SVG files, the font links are incorrect [excalidraw/excalidraw#7543](https://github.com/excalidraw/excalidraw/issues/7543)
-- Opens Excalidraw editor rather than JSON by @michael-pratt, see [#93](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/93)
+- Opens Excalidraw editor rather than JSON by [@michael-pratt](https://github.com/michael-pratt), see [#93](https://github.com/bric3/excalidraw-jetbrains-plugin/pull/93)
 - Switched to offscreen rendering [#17](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/17)
-- Bumped minimum platform to 2023.2
+- Bumped the minimum platform to 2023.2
 
 ### Fixed
-- Fixed strange errors by rewroting the saving mechanism (using kotlin coroutines), to fix asynchrnous writes.
+- Fixed various errors by rewriting the saving mechanism (now using kotlin coroutines), to fix asynchronous writes.
 - Saving and Continuous saving doesn't work with images with embedded excalidraw. [#70](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/70)
-  Unfortunately Excalidraw files with embedded images can not be loaded due to [excalidraw/excalidraw#7553](https://github.com/excalidraw/excalidraw/discussions/7553).
+  Unfortunately Excalidraw files with embedded images cannot be loaded due to [excalidraw/excalidraw#7553](https://github.com/excalidraw/excalidraw/discussions/7553).
 
 ## [0.3.2] - 2021-09-14
 ### New

@@ -108,7 +108,12 @@ tasks {
         )
 
         // Get the latest available change notes from the changelog file
-        changeNotes.set(provider { changelog.renderItem(changelog.getLatest(), Changelog.OutputType.HTML) })
+        changeNotes.set(provider {
+            changelog.renderItem(
+                changelog.getLatest(),
+                Changelog.OutputType.HTML
+            )
+        })
     }
 
     runPluginVerifier {

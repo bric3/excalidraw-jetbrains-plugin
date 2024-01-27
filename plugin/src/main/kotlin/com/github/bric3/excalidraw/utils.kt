@@ -2,6 +2,7 @@ package com.github.bric3.excalidraw
 
 import com.github.bric3.excalidraw.editor.ExcalidrawEditor
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
+import com.github.bric3.excalidraw.files.ExcalidrawImageType.SVG
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -102,6 +103,19 @@ suspend fun writePayloadToDocument(
         }
     }
 }
+
+/**
+ * Patch for svg files where fonts assets use the plugin root
+ * instead of regular `excalidraw.com`.
+ *
+ * https://github.com/excalidraw/excalidraw/issues/7543
+ */
+val wrongAssetRoot = "https://excalidraw-jetbrains-plugin//?dist/excalidraw-assets/".toRegex()
+fun patchSvgForExcalidraw7543(payload: String, type: ExcalidrawImageType = SVG) =
+    when (type) {
+        SVG -> payload.replace(wrongAssetRoot, "https://excalidraw.com/")
+        else -> payload
+    }
 
 fun debuggingLogWithThread(logger: Logger, message: Supplier<String>) {
     if (debugMode) {

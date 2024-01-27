@@ -8,6 +8,7 @@ import com.github.bric3.excalidraw.files.ExcalidrawImageType.JPG
 import com.github.bric3.excalidraw.files.ExcalidrawImageType.PNG
 import com.github.bric3.excalidraw.files.ExcalidrawImageType.SVG
 import com.github.bric3.excalidraw.files.ExcalidrawImageType.WEBP
+import com.github.bric3.excalidraw.patchSvgForExcalidraw7543
 import com.github.bric3.excalidraw.support.ExcalidrawColorScheme
 import com.github.bric3.excalidraw.writePayloadToDocument
 import com.github.bric3.excalidraw.writePayloadToFile
@@ -252,7 +253,9 @@ class ExcalidrawEditor(
                     EXCALIDRAW, SVG -> {
                         writePayloadToDocument(
                             { file },
-                            payload
+                            payload.run {
+                                patchSvgForExcalidraw7543(this, type)
+                            }
                         )
                     }
 

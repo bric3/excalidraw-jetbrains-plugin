@@ -4,6 +4,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.debuggingLogWithThread
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.findEditor
+import com.github.bric3.excalidraw.patchSvgForExcalidraw7543
 import com.github.bric3.excalidraw.toHex
 import com.github.bric3.excalidraw.writePayloadToFile
 import com.intellij.notification.Notification
@@ -79,7 +80,11 @@ abstract class ExportAction(val type: ExcalidrawImageType) : AnAction() {
 }
 
 class ExportToSvgAction : ExportAction(ExcalidrawImageType.SVG) {
-    override fun convertToByteArray(payload: String) = payload.toByteArray(UTF_8)
+    override fun convertToByteArray(payload: String) = payload
+        .run {
+            patchSvgForExcalidraw7543(this)
+        }
+        .toByteArray(UTF_8)
 }
 
 abstract class BinaryImageExportAction(type: ExcalidrawImageType) : ExportAction(type) {
