@@ -36,7 +36,7 @@ import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
-import com.intellij.util.ui.UIUtil
+import com.intellij.ui.JBColor
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -147,8 +147,8 @@ class ExcalidrawEditor(
     }
 
     private fun uiThemeFromConfig(): ExcalidrawColorScheme = when {
-        UIUtil.isUnderDarcula() -> ExcalidrawColorScheme.DARK
-        else -> ExcalidrawColorScheme.LIGHT
+        JBColor.isBright() -> ExcalidrawColorScheme.LIGHT
+        else -> ExcalidrawColorScheme.DARK
     }
 
     private fun initViewIfSupported() {
