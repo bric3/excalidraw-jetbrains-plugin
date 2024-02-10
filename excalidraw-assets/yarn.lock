@@ -1904,12 +1904,12 @@ __metadata:
   linkType: hard
 
 "@excalidraw/excalidraw@npm:^0.17.0":
-  version: 0.17.2
-  resolution: "@excalidraw/excalidraw@npm:0.17.2"
+  version: 0.17.3
+  resolution: "@excalidraw/excalidraw@npm:0.17.3"
   peerDependencies:
     react: ^17.0.2 || ^18.2.0
     react-dom: ^17.0.2 || ^18.2.0
-  checksum: 10/b034dbe283bab7cbb44dafc2ced7161f93aeb277ee26cbea555284999c4e1aca40a912fc3eee2a4d7d2016db90a9187078e92dcc1432801aee307f314e94e002
+  checksum: 10/f79c937d63b919c3bdb720ea9288ce62e4296f33c92cd1b593115a71a518192413236f4394bc798f375cee1bc93bedc670536bd1ad0eb1f0533f289c48ca536f
   languageName: node
   linkType: hard
 
