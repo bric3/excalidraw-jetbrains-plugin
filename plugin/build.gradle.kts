@@ -35,14 +35,16 @@ dependencies {
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
 
         // instrumentationTools()
-        // pluginVerifier()
-        // zipSigner()
+        pluginVerifier()
+        zipSigner()
     }
 
     testImplementation(kotlin("test"))
 }
 
-// Read more: https://github.com/JetBrains/gradle-intellij-plugin
+// Read more:
+// * https://github.com/JetBrains/intellij-platform-gradle-plugin/
+// * https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 intellijPlatform {
     pluginConfiguration {
         id = providers.gradleProperty("pluginId")
@@ -98,21 +100,20 @@ intellijPlatform {
         }.map { listOf(it) }
     }
 
-    // verifyPlugin {
-    //     ides {
-    // //         ides(providers.gradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
-    // //         recommended()
-    // //         // channels = listOf(ProductRelease.Channel.RELEASE)
-    //
-    // // try
-    // //         select {
-    // //             types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
-    // //             channels = listOf(ProductRelease.Channel.RELEASE)
-    // //             sinceBuild = "223"
-    // //             untilBuild = "241.*"
-    // //         }
-    //    }
-    // }
+    verifyPlugin {
+        ides {
+            ides(providers.gradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
+            // recommended()
+            // channels = listOf(ProductRelease.Channel.RELEASE)
+
+            select {
+                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+                channels = listOf(ProductRelease.Channel.RELEASE, ProductRelease.Channel.RC)
+                sinceBuild = "223"
+                untilBuild = "241.*"
+            }
+       }
+    }
 }
 
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
@@ -176,18 +177,14 @@ tasks {
         }
     }
 
-    // runPluginVerifier {
-    //     ideVersions = properties("pluginVerifierIdeVersions").split(',').map(String::trim).filter(String::isNotEmpty)
-    // }
-
     runIde {
         dependsOn(processResources)
         applySystemProperties()
     }
 
-    // val runIdeUltimate by registering(CustomRunIdeTask::class) {
+    // val runIdeUltimate by registering(org.jetbrains.intellij.platform.gradle.tasks.CustomRunIdeTask::class) {
     //     type = IntelliJPlatformType.IntellijIdeaUltimate
-    //     version = providers.gradleProperty("intellij.version")
+    //     version = providers.gradleProperty("platformVersion")
     //
     //     applySystemProperties()
     // }
