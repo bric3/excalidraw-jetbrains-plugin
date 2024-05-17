@@ -1,42 +1,123 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.models.ProductRelease
+import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
     id("jvm-test-suite")
     kotlin("jvm") version libs.versions.kotlin.get()
     alias(libs.plugins.jetbrains.changelog)
-    alias(libs.plugins.jetbrains.intellij)
+    alias(libs.plugins.jetbrains.intellijPlatform)
 }
 
-group = properties("pluginGroup")
-version = properties("pluginVersion")
+group = providers.gradleProperty("pluginGroup")
+version = providers.gradleProperty("pluginVersion")
 
 repositories {
     mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+        jetbrainsRuntime()
+    }
 }
 
 dependencies {
+    intellijPlatform {
+        create(
+            providers.gradleProperty("platformType"),
+            providers.gradleProperty("platformVersion")
+        )
+        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
+        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
+
+        // instrumentationTools()
+        // pluginVerifier()
+        // zipSigner()
+    }
+
+    testImplementation(kotlin("test"))
 }
 
 // Read more: https://github.com/JetBrains/gradle-intellij-plugin
-intellij {
-    pluginName = properties("pluginName")
-    version = properties("platformVersion")
-    type = properties("platformType")
-    downloadSources = properties("platformDownloadSources").toBoolean()
-    updateSinceUntilBuild = true
+intellijPlatform {
+    pluginConfiguration {
+        id = providers.gradleProperty("pluginId")
+        name = providers.gradleProperty("pluginName")
+        version = providers.gradleProperty("pluginVersion")
 
-    // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    plugins = properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty)
+        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
+        description = providers.fileContents(layout.projectDirectory.file("./README.md")).asText.map {
+            it.lines().run {
+                val start = "<!-- Plugin description -->"
+                val end = "<!-- Plugin description end -->"
+
+                if (!containsAll(listOf(start, end))) {
+                    throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                }
+                subList(indexOf(start) + 1, indexOf(end))
+            }.joinToString("\n")
+        }.map {
+            markdownToHTML(it)
+        }
+
+        // Get the latest available change notes from the changelog file
+        changeNotes.set(provider {
+            changelog.renderItem(
+                changelog.getLatest(),
+                Changelog.OutputType.HTML
+            )
+        })
+
+        ideaVersion {
+            sinceBuild = providers.gradleProperty("pluginSinceBuild")
+            untilBuild = provider { null } // removes until-build in plugin.xml
+        }
+
+        vendor {
+            name = providers.gradleProperty("pluginVendor")
+            url = providers.gradleProperty("pluginVendorUrl")
+        }
+    }
+
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+
+        // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
+        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
+        // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
+        channels = providers.gradleProperty("pluginVersion").map {
+            Regex(".+-(\\[a-zA-Z]+).*")
+                .find(it)
+                ?.groupValues
+                ?.getOrNull(1)
+                ?: "default"
+        }.map { listOf(it) }
+    }
+
+    // verifyPlugin {
+    //     ides {
+    // //         ides(providers.gradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
+    // //         recommended()
+    // //         // channels = listOf(ProductRelease.Channel.RELEASE)
+    //
+    // // try
+    // //         select {
+    // //             types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+    // //             channels = listOf(ProductRelease.Channel.RELEASE)
+    // //             sinceBuild = "223"
+    // //             untilBuild = "241.*"
+    // //         }
+    //    }
+    // }
 }
 
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
-    version = properties("pluginVersion")
+    version = providers.gradleProperty("pluginVersion")
     path = "${rootProject.projectDir}/CHANGELOG.md"
     header = provider { "[${version.get()}] - ${date()}" }
     itemPrefix = "-"
@@ -47,7 +128,13 @@ changelog {
 }
 
 // Java 11 compat started in 2020.3
+// Java 17 compat started in 2021.3
+// Java 21 compat started in 2024.2
 val jvmLanguageLevel = 17
+
+kotlin {
+    jvmToolchain(jvmLanguageLevel)
+}
 
 tasks {
     withType<JavaCompile> {
@@ -89,56 +176,47 @@ tasks {
         }
     }
 
-    patchPluginXml {
-        version = properties("pluginVersion")
-        sinceBuild = properties("pluginSinceBuild")
-        untilBuild = provider { null } // removes until-build in plugin.xml
-
-        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
-        pluginDescription = markdownToHTML(
-            File(rootProject.projectDir, "./README.md").readText().lines().run {
-                val start = "<!-- Plugin description -->"
-                val end = "<!-- Plugin description end -->"
-
-                if (!containsAll(listOf(start, end))) {
-                    throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
-                }
-                subList(indexOf(start) + 1, indexOf(end))
-            }.joinToString("\n")
-        )
-
-        // Get the latest available change notes from the changelog file
-        changeNotes.set(provider {
-            changelog.renderItem(
-                changelog.getLatest(),
-                Changelog.OutputType.HTML
-            )
-        })
-    }
-
-    runPluginVerifier {
-        ideVersions = properties("pluginVerifierIdeVersions").split(',').map(String::trim).filter(String::isNotEmpty)
-    }
-
-    publishPlugin {
-        dependsOn("patchChangelog")
-        token = providers.environmentVariable("PUBLISH_TOKEN")
-        // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
-        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
-        // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels = listOf(
-            Regex(".+-(\\[a-zA-Z]+).*")
-                .find(properties("pluginVersion"))
-                ?.groupValues
-                ?.getOrNull(1)
-                ?: "default"
-        )
-    }
+    // runPluginVerifier {
+    //     ideVersions = properties("pluginVerifierIdeVersions").split(',').map(String::trim).filter(String::isNotEmpty)
+    // }
 
     runIde {
         dependsOn(processResources)
-        systemProperties["idea.log.debug.categories"] = "#com.github.bric3.excalidraw"
+        applySystemProperties()
     }
+
+    // val runIdeUltimate by registering(CustomRunIdeTask::class) {
+    //     type = IntelliJPlatformType.IntellijIdeaUltimate
+    //     version = providers.gradleProperty("intellij.version")
+    //
+    //     applySystemProperties()
+    // }
+
+    // Latest available EAP release
+    // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html#how-to-check-the-latest-available-eap-release
+    printProductsReleases {
+        channels = listOf(ProductRelease.Channel.EAP)
+        types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+        untilBuild = provider { null }
+
+        doLast {
+            productsReleases.get().max()
+        }
+    }
+
+    publishPlugin {
+        dependsOn(patchChangelog)
+    }
+}
+
+fun RunIdeTask.applySystemProperties() {
+    systemProperties(
+        "idea.log.debug.categories" to "#com.github.bric3.excalidraw",
+        "ide.experimental.ui" to "true",
+        "ide.show.tips.on.startup.default.value" to false,
+        "idea.trust.all.projects" to true,
+        "jb.consents.confirmation.enabled" to false
+    )
 }
 
 

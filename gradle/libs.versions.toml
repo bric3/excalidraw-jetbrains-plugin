@@ -9,7 +9,7 @@ detekt = "1.21.0"
 # plugin versions
 kotlin = "1.9.22"
 changelog-plugin = "2.2.0"
-intellij-plugin = "1.17.4"
+intellij-platform-plugin = "2.0.0-beta2"
 
 [libraries]
 # tests
@@ -25,4 +25,4 @@ junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine", "junit-jupiter-vin
 
 [plugins]
 jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog-plugin" }
-jetbrains-intellij = { id = "org.jetbrains.intellij", version.ref = "intellij-plugin" }
+jetbrains-intellijPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform-plugin" }
