@@ -11,10 +11,17 @@ plugins {
     kotlin("jvm") version libs.versions.kotlin.get()
     alias(libs.plugins.jetbrains.changelog)
     alias(libs.plugins.jetbrains.intellijPlatform)
+    alias(libs.plugins.idea.ext)
 }
 
-group = providers.gradleProperty("pluginGroup")
-version = providers.gradleProperty("pluginVersion")
+// gradleProperty do not find sub-project gradle.properties
+// https://github.com/gradle/gradle/issues/23572
+fun ProviderFactory.localGradleProperty(name: String): Provider<String> = provider {
+    if (project.hasProperty(name)) project.property(name)?.toString() else null
+}
+
+group = providers.localGradleProperty("pluginGroup")
+version = providers.localGradleProperty("pluginVersion")
 
 repositories {
     mavenCentral()
@@ -28,13 +35,13 @@ repositories {
 dependencies {
     intellijPlatform {
         create(
-            providers.gradleProperty("platformType"),
-            providers.gradleProperty("platformVersion")
+            project.providers.localGradleProperty("platformType"),
+            project.providers.localGradleProperty("platformVersion")
         )
-        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
-        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
+        plugins(project.providers.localGradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
+        bundledPlugins(project.providers.localGradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
 
-        // instrumentationTools()
+        instrumentationTools()
         pluginVerifier()
         zipSigner()
     }
@@ -47,9 +54,9 @@ dependencies {
 // * https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 intellijPlatform {
     pluginConfiguration {
-        id = providers.gradleProperty("pluginId")
-        name = providers.gradleProperty("pluginName")
-        version = providers.gradleProperty("pluginVersion")
+        id = providers.localGradleProperty("pluginId")
+        name = providers.localGradleProperty("pluginName")
+        version = providers.localGradleProperty("pluginVersion")
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         description = providers.fileContents(layout.projectDirectory.file("./README.md")).asText.map {
@@ -75,13 +82,13 @@ intellijPlatform {
         })
 
         ideaVersion {
-            sinceBuild = providers.gradleProperty("pluginSinceBuild")
+            sinceBuild = providers.localGradleProperty("pluginSinceBuild")
             untilBuild = provider { null } // removes until-build in plugin.xml
         }
 
         vendor {
-            name = providers.gradleProperty("pluginVendor")
-            url = providers.gradleProperty("pluginVendorUrl")
+            name = providers.localGradleProperty("pluginVendor")
+            url = providers.localGradleProperty("pluginVendorUrl")
         }
     }
 
@@ -91,7 +98,7 @@ intellijPlatform {
         // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels = providers.gradleProperty("pluginVersion").map {
+        channels = providers.localGradleProperty("pluginVersion").map {
             Regex(".+-(\\[a-zA-Z]+).*")
                 .find(it)
                 ?.groupValues
@@ -102,8 +109,8 @@ intellijPlatform {
 
     verifyPlugin {
         ides {
-            ides(providers.gradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
-            // recommended()
+            ides(providers.localGradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
+            recommended()
             // channels = listOf(ProductRelease.Channel.RELEASE)
 
             select {
@@ -118,7 +125,7 @@ intellijPlatform {
 
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
-    version = providers.gradleProperty("pluginVersion")
+    version = providers.localGradleProperty("pluginVersion")
     path = "${rootProject.projectDir}/CHANGELOG.md"
     header = provider { "[${version.get()}] - ${date()}" }
     itemPrefix = "-"
@@ -179,15 +186,22 @@ tasks {
 
     runIde {
         dependsOn(processResources)
-        applySystemProperties()
     }
 
-    // val runIdeUltimate by registering(org.jetbrains.intellij.platform.gradle.tasks.CustomRunIdeTask::class) {
-    //     type = IntelliJPlatformType.IntellijIdeaUltimate
-    //     version = providers.gradleProperty("platformVersion")
-    //
-    //     applySystemProperties()
-    // }
+    val runIdeUltimate by registering(org.jetbrains.intellij.platform.gradle.tasks.CustomRunIdeTask::class) {
+        type = IntelliJPlatformType.IntellijIdeaUltimate
+        version = providers.localGradleProperty("platformVersion")
+    }
+
+    withType(RunIdeTask::class).configureEach {
+        systemProperties(
+            "idea.log.debug.categories" to "#com.github.bric3.excalidraw",
+            "ide.experimental.ui" to "true",
+            "ide.show.tips.on.startup.default.value" to false,
+            "idea.trust.all.projects" to true,
+            "jb.consents.confirmation.enabled" to false
+        )
+    }
 
     // Latest available EAP release
     // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html#how-to-check-the-latest-available-eap-release
@@ -206,17 +220,13 @@ tasks {
     }
 }
 
-fun RunIdeTask.applySystemProperties() {
-    systemProperties(
-        "idea.log.debug.categories" to "#com.github.bric3.excalidraw",
-        "ide.experimental.ui" to "true",
-        "ide.show.tips.on.startup.default.value" to false,
-        "idea.trust.all.projects" to true,
-        "jb.consents.confirmation.enabled" to false
-    )
+idea {
+    module {
+        isDownloadSources = true
+    }
 }
 
-
+@Suppress("UnstableApiUsage")
 testing {
     suites {
         named("test", JvmTestSuite::class) {
