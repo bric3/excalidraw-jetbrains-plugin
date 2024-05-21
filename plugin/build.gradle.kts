@@ -241,9 +241,9 @@ testing {
 
             dependencies {
                 // IntelliJ seems to ship with an old version of the platform launcher which causes a ClassNotFound in Gradle, pull it in manually
-                runtimeOnly("org.junit.platform:junit-platform-launcher")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine")
-                runtimeOnly("org.junit.vintage:junit-vintage-engine")
+                runtimeOnly.add("org.junit.platform:junit-platform-launcher")
+                runtimeOnly.add("org.junit.jupiter:junit-jupiter-engine")
+                runtimeOnly.add("org.junit.vintage:junit-vintage-engine")
             }
 
             targets.configureEach {
