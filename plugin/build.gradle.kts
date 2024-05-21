@@ -261,6 +261,9 @@ testing {
                             org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
                         )
                     }
+
+                    // Workaround for JvmTestSuites
+                    dependsOn(tasks.prepareSandbox)
                 }
             }
         }
