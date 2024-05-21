@@ -20,8 +20,10 @@ fun ProviderFactory.localGradleProperty(name: String): Provider<String> = provid
     if (project.hasProperty(name)) project.property(name)?.toString() else null
 }
 
-group = providers.localGradleProperty("pluginGroup")
-version = providers.localGradleProperty("pluginVersion")
+// Note that group, version are not provider aware
+// https://github.com/gradle/gradle/issues/13672
+group = providers.localGradleProperty("pluginGroup").get()
+version = providers.localGradleProperty("pluginVersion").get()
 
 repositories {
     mavenCentral()
@@ -54,6 +56,7 @@ dependencies {
 // * https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 intellijPlatform {
     pluginConfiguration {
+        this@intellijPlatform.projectName.set("excalidraw-intellij-plugin")
         id = providers.localGradleProperty("pluginId")
         name = providers.localGradleProperty("pluginName")
         version = providers.localGradleProperty("pluginVersion")
@@ -121,6 +124,8 @@ intellijPlatform {
             }
        }
     }
+
+    buildSearchableOptions = false
 }
 
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
