@@ -37,11 +37,11 @@ repositories {
 dependencies {
     intellijPlatform {
         create(
-            project.providers.localGradleProperty("platformType"),
-            project.providers.localGradleProperty("platformVersion")
+            providers.localGradleProperty("platformType"),
+            providers.localGradleProperty("platformVersion")
         )
-        plugins(project.providers.localGradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
-        bundledPlugins(project.providers.localGradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
+        plugins(providers.localGradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
+        bundledPlugins(providers.localGradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
 
         instrumentationTools()
         pluginVerifier()
@@ -55,8 +55,8 @@ dependencies {
 // * https://github.com/JetBrains/intellij-platform-gradle-plugin/
 // * https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 intellijPlatform {
+    projectName.set("excalidraw-intellij-plugin")
     pluginConfiguration {
-        this@intellijPlatform.projectName.set("excalidraw-intellij-plugin")
         id = providers.localGradleProperty("pluginId")
         name = providers.localGradleProperty("pluginName")
         version = providers.localGradleProperty("pluginVersion")
@@ -189,6 +189,11 @@ tasks {
         }
     }
 
+    // TODO Remove for beta5
+    generateManifest {
+        kotlinStdlibBundled = true
+    }
+
     runIde {
         dependsOn(processResources)
     }
@@ -266,9 +271,6 @@ testing {
                             org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
                         )
                     }
-
-                    // Workaround for JvmTestSuites
-                    dependsOn(tasks.prepareSandbox)
                 }
             }
         }
