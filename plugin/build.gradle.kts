@@ -189,9 +189,9 @@ tasks {
         }
     }
 
-    // TODO Remove for beta5
+    // TODO Remove for beta6
     generateManifest {
-        kotlinStdlibBundled = true
+        kotlinStdlibDefaultDependency = true
     }
 
     runIde {
