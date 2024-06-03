@@ -194,6 +194,18 @@ tasks {
         kotlinStdlibDefaultDependency = true
     }
 
+    val listProductsReleases by registering() {
+        dependsOn(printProductsReleases)
+        val outputF = layout.buildDirectory.file("listProductsReleases.txt").also {
+            outputs.file(it)
+        }
+        val content = printProductsReleases.flatMap { it.productsReleases }.map { it.joinToString("\n") }
+
+        doLast {
+            outputF.orNull?.asFile?.writeText(content.get())
+        }
+    }
+
     runIde {
         dependsOn(processResources)
     }
