@@ -1,3 +1,5 @@
+
+import com.jetbrains.plugin.structure.base.utils.deleteQuietly
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
@@ -169,7 +171,26 @@ tasks {
         }
     }
 
+    // TODO beta5 do not clean classpath index, which may miss class renames or new classes
+    val cleanupClasspathIndex by registering {
+        mustRunAfter(testClasses, prepareTest, instrumentTestCode)
+        doLast {
+            project.sourceSets.asSequence()
+                .map { it.output }
+                .flatMap { it.classesDirs + it.generatedSourcesDirs + it.resourcesDir }
+                .forEach {
+                    it?.resolve("classpath.index")?.toPath()?.deleteQuietly()
+                }
+        }
+    }
+
+    withType<RunIdeTask> {
+        dependsOn(cleanupClasspathIndex)
+    }
+
     withType<Test> {
+        dependsOn(cleanupClasspathIndex)
+
         useJUnitPlatform()
         // needed for com.intellij.testFramework.UsefulTestCase.DELETE_ON_EXIT_HOOK_CLASS
         jvmArgs("--add-opens", "java.base/java.io=ALL-UNNAMED")
