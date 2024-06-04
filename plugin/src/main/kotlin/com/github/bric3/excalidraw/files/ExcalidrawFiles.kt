@@ -1,9 +1,7 @@
 package com.github.bric3.excalidraw.files
 
 
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
-import com.fasterxml.jackson.core.JsonTokenId
 import com.fasterxml.jackson.core.StreamReadConstraints
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -174,34 +172,10 @@ private object ExcalidrawJsonUtils {
                     return parser.valueAsString
                 }
 
-                skipValue(parser)
+                parser.nextToken()
+                parser.skipChildren()
             }
         }
         null
-    }
-
-    private fun skipValue(parser: JsonParser) {
-        val nextToken = parser.nextToken()
-
-        when(nextToken.id()) {
-            JsonTokenId.ID_START_ARRAY -> {
-                advanceParser(parser, JsonTokenId.ID_START_ARRAY, JsonTokenId.ID_END_ARRAY)
-            }
-            JsonTokenId.ID_START_OBJECT -> {
-                advanceParser(parser, JsonTokenId.ID_START_OBJECT, JsonTokenId.ID_END_OBJECT)
-            }
-        }
-    }
-
-    private fun advanceParser(parser: JsonParser, startToken: Int, endToken: Int) {
-        var depth = 1
-        do {
-            val next = parser.nextToken()
-            if (next.id() == startToken) {
-                depth += 1
-            } else if (next.id() == endToken) {
-                depth -= 1
-            }
-        } while (depth > 0)
     }
 }
