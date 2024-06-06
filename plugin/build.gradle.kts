@@ -171,9 +171,6 @@ tasks {
     }
 
     withType<Test> {
-        // TODO beta6 do not clean classpath index, which may miss class renames or new classes
-        systemProperty("idea.classpath.index.enabled", "false")
-
         useJUnitPlatform()
         // needed for com.intellij.testFramework.UsefulTestCase.DELETE_ON_EXIT_HOOK_CLASS
         jvmArgs("--add-opens", "java.base/java.io=ALL-UNNAMED")
@@ -191,11 +188,6 @@ tasks {
         ) {
             into("assets")
         }
-    }
-
-    // TODO Remove for beta6
-    generateManifest {
-        kotlinStdlibDefaultDependency = true
     }
 
     val listProductsReleases by registering() {
