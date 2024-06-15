@@ -1,13 +1,14 @@
 package com.github.bric3.excalidraw.files
 
-import com.github.bric3.excalidraw.files.ExcalidrawFiles.Companion.isExcalidrawFile
+import com.github.bric3.excalidraw.files.ExcalidrawFiles.isExcalidrawFile
 import com.intellij.testFramework.BinaryLightVirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import org.assertj.core.api.Assertions.assertThat
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
-internal class ExcalidrawFileUtilTest {
+
+internal class ExcalidrawFilesTest {
     @Test
     fun `should accept svg with embedded excalidraw payload`() {
         @Language("xml") val svgFile =
@@ -145,9 +146,15 @@ internal class ExcalidrawFileUtilTest {
     }
 
     @Test
-    fun `should not accept non excalidraw json file`() {
+    fun `should not accept json without type file`() {
         @Language("json") val malformedJson = """ { "whatever": "whatever" }"""
-        assertThat(isExcalidrawFile(virtualFile("malformed.json", malformedJson))).isFalse
+        assertThat(isExcalidrawFile(virtualFile("other.json", malformedJson))).isFalse
+    }
+
+    @Test
+    fun `should not accept json with type different than excalidraw file`() {
+        @Language("json") val malformedJson = """ { "whatever": "whatever", "type": "foo" }"""
+        assertThat(isExcalidrawFile(virtualFile("other.json", malformedJson))).isFalse
     }
 
     @Test

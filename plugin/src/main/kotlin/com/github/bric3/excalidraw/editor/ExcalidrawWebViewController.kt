@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.jcef.JBCefApp
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -47,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.swing.BorderFactory
 
 class ExcalidrawWebViewController(
-    private val parentDisposable: Disposable,
+    parentDisposable: Disposable,
     val fileName: String,
     var uiTheme: String
 ) : Disposable {
@@ -67,12 +68,14 @@ class ExcalidrawWebViewController(
 
     private val debounceAutoSaveInMs = 1000
 
-    val payload = MutableStateFlow<String?>(null)
+    private val _payload = MutableStateFlow<String?>(null)
+    val payload: Flow<String?> = _payload
 
-    val whenReady = MutableSharedFlow<Unit>(
+    private val _whenReady = MutableSharedFlow<Unit>(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
+    val whenReady: Flow<Unit> = _whenReady
 
     init {
         Disposer.register(parentDisposable, this)
@@ -112,7 +115,7 @@ class ExcalidrawWebViewController(
                     "ready" -> { /* no-op: reason using Excalidraw callback/readiness seems less reliable than onLoadEnd */
                     }
 
-                    "continuous-update" -> payload.value = message["content"]!!
+                    "continuous-update" -> _payload.value = message["content"]!!
                     "json-content" -> {
                         runBlocking {
                             channel?.send(message["json"]!!)
@@ -178,7 +181,7 @@ class ExcalidrawWebViewController(
 
             override fun onLoadEnd(browser: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
                 if (frame?.url == pluginUrl) {
-                    whenReady.tryEmit(Unit)
+                    _whenReady.tryEmit(Unit)
                 }
             }
         }.also { loadHandler ->
@@ -230,7 +233,7 @@ class ExcalidrawWebViewController(
     }
 
     fun loadJsonPayload(jsonPayload: String) {
-        payload.value = null
+        _payload.value = null
 
         runJS(
             "loadJsonPayload",
@@ -248,7 +251,7 @@ class ExcalidrawWebViewController(
     }
 
     fun loadFromImageFile(file: VirtualFile) {
-        payload.value = null
+        _payload.value = null
 
         fsMapping[file.name] = file
 
@@ -337,7 +340,7 @@ class ExcalidrawWebViewController(
         )
 
         val fromJcefView = channel.receive()
-        payload.value = fromJcefView
+        _payload.value = fromJcefView
         return fromJcefView
     }
 

@@ -95,28 +95,13 @@ class ExcalidrawEditor(
                     // This is the manual or auto save action of IntelliJ
                     debuggingLogWithThread(logger) { "ExcalidrawEditor::beforeAllDocumentsSaving" }
                     saveEditor()
-                    // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeAllDocumentsSaving
-                    // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
-                    // AWT-EventQueue-0 : 26 : ExcalidrawWebViewController::saveAs
-                    // AWT-AppKit : 23 : CefMessageRouterHandlerAdapter::onQuery
-                    // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write promise
-                    // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write done promise
-                    // AWT-EventQueue-0 : 26 : asyncWrite
                 }
             })
 
-            // // Before file close
-            // busConnection.subscribe(
-            //     FileEditorManagerListener.Before.FILE_EDITOR_MANAGER,
-            //     object : FileEditorManagerListener.Before {
-            //         override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
-            //             logWithThread("ExcalidrawEditor::beforeFileClosed ${file.name}")
-            //         }
-            //     })
-
             subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
-                override fun after(events: MutableList<out VFileEvent>) {
+                override fun after(events: List<VFileEvent>) {
                     events
+                        .asSequence()
                         .filterIsInstance<VFilePropertyChangeEvent>()
                         .filter { it.file == file && it.propertyName == "writable" }
                         .forEach {
@@ -325,21 +310,6 @@ class ExcalidrawEditor(
         // changing (and current editor gets deselected) editor triggers
         debuggingLogWithThread(logger) { "ExcalidrawEditor::deselectNotify" }
         saveEditor()
-
-        // deselectNotify
-        // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
-        // AWT-EventQueue-0 : 26 : ExcalidrawWebViewController::saveAs
-        // AWT-AppKit : 23 : CefMessageRouterHandlerAdapter::onQuery
-        // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write promise
-        // AWT-AppKit : 23 : ExcalidrawEditor::saveEditor.then write done promise
-        // AWT-EventQueue-0 : 26 : asyncWrite
-
-        // AWT-EventQueue-0 : 26 : ExcalidrawEditor::beforeFileClosed random.excalidraw
-        // AWT-EventQueue-0 : 26 : ExcalidrawEditor::deselectNotify
-        // AWT-EventQueue-0 : 26 : ExcalidrawEditor::saveEditor
-        // AWT-EventQueue-0 : 26 : ExcalidrawWebViewController::saveAs
-        // AWT-EventQueue-0 : 26 : LoadableJCEFHtmlPanel::dispose
-        // AWT-EventQueue-0 : 26 : ExcalidrawEditor::dispose
     }
 
     override fun getCurrentLocation(): FileEditorLocation? {
@@ -349,7 +319,6 @@ class ExcalidrawEditor(
     override fun dispose() {
         isDisposed = true
 
-        // TODO proper cancel ?
         coroutineScope.cancel()
     }
 }
