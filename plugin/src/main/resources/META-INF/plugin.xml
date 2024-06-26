@@ -36,6 +36,9 @@
                                 implementationClass="com.github.bric3.excalidraw.scratch.ExcalidrawScratchFileCreationHelper"/>
 
         <registryKey defaultValue="true" key="excalidraw.viewer.use.jcef.osr.view" description="Enables JCEF off-screen rendering for Excalidraw"/>
+
+        <!-- Marketplace exception initializer : https://plugins.jetbrains.com/docs/marketplace/exception-analyzer.html -->
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
     </extensions>
 
     <actions>
