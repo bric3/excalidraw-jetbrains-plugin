@@ -127,6 +127,14 @@ intellijPlatform {
     }
 
     buildSearchableOptions = false
+
+}
+
+intellijPlatformTesting {
+    val runIntelliJUltimate by runIde.registering {
+        type = IntelliJPlatformType.IntellijIdeaUltimate
+        version = providers.localGradleProperty("platformVersion")
+    }
 }
 
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
@@ -204,11 +212,6 @@ tasks {
 
     runIde {
         dependsOn(processResources)
-    }
-
-    val runIdeUltimate by registering(org.jetbrains.intellij.platform.gradle.tasks.CustomRunIdeTask::class) {
-        type = IntelliJPlatformType.IntellijIdeaUltimate
-        version = providers.localGradleProperty("platformVersion")
     }
 
     withType(RunIdeTask::class).configureEach {
