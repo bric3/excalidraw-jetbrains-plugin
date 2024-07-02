@@ -26,7 +26,7 @@ const defaultInitialData = {
 const initialData = anyWindow.initialData ?? defaultInitialData;
 
 class ExcalidrawApiBridge {
-    private readonly excalidrawRef: any;
+    private readonly excalidrawApiRef: React.Ref<ExcalidrawImperativeAPI | null>;
     private continuousSavingEnabled = true;
     private _setTheme: React.Dispatch<Theme> | null = null;
     set setTheme(value: React.Dispatch<Theme>) {
@@ -49,49 +49,50 @@ class ExcalidrawApiBridge {
     }
 
     constructor(excalidrawRef: React.MutableRefObject<ExcalidrawImperativeAPI | null>) {
-        this.excalidrawRef = excalidrawRef;
+        this.excalidrawApiRef = excalidrawRef;
         window.addEventListener(
             "message",
             this.pluginMessageHandler.bind(this)
         );
     }
 
-    private excalidraw() {
-        return this.excalidrawRef.current;
+    private excalidrawApi() : ExcalidrawImperativeAPI {
+        // @ts-ignore // Object is initialized in constructor
+        return this.excalidrawApiRef.current;
     }
 
     // @ts-ignore
     readonly updateApp = ({elements, appState}) => {
-        this.excalidraw().updateScene({
+        this.excalidrawApi().updateScene({
             elements: elements,
             appState: appState,
         });
     };
 
     readonly updateAppState = (appState: object) => {
-        this.excalidraw().updateScene({
-            elements: this.excalidraw().getSceneElements(),
+        this.excalidrawApi().updateScene({
+            elements: this.excalidrawApi().getSceneElements(),
             appState: {
-                ...this.excalidraw().getAppState(),
+                ...this.excalidrawApi().getAppState(),
                 ...appState
             },
         });
     };
 
     readonly saveAsJson = () => {
-        let binaryFiles = {};
         return serializeAsJSON(
-            this.excalidraw().getSceneElements(),
-            this.excalidraw().getAppState(),
-            binaryFiles,
+            this.excalidrawApi().getSceneElements(),
+            this.excalidrawApi().getAppState(),
+                this.excalidrawApi().getFiles(),
             "local"
         )
     };
 
     readonly saveAsSvg = (exportParams: object) => {
         console.debug("saveAsSvg export config", exportParams);
-        let sceneElements = this.excalidraw().getSceneElements();
-        let appState = this.excalidraw().getAppState();
+        let sceneElements = this.excalidrawApi().getSceneElements();
+        let appState = this.excalidrawApi().getAppState();
+        let files = this.excalidrawApi().getFiles();
 
         // Doc: https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils/export#exporttosvg
         return exportToSvg({
@@ -101,16 +102,16 @@ class ExcalidrawApiBridge {
                 ...exportParams,
                 exportEmbedScene: true,
             },
-            files: {},
+            files: files,
         });
     };
 
     readonly saveAsBlob = (exportParams: object, mimeType: string) => {
         console.debug("saveAsPng export config", exportParams);
-        let sceneElements = this.excalidraw().getSceneElements();
-        let appState = this.excalidraw().getAppState();
+        let sceneElements = this.excalidrawApi().getSceneElements();
+        let appState = this.excalidrawApi().getAppState();
+        let files = this.excalidrawApi().getFiles();
 
-        let binaryFiles = {};
         // Doc: https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils/export#exporttoblob
         return exportToBlob({
             elements: sceneElements,
@@ -119,7 +120,7 @@ class ExcalidrawApiBridge {
                 ...exportParams,
                 exportEmbedScene: true,
             },
-            files: binaryFiles,
+            files: files,
             mimeType: mimeType,
         });
     };
@@ -182,7 +183,7 @@ class ExcalidrawApiBridge {
                     this.currentSceneVersion = updateSceneVersion;
                     this.updateApp({
                         elements: elements || [],
-                        appState: {} // TODO load appState ?
+                        appState: {}, // TODO load appState ?
                     });
                 }
                 break;
@@ -219,7 +220,7 @@ class ExcalidrawApiBridge {
                             this.currentSceneVersion = updateSceneVersion;
                             this.updateApp({
                                 elements: restoredState.elements || [],
-                                appState: {}  // TODO load appState ? (restoredState.appState)
+                                appState: {},  // TODO load appState ? (restoredState.appState)
                             });
                         }
                     })
