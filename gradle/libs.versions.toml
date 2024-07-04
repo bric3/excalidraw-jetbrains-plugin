@@ -27,4 +27,4 @@ junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine", "junit-jupiter-vin
 [plugins]
 jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog-plugin" }
 jetbrains-intellijPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform-plugin" }
-idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
+jetbrains-idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }

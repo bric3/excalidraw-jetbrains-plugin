@@ -12,7 +12,7 @@ plugins {
     kotlin("jvm") version libs.versions.kotlin.get()
     alias(libs.plugins.jetbrains.changelog)
     alias(libs.plugins.jetbrains.intellijPlatform)
-    alias(libs.plugins.idea.ext)
+    alias(libs.plugins.jetbrains.idea.ext)
 }
 
 // gradleProperty do not find sub-project gradle.properties
