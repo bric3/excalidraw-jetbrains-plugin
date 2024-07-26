@@ -3,8 +3,14 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INVALID_PLUGIN
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.PLUGIN_STRUCTURE_WARNINGS
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -38,11 +44,15 @@ repositories {
 dependencies {
     intellijPlatform {
         create(
-            providers.localGradleProperty("platformType"),
-            providers.localGradleProperty("platformVersion")
+            type = providers.localGradleProperty("platformType"),
+            version = providers.localGradleProperty("platformVersion"),
+            useInstaller = false
         )
         plugins(providers.localGradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
         bundledPlugins(providers.localGradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
+
+        testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.JUnit5)
 
         instrumentationTools()
         pluginVerifier()
@@ -112,17 +122,24 @@ intellijPlatform {
     }
 
     verifyPlugin {
+        failureLevel = listOf(
+            INVALID_PLUGIN,
+            COMPATIBILITY_PROBLEMS,
+            PLUGIN_STRUCTURE_WARNINGS,
+            INTERNAL_API_USAGES,
+            OVERRIDE_ONLY_API_USAGES,
+        )
         ides {
             ides(providers.localGradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
-            recommended()
-            // channels = listOf(ProductRelease.Channel.RELEASE)
 
-            select {
-                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
-                channels = listOf(ProductRelease.Channel.RELEASE, ProductRelease.Channel.RC)
-                sinceBuild = "223"
-                untilBuild = "241.*"
-            }
+            // recommended()
+            // channels = listOf(ProductRelease.Channel.RELEASE)
+            // select {
+            //     types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+            //     channels = listOf(ProductRelease.Channel.RELEASE, ProductRelease.Channel.RC)
+            //     sinceBuild = "223"
+            //     untilBuild = "241.*"
+            // }
        }
     }
 
