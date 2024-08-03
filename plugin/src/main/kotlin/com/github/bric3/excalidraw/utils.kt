@@ -17,7 +17,7 @@ import com.intellij.openapi.vfs.findDocument
 import java.io.IOException
 import java.util.function.Supplier
 
-val logger = Logger.getInstance("com.github.bric3.excalidraw.utils")
+private val logger = Logger.getInstance("com.github.bric3.excalidraw.utils")
 
 val debugMode = ProcessHandle.current().info().arguments().map {
     it.any { arg -> arg.contains("-agentlib:jdwp") }
