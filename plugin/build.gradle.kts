@@ -43,6 +43,7 @@ dependencies {
             version = providers.localGradleProperty("platformVersion"),
             useInstaller = false
         )
+        jetbrainsRuntime() // needed to run the IDE with the correct JBR
         plugins(providers.localGradleProperty("platformPlugins").map { it.split(',') }.getOrElse(emptyList()))
         bundledPlugins(providers.localGradleProperty("platformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
 
