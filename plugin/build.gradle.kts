@@ -67,6 +67,11 @@ intellijPlatform {
         name = providers.localGradleProperty("pluginName")
         version = providers.localGradleProperty("pluginVersion")
 
+        vendor {
+            name = "Brice Dutheil"
+            url = "https://github.com/bric3/excalidraw-intellij-plugin"
+        }
+
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         description = providers.fileContents(rootProject.layout.projectDirectory.file("./README.md")).asText.map {
             it.lines().run {
