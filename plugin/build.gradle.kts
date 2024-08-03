@@ -138,7 +138,6 @@ intellijPlatform {
     }
 
     buildSearchableOptions = false
-
 }
 
 intellijPlatformTesting {
@@ -221,6 +220,11 @@ tasks {
         }
     }
 
+    prepareSandbox {
+        // Should be in runIde but here due to https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1723
+        sandboxDirectory = intellijPlatform.sandboxContainer.dir("current")
+    }
+
     runIde {
         dependsOn(processResources)
     }
@@ -256,6 +260,13 @@ idea {
     module {
         isDownloadSources = true
     }
+
+    // project?.settings {
+    //     taskTriggers {
+    //         // Tell IDE to generate sources
+    //         afterSync(":excalidraw-assets:...")
+    //     }
+    // }
 }
 
 @Suppress("UnstableApiUsage")
