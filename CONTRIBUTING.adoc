@@ -19,6 +19,11 @@
 This plugin has been bootstrapped from the https://github.com/JetBrains/intellij-platform-plugin-template[IntelliJ Platform Plugin Template].
 It might be worth tracking upstream changes if they can be applied there too.
 
+The whole project build is driven by Gradle as it is required to build the JetBrains plugin.
+Currently, the Gradle JVM needs to be JDK 17+; this can also be configured in IntelliJ via
+_Settings | Build, Execution, Deployment | Build Tools | Gradle_.
+
+
 [source]
 ----
 .
@@ -32,12 +37,14 @@ It might be worth tracking upstream changes if they can be applied there too.
 └── settings.gradle.kts <5>
 ----
 <1> The changelog to manually edit
-<2> This is the Excalidraw *React* web-app, this is a Gradle project
+<2> This is the *Excalidraw React web-app*, the Node/Yarn build is controlled by Gradle project
 <3> This is the actual IntelliJ plugin code base, it's a Gradle project
 <4> Simple project to open in the sand-boxed IDE.
 <5> Usual declaration of the gradle subprojects (`excalidraw-assets` and `plugin`)
 <6> GitHub Action workflows
 <7> IntelliJ IDEA's run configurations (_Run Plugin_, etc.)
+
+They are two main projects the excalidraw web-app and the IntelliJ plugin.
 
 === Excalidraw React web-app assets
 
@@ -72,7 +79,7 @@ inline source maps to allow debugging in a JCEF devtools.
 
 .A note about the Excalidraw React Web App
 JS and React are stranger things to me, their official documentation can be overwhelming at first;
-I found this https://medium.com/swlh/react-without-create-react-app-setting-up-a-dev-build-from-scratch-fefd5d9d6baa[blog post]
+I found the following https://medium.com/swlh/react-without-create-react-app-setting-up-a-dev-build-from-scratch-fefd5d9d6baa[blog post]
 useful to introduce me to basic concepts.
 
 On the same topic, here's a https://www.carlrippon.com/creating-react-app-with-typescript-eslint-with-webpack5/[blog post with the typescript angle].
@@ -82,13 +89,53 @@ On the same topic, here's a https://www.carlrippon.com/creating-react-app-with-t
 
 The `plugin` is a usual Gradle project, most of the sources are written in Kotlin.
 
-Also a JDK 17+ is now needed to run Gradle.
-
 TODO : describe `plugin.xml`, and package structure.
 
 == Running the plugin in the sand-boxed environment
 
 Use the predefined task `Run Plugin`, whose configuration is saved in the `.run` folder.
+
+You can also use the Gradle command
+
+[source,shell]
+.Running the sandboxed IDE with the Excalidraw plugin
+----
+./gradlew :plugin:runIde
+----
+
+[TIP]
+====
+When running the sand-boxed IDE, the web-app path is overridden via these two system properties
+
+* `excalidraw.internal.webappPath`, this is the path to the `index.html` file and the web-app support files (js, css, etc.)
+* `excalidraw.internal.webappExcalidrawAssetsPath`, this is the path to the `excalidraw-assets` folder (containing excalidraw app itself and fonts).
+
+Currently, these folders are configured in `excalidraw-assets/build.gradle.kts` to subfolders in the build directory
+
+[source]
+----
+excalidraw-assets
+├── build
+│   ├── assets <1>
+│   ├── react-build <2>
+│   └── ...
+└── ...
+----
+<1> Path passed to `excalidraw.internal.webappExcalidrawAssetsPath`
+<2> Path passed to `excalidraw.internal.webappPath`
+
+This allows modifying the web-app without having to rebuild the plugin.
+However, at this time building the web-app still requires building / assembling the web-app.
+
+In short modify the web-app, then run:
+
+[source,shell]
+----
+./gradlew :excalidraw-assets:assembleFrontend
+----
+
+====
+
 
 === Plugin DEBUG logs
 

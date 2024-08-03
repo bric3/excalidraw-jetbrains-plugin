@@ -38,9 +38,9 @@ val port = providers.provider {
     }
 }
 val webappExcalidrawAssets by extra(project.layout.buildDirectory.dir("assets"))
+val webappExcalidrawAssetsPath by extra(project.layout.buildDirectory.dir("assets").map { it.asFile.absolutePath })
 val webappFiles by extra(project.layout.buildDirectory.dir("react-build"))
-
-
+val webappFilesPath by extra(project.layout.buildDirectory.dir("react-build").map { it.asFile.absolutePath })
 
 /**
  * Note for future me:

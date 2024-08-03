@@ -199,8 +199,12 @@ tasks {
         from(project(":excalidraw-assets").extra["webappFiles"] ?: error("webappFiles not found")) {
             into("assets")
         }
-        // local assets will only be loaded if the following variable is set before Excalidraw loads
-        // window.EXCALIDRAW_ASSET_PATH = "/";
+        // Local Excalidraw assets will only be loaded if the following variable
+        //
+        // `window.EXCALIDRAW_ASSET_PATH = "/";`
+        //
+        // is set before Excalidraw itself loads. The excalidraw assets are copied
+        // to the same folder as web-app (thus using "/")
         from(
             project(":excalidraw-assets").extra["webappExcalidrawAssets"] ?: error("webappExcalidrawAssets not found")
         ) {
@@ -227,6 +231,30 @@ tasks {
 
     runIde {
         dependsOn(processResources)
+
+        // Is there a better way?
+        @Suppress("UNCHECKED_CAST")
+        val webappPath = (project(":excalidraw-assets").extra["webappFilesPath"] ?: error("webappFilesPath not found"))
+            .let { (it as Provider<String>).get() }
+        @Suppress("UNCHECKED_CAST")
+        val webappExcalidrawAssetsPath = (project(":excalidraw-assets").extra["webappExcalidrawAssetsPath"] ?: error("webappExcalidrawAssetsPath not found"))
+            .let { (it as Provider<String>).get() }
+
+        systemProperties(
+            "excalidraw.internal.webappPath" to webappPath,
+            "excalidraw.internal.webappExcalidrawAssetsPath" to webappExcalidrawAssetsPath,
+
+            // Log levels can be configured from 'Help | Diagnostic Tools | Debug Log Settings',
+            // eventually suffixing with the level (e.g. `com.github.bric3.excalidraw:trace`).
+            // Or use the following system properties.
+            // Configure multiple categories with a comma.
+            "idea.log.debug.categories" to "#com.github.bric3.excalidraw",
+            // "idea.log.trace.categories" to "com.github.bric3.excalidraw",
+            "ide.show.tips.on.startup.default.value" to false,
+            "idea.trust.all.projects" to true,
+            "jb.consents.confirmation.enabled" to false,
+            "ide.browser.jcef.contextMenu.devTools.enabled" to "true",
+        )
     }
 
     withType(RunIdeTask::class).configureEach {

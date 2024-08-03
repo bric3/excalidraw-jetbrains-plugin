@@ -16,7 +16,7 @@ import com.github.bric3.excalidraw.files.ExcalidrawImageType.SVG
 import com.github.bric3.excalidraw.files.ExcalidrawImageType.WEBP
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.jcef.JBCefApp
@@ -43,6 +43,8 @@ import org.cef.handler.CefMessageRouterHandlerAdapter
 import org.cef.network.CefRequest
 import org.intellij.lang.annotations.Language
 import java.io.BufferedInputStream
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.BorderFactory
@@ -53,8 +55,6 @@ class ExcalidrawWebViewController(
     var uiTheme: String
 ) : Disposable {
     private var isDisposed: Boolean = false
-
-    val logger = thisLogger()
 
     private val jcefPanel = LoadableJCEFHtmlPanel(
         parentDisposable = this,
@@ -79,6 +79,15 @@ class ExcalidrawWebViewController(
 
     init {
         Disposer.register(parentDisposable, this)
+
+        logger.debug {
+            """
+            Loading from alternate location:
+            - webapp : $webappPath
+            - excalidraw assets : $webappExcalidrawAssetsPath
+            """.trimIndent()
+        }
+
         initJcefPanel()
     }
 
@@ -367,8 +376,13 @@ class ExcalidrawWebViewController(
     }
 
     companion object {
+        val logger = logger<ExcalidrawWebViewController>()
+
         private const val pluginDomain = "excalidraw-jetbrains-plugin"
         const val pluginUrl = "https://$pluginDomain/index.html"
+
+        private val webappPath = System.getProperty("excalidraw.internal.webappPath")
+        private val webappExcalidrawAssetsPath = System.getProperty("excalidraw.internal.webappExcalidrawAssetsPath")
 
         val mapper = jacksonObjectMapper().apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -388,16 +402,31 @@ class ExcalidrawWebViewController(
             CefApp.getInstance().registerSchemeHandlerFactory(
                 "https", pluginDomain,
                 SchemeHandlerFactory { uri ->
-                    val matchingFile = fsMapping.entries.firstOrNull { uri.path.endsWith(it.key) }
-                    val stream = matchingFile?.value?.inputStream
+                    logger.debug { "Request URI : ${uri.path}" }
 
-                    if (matchingFile != null) {
-                        fsMapping - matchingFile.key
+                    // If the URI matches what is in the fsMapping, then the file is loaded from here
+                    // Otherwise it is part of the Excalidraw app
+
+                    // TODO Rewrite the fsMapping to not use the file name as key
+                    val matchingFile = fsMapping.entries.firstOrNull { uri.path.endsWith(it.key) }
+
+                    val devWebappFile = Path.of(webappPath, uri.path)
+                    val devExcalidrawAssetFile = Path.of(webappExcalidrawAssetsPath, uri.path)
+
+                    val inputStream = when {
+                        matchingFile != null -> {
+                            fsMapping - matchingFile.key
+
+                            matchingFile.value.inputStream
+                        }
+
+                        Files.exists(devWebappFile) -> Files.newInputStream(devWebappFile)
+                        Files.exists(devExcalidrawAssetFile) -> Files.newInputStream(devExcalidrawAssetFile)
+
+                        else -> ExcalidrawWebViewController::class.java.getResourceAsStream("/assets${uri.path}")
                     }
 
-                    BufferedInputStream(
-                        stream ?: ExcalidrawWebViewController::class.java.getResourceAsStream("/assets${uri.path}")
-                    )
+                    inputStream?.let(::BufferedInputStream)
                 }
             ).also { successful -> assert(successful) }
         }
