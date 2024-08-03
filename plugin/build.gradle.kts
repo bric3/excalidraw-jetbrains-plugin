@@ -6,11 +6,6 @@ import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INVALID_PLUGIN
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES
-import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.PLUGIN_STRUCTURE_WARNINGS
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -121,14 +116,7 @@ intellijPlatform {
         }.map { listOf(it) }
     }
 
-    verifyPlugin {
-        failureLevel = listOf(
-            INVALID_PLUGIN,
-            COMPATIBILITY_PROBLEMS,
-            PLUGIN_STRUCTURE_WARNINGS,
-            INTERNAL_API_USAGES,
-            OVERRIDE_ONLY_API_USAGES,
-        )
+    pluginVerification {
         ides {
             ides(providers.localGradleProperty("pluginVerifierIdeVersions").map { it.split(',') }.getOrElse(emptyList()))
 
