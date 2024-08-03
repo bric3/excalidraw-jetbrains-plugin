@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Use the new `org.jetbrains.intellij.platform` v2.0.0 Gradle plugin to build the Excalidraw plugin
+
 ## 0.4.0 - 2024-01-27
 
 ### Added
