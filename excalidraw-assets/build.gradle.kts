@@ -6,7 +6,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 plugins {
-    id("org.siouan.frontend-jdk17") version "8.0.0"
+    id("org.siouan.frontend-jdk17") version "8.1.0"
 }
 
 frontend {
@@ -201,11 +201,9 @@ tasks {
 }
 
 open class YarnProxy @Inject constructor(
-    projectLayout: ProjectLayout,
     objectFactory: ObjectFactory,
     execOperations: ExecOperations
 ) : RunYarn(
-    projectLayout,
     objectFactory,
     execOperations
 ) {
