@@ -211,10 +211,10 @@ open class YarnProxy @Inject constructor(
     @get:Input
     var yarnArgs: String = ""
         set(value) {
-            super.getScript().set(value)
+            super.script = value
         }
 
     init {
-        super.getScript().set(yarnArgs)
+        super.script = yarnArgs
     }
 }
