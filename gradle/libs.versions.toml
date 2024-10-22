@@ -1,7 +1,7 @@
 [versions]
 assertj = "3.26.3"
 junit = "4.13.2"
-junit-jupiter = "5.11.2"
+junit-jupiter = "5.11.3"
 mockk = "1.13.13"
 
 detekt = "1.21.0"
