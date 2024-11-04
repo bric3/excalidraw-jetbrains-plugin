@@ -2896,21 +2896,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
+"@types/node@npm:*, @types/node@npm:^22.0.0":
   version: 22.8.7
   resolution: "@types/node@npm:22.8.7"
   dependencies:
     undici-types: "npm:~6.19.8"
   checksum: 10/9c73d4cbcbf9773a5986421025c26d6139d8ab960317b3062fbb449c00dbe8197230334be550ffcdb6059bd25f4cb903546bace905155628537283a80c2075d5
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.9.0":
-  version: 20.17.6
-  resolution: "@types/node@npm:20.17.6"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10/714b8b54951950cee662ce80492831ebc51f914a9adf88583cea777ea4d55b88827b2505ff2f53d2bb7753691aaab1b06c027a7b5c63eb153ad4acee1239690c
   languageName: node
   linkType: hard
 
@@ -6026,7 +6017,7 @@ __metadata:
   dependencies:
     "@excalidraw/excalidraw": "npm:^0.17.0"
     "@types/jest": "npm:^29.0.0"
-    "@types/node": "npm:^20.9.0"
+    "@types/node": "npm:^22.0.0"
     "@types/pako": "npm:^2.0.0"
     "@types/react": "npm:^18.0.0"
     "@types/react-dom": "npm:^18.0.0"
@@ -12143,13 +12134,6 @@ __metadata:
     has-symbols: "npm:^1.0.3"
     which-boxed-primitive: "npm:^1.0.2"
   checksum: 10/06e1ee41c1095e37281cb71a975cb3350f7cb470a0665d2576f02cc9564f623bd90cfc0183693b8a7fdf2d242963dcc3010b509fa3ac683f540c765c0f3e7e43
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.19.2":
-  version: 6.19.6
-  resolution: "undici-types@npm:6.19.6"
-  checksum: 10/0ea9bc25762a86597d095b3772f6cec0bcabb796c339f7dfa2bd601c745a480289eb2939848dc285a56d4f94f50c475868160d8d6d3f54e823f1faf7ea9e9468
   languageName: node
   linkType: hard
 
