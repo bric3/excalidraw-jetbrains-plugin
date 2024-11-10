@@ -8,6 +8,8 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.json</depends>
 
+    <resource-bundle>messages.MyBundle</resource-bundle>
+
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="Excalidraw sketch"
                   implementationClass="com.github.bric3.excalidraw.files.ExcalidrawFileType"
@@ -36,10 +38,16 @@
         <scratch.creationHelper language="Excalidraw"
                                 implementationClass="com.github.bric3.excalidraw.scratch.ExcalidrawScratchFileCreationHelper"/>
 
-        <registryKey defaultValue="true" key="excalidraw.viewer.use.jcef.osr.view" description="Enables JCEF off-screen rendering for Excalidraw"/>
-
-        <!-- Marketplace exception initializer : https://plugins.jetbrains.com/docs/marketplace/exception-analyzer.html -->
+        <!-- Marketplace exception initializer: https://plugins.jetbrains.com/docs/marketplace/exception-analyzer.html -->
         <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+
+        <!--
+        Disable OSR by default due to trackpad issues on macOS (at least), see
+        https://youtrack.jetbrains.com/issue/IJPL-156342/Scrolling-of-the-Whats-new-in-IntelliJ-IDEA-is-too-fast-faster-than-code-files
+        -->
+        <advancedSetting default="false"
+                         id="bric3.excalidraw.useOsr"
+                         groupKey="bric3.excalidraw.advanced.settings" />
     </extensions>
 
     <actions>

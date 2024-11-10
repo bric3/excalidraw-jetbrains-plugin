@@ -7,6 +7,11 @@
 ### Changed
 
 - Use the new `org.jetbrains.intellij.platform` v2.0.0 Gradle plugin to build the Excalidraw plugin
+- Don't use offscreen rendering (OSR) by default due to issues with trackpad (at least on macOs), see  
+   https://youtrack.jetbrains.com/issue/IJPL-156342/Scrolling-of-the-Whats-new-in-IntelliJ-IDEA-is-too-fast-faster-than-code-files
+
+  This is tunable in the advanced settings. 
+
 
 ## 0.4.0 - 2024-01-27
 

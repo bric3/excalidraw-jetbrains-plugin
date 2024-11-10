@@ -6,6 +6,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.EditorBundle
+import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.components.JBLoadingPanel
@@ -119,6 +120,6 @@ class LoadableJCEFHtmlPanel(
         private const val LOADING_KEY = 1
         private const val CONTENT_KEY = 0
         private val useOsr
-            get() = Registry.`is`("excalidraw.viewer.use.jcef.osr.view")
+            get() = AdvancedSettings.getBoolean("bric3.excalidraw.useOsr")
     }
 }
