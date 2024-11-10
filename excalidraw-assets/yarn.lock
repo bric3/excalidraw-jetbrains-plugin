@@ -1903,7 +1903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@excalidraw/excalidraw@npm:^0.17.0":
+"@excalidraw/excalidraw@npm:^0.17.6":
   version: 0.17.6
   resolution: "@excalidraw/excalidraw@npm:0.17.6"
   peerDependencies:
@@ -6015,7 +6015,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "excalidraw-plugin-assets@workspace:."
   dependencies:
-    "@excalidraw/excalidraw": "npm:^0.17.0"
+    "@excalidraw/excalidraw": "npm:^0.17.6"
     "@types/jest": "npm:^29.0.0"
     "@types/node": "npm:^22.0.0"
     "@types/pako": "npm:^2.0.0"

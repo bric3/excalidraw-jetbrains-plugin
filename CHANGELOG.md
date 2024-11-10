@@ -10,8 +10,20 @@
 - Don't use offscreen rendering (OSR) by default due to issues with trackpad (at least on macOs), see  
    https://youtrack.jetbrains.com/issue/IJPL-156342/Scrolling-of-the-Whats-new-in-IntelliJ-IDEA-is-too-fast-faster-than-code-files
 
-  This is tunable in the advanced settings. 
+  This is tunable in the advanced settings. [#364](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/364)
 - Plugin compatibility with 2024.3
+
+### 
+
+- Note: At this time [excalidraw.com](https://excalidraw.com) uses an unreleased version of
+   [excalidraw/excalidraw](https://github.com/excalidraw/excalidraw), unfortunately, the exported files may not render 
+   correctly in IDE plugin that use a released version of excalidraw.
+ 
+   The next [Excalidraw release should be v18](https://github.com/excalidraw/excalidraw/issues/8771). 
+   This plugin uses version is 0.17.6.
+
+   See [#342](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/342) for workarounds
+
 
 ## 0.4.0 - 2024-01-27
 
