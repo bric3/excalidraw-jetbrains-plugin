@@ -11,7 +11,7 @@
    https://youtrack.jetbrains.com/issue/IJPL-156342/Scrolling-of-the-Whats-new-in-IntelliJ-IDEA-is-too-fast-faster-than-code-files
 
   This is tunable in the advanced settings. 
-
+- Plugin compatibility with 2024.3
 
 ## 0.4.0 - 2024-01-27
 
