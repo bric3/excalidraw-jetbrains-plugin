@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+Same as 0.4.1, 2024.3 compatibility, disable off-screen rendering by default, Excalidraw 0.17.6 (website runs unreleased version).
+
+### Fixed
+
+- Unset system properties used for development prevented excalidraw to load. 
+
 ## 0.4.1 - 2024-11-10
 
 - Note: At this time [excalidraw.com](https://excalidraw.com) uses an unreleased version of
