@@ -381,8 +381,8 @@ class ExcalidrawWebViewController(
         private const val pluginDomain = "excalidraw-jetbrains-plugin"
         const val pluginUrl = "https://$pluginDomain/index.html"
 
-        private val webappPath = System.getProperty("excalidraw.internal.webappPath")
-        private val webappExcalidrawAssetsPath = System.getProperty("excalidraw.internal.webappExcalidrawAssetsPath")
+        private val webappPath = System.getProperty("excalidraw.internal.webappPath", "UNSET")
+        private val webappExcalidrawAssetsPath = System.getProperty("excalidraw.internal.webappExcalidrawAssetsPath", "UNSET")
 
         val mapper = jacksonObjectMapper().apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
