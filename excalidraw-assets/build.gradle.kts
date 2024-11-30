@@ -6,7 +6,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 plugins {
-    id("org.siouan.frontend-jdk17") version "8.1.0"
+    id("org.siouan.frontend-jdk17") version "10.0.0"
 }
 
 frontend {
