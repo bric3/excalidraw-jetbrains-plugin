@@ -12,6 +12,8 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "awesome-debounce-promise": "^2.1.0",
+    "mobx": "6.13.1",
+    "mobx-react": "9.1.1",
     "react": "^18.0.0",
     "react-app-rewired": "^2.1.8",
     "react-dom": "^18.0.0",
