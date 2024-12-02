@@ -28,3 +28,4 @@ junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine", "junit-jupiter-vin
 jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog-plugin" }
 jetbrains-intellijPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform-plugin" }
 jetbrains-idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
+siouan-frontendJdk17 = { id = "org.siouan.frontend-jdk17", version = "10.0.0" }

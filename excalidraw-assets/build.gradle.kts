@@ -1,12 +1,11 @@
 
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpm
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
-import java.io.ByteArrayOutputStream
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunNpmTaskType
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarnTaskType
 import java.nio.file.Files
 import java.nio.file.Path
 
 plugins {
-    id("org.siouan.frontend-jdk17") version "8.1.0"
+    alias(libs.plugins.siouan.frontendJdk17)
 }
 
 frontend {
@@ -19,7 +18,6 @@ frontend {
 
     assembleScript.set("run build") // "build" script in package.json
     // not implemented yet ?
-    //   cleanScript.set("run clean")
     //   checkScript.set("run check")
     verboseModeEnabled.set(true)
 }
@@ -50,7 +48,7 @@ val webappFilesPath by extra(project.layout.buildDirectory.dir("react-build").ma
  * Disabling `outputs.cacheIf { true }` as it somehow breaks up-to-date check
  */
 tasks {
-    val updateBrowserList by registering(RunNpm::class) {
+    val updateBrowserList by registering(RunNpmTaskType::class) {
         group = "frontend"
         // Note npx is deprecated, use `npm exec` instead
         // https://docs.npmjs.com/cli/v10/commands/npm-exec#npx-vs-npm-exec
@@ -58,7 +56,7 @@ tasks {
         // Browserslist: caniuse-lite is outdated. Please run:
         //   npx update-browserslist-db@latest
         //   Why you should do it regularly: https://github.com/browserslist/update-db#readme
-        script = "exec -- update-browserslist-db@latest"
+        args = "exec -- update-browserslist-db@latest"
 
         onlyIf {
             gradle.startParameter.taskNames.run {
@@ -71,7 +69,7 @@ tasks {
         dependsOn(updateBrowserList)
     }
 
-    val runYarnInstall by registering(RunYarn::class) {
+    val runYarnInstall by registering(RunYarnTaskType::class) {
         dependsOn(installFrontend)
         // this task is being run when the `clean` task is invoked, making this one fail
         // because `excalidraw-assets/build/node/bin/yarn` has been removed.
@@ -85,7 +83,7 @@ tasks {
 
         inputs.files("package.json")
         outputs.files("yarn.lock")
-        script.set("install")
+        args = "install"
     }
 
     val copyExcalidrawAssets by registering(Copy::class) {
@@ -133,25 +131,22 @@ tasks {
 
     val stopYarnServer by registering(Exec::class) {
         commandLine("bash", "-c", "kill ${'$'}(lsof -t -i :${port.get()})")
+        val lsof = providers.exec {
+            isIgnoreExitValue = true
+            commandLine("lsof", "-t", "-i", ":${port.get()}")
+        }
 
         onlyIf {
-            val output = ByteArrayOutputStream()
-            exec {
-                isIgnoreExitValue = true
-                commandLine("lsof","-t", "-i", ":${port.get()}")
-                standardOutput = output
-            }
-
-            return@onlyIf output.toString().isNotEmpty()
+            return@onlyIf lsof.standardOutput.asText.get().isNotEmpty()
         }
     }
 
-    register<RunYarn>("runYarnStart") {
+    register<RunYarnTaskType>("runYarnStart") {
         dependsOn(installFrontend, stopYarnServer)
         group = "frontend"
         description = "Starts yarn, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :${port.get()})`)"
 
-        script.set("run start")
+        args = "run start"
 
         doFirst {
             logger.warn(
@@ -175,35 +170,27 @@ tasks {
         description = "Run yarn script, e.g. for 'yarn add -D eslint', you can use './gradlew yarn --command=\"add -D eslint\"'"
     }
 
-    clean {
-        // It seems that these tasks are called upon clean
-        listOf(
-            installNode,
-            installPackageManager,
-            installFrontend,
-        ).forEach { task ->
-            task.get().onlyIf {
-                gradle.startParameter.taskNames.run {
-                    none { it.endsWith("clean") }
-                }
-            }
-        }
-
+    val deleteFrontendFiles by registering(Delete::class) {
         dependsOn(stopYarnServer)
         delete(
             "${projectDir}/node_modules/",
             "${projectDir}/.yarn/cache/",
             "${projectDir}/.yarn/install-state.gz",
+            "${projectDir}/.frontend-gradle-plugin",
             webappFiles,
             webappExcalidrawAssets,
         )
+    }
+
+    clean {
+        dependsOn(deleteFrontendFiles)
     }
 }
 
 open class YarnProxy @Inject constructor(
     objectFactory: ObjectFactory,
     execOperations: ExecOperations
-) : RunYarn(
+) : RunYarnTaskType(
     objectFactory,
     execOperations
 ) {
@@ -211,10 +198,10 @@ open class YarnProxy @Inject constructor(
     @get:Input
     var yarnArgs: String = ""
         set(value) {
-            super.getScript().set(value)
+            super.getArgs().set(value)
         }
 
     init {
-        super.getScript().set(yarnArgs)
+        super.getArgs().set(yarnArgs)
     }
 }
