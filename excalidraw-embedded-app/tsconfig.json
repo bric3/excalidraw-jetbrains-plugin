@@ -1,8 +1,12 @@
 {
 	"compilerOptions": {
 		"target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"], // might not be needed
 		"module": "ESNext",
-    
+
+    "incremental": true,
+    "resolveJsonModule": true,
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

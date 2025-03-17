@@ -23,3 +23,25 @@ yarn dev
 yarn build
 ----
 
+With Excalidraw 0.18.0, need to
+
+[source,diff]
+.vite.config.ts
+----
+  export default defineConfig({
+      plugins: [preact()],
++     define: {
++         "process.env.IS_PREACT": JSON.stringify("true"),
++     },
+  });
+----
+
+In the app, need to import Excalidraw css, otherwise strange errors with canvas being to small.
+
+[source,tsx]
+----
+// excalidraw react component
+import { Excalidraw } from "@excalidraw/excalidraw";
+// excalidraw styles, usually auto-processed by the build tool (i.e. vite, next, etc.)
+import "@excalidraw/excalidraw/index.css";
+----
