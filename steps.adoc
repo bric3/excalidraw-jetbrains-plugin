@@ -1,0 +1,25 @@
+
+
+
+[source, shell]
+.Bootstrap basic new vite / preact app with yarn:
+----
+yarn create preact
+----
+
+TIP: In IJ set _Settings | Languages & Frameworks | TypeScript_ to typescript 5.x,
+usually the one from the local node_modules path.
+
+[source, shell]
+.Run the dev server
+----
+yarn dev
+----
+
+
+[source,shell]
+.Build prod app
+----
+yarn build
+----
+
