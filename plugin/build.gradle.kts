@@ -6,11 +6,13 @@ import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("jvm-test-suite")
-    kotlin("jvm") version libs.versions.kotlin.get()
+    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.jetbrains.changelog)
     alias(libs.plugins.jetbrains.intellijPlatform)
     alias(libs.plugins.jetbrains.idea.ext)
@@ -50,7 +52,6 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.JUnit5)
 
-        instrumentationTools()
         pluginVerifier()
         zipSigner()
     }
@@ -174,17 +175,17 @@ tasks {
     }
 
     withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "$jvmLanguageLevel"
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget("$jvmLanguageLevel")
 
             // Match the lowest supported version for this platform
             // See https://plugins.jetbrains.com/docs/intellij/kotlin.html#kotlin-standard-library
-            apiVersion = "1.8"
-            languageVersion = "1.8"
+            apiVersion = KotlinVersion.KOTLIN_1_8
+            languageVersion = KotlinVersion.KOTLIN_1_8
 
             // Generates default method in Kotlin interfaces to be usable from Java
             // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/
-            freeCompilerArgs += "-Xjvm-default=all"
+            freeCompilerArgs.add("-Xjvm-default=all")
         }
     }
 

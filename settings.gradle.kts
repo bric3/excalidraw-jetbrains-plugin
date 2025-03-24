@@ -13,8 +13,8 @@ plugins {
 rootProject.name = "excalidraw-jetbrains-plugin"
 
 include(
-    "plugin",
-    "excalidraw-assets"
+    ":plugin",
+    ":excalidraw-assets",
 )
 
 // https://docs.gradle.org/current/userguide/build_cache.html

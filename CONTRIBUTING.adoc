@@ -127,7 +127,7 @@ excalidraw-assets
 This allows modifying the web-app without having to rebuild the plugin.
 However, at this time building the web-app still requires building / assembling the web-app.
 
-In short modify the web-app, then run:
+In short, modify the web-app, then run:
 
 [source,shell]
 ----
@@ -161,23 +161,28 @@ Once the sandbox has been run once, this configuration will appear in the follow
 
 === Inspect UI
 
-The sand-boxed IDE should be launched with internal mode enabled.
+The (sand-boxed) IDE should be launched with internal mode enabled.
 
-Enable UI Inspector : _Tools > Internal Actions > UI > UI Inspector_
+TIP: Toggle this in the _Help | Edit Custom Properties..._ and add `idea.is.internal=true`.
+
+Then, to inspect the UI, use the _UI Inspector_.
+
+
+Enable UI Inspector: _Tools > Internal Actions > UI > UI Inspector_
 
 
 
 
 == Dependencies source code
 
-Unfortunately, some dependencies sources are not available, in particular `rd`.
-This project was bumped to 2022.2 and gradle-intellij-plugin is now able to pull
+Unfortunately, some dependency sources are not available, in particular `rd`.
+This project was bumped to 2022.2, and gradle-intellij-plugin is now able to pull
 the sources, which now embed the ones of JCef are embedded.
 
 > If this is ever interesting to you, it's possible to clone sources of
 [JetBrains/jcef](https://github.com/JetBrains/jcef). Whe running the app
 one can use the JCEF type `org.cef.CefApp`, and get the version something along
-`CefApp.getInstance().getVersion()` then checkout the matching branch e.g. `git checkout cef-81.2.24`.
+`CefApp.getInstance().getVersion()` then check out the matching branch e.g. `git checkout cef-81.2.24`.
 
 .JetBrains/rd
 Part of this code is generated from C/C#, however types that are interacted with
