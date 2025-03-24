@@ -20,12 +20,17 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 junit-jupiter-vintage-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-stdlib-common = { module = "org.jetbrains.kotlin:kotlin-stdlib-common", version.ref = "kotlin" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.8.0" }
 
 [bundles]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine", "junit-jupiter-vintage-engine"]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog-plugin" }
 jetbrains-intellijPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform-plugin" }
 jetbrains-idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
