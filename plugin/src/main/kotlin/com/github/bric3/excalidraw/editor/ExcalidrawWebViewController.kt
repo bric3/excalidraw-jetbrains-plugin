@@ -175,7 +175,7 @@ class ExcalidrawWebViewController(
                     """
                     window.EXCALIDRAW_ASSET_PATH = "/"; // loads excalidraw assets from plugin (instead of CDN)
                     
-                    window.initialData = {
+                    window.initialProps = {
                         "theme": "$uiTheme",
                         "readOnly": false,
                         "gridMode": false,
@@ -253,7 +253,8 @@ class ExcalidrawWebViewController(
             
             window.postMessage({
                 type: "update",
-                elements: json.elements
+                elements: json.elements,
+                files: json.files
             }, 'https://$pluginDomain')
             """
         )

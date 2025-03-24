@@ -90,7 +90,7 @@ class ExcalidrawEditor(
         with(busConnection) {
             subscribe(EditorColorsManager.TOPIC, this@ExcalidrawEditor)
             subscribe(EditorColorsManager.TOPIC, this@ExcalidrawEditor)
-            subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
+            subscribe(FileDocumentManagerListener.TOPIC, object : FileDocumentManagerListener {
                 override fun beforeAllDocumentsSaving() {
                     // This is the manual or auto save action of IntelliJ
                     debuggingLogWithThread(logger) { "ExcalidrawEditor::beforeAllDocumentsSaving" }

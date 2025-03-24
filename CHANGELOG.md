@@ -3,6 +3,10 @@
 # excalidraw-jetbrains-plugin Changelog
 
 ## [Unreleased]
+                  
+### Added
+
+- Supports embedded images by [@lionelhorn](https://github.com/lionelhorn) [#199](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/199) [#200](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/200)
 
 ## 0.4.2 - 2024-11-12
 
