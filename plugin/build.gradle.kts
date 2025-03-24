@@ -142,9 +142,17 @@ intellijPlatform {
 }
 
 intellijPlatformTesting {
-    val runIntelliJUltimate by runIde.registering {
-        type = IntelliJPlatformType.IntellijIdeaUltimate
-        version = providers.localGradleProperty("platformVersion")
+    runIde {
+        val runIntelliJUltimate by registering {
+            type = IntelliJPlatformType.IntellijIdeaUltimate
+            version = providers.localGradleProperty("platformVersion")
+        }
+
+        val runIntelliJLatest by register("runIntelliJLatest") {
+            type = IntelliJPlatformType.IntellijIdeaCommunity
+            version = "2025.1"
+            sandboxDirectory = layout.buildDirectory.dir("idea-sandbox/runIntelliJLatest")
+        }
     }
 }
 
