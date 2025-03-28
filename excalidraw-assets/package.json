@@ -6,7 +6,7 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
-    "@excalidraw/excalidraw": "^0.17.6",
+    "@excalidraw/excalidraw": "^0.18.0",
     "@types/jest": "^29.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^18.0.0",
