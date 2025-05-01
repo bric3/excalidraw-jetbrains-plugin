@@ -2,7 +2,7 @@
 assertj = "3.27.3"
 junit = "4.13.2"
 junit-jupiter = "5.12.2"
-mockk = "1.14.0"
+mockk = "1.14.2"
 
 detekt = "1.21.0"
 
