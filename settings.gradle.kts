@@ -27,8 +27,8 @@ buildCache {
 
 develocity {
     buildScan {
-        termsOfUseUrl = "https://gradle.com/terms-of-service"
-        termsOfUseAgree = "yes"
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        // termsOfUseAgree is handled by .gradle/init.d/configure-develocity.init.gradle.kts
         // publishAlways()
         val isCI = providers.environmentVariable("CI").isPresent
         publishing.onlyIf { isCI }
