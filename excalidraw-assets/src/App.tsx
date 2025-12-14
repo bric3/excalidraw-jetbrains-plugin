@@ -6,7 +6,6 @@ import {
     getSceneVersion,
     loadFromBlob,
     MainMenu,
-    restoreElements,
     serializeAsJSON,
 } from "@excalidraw/excalidraw";
 // Import Excalidraw CSS - required in 0.18.0
@@ -52,6 +51,28 @@ function preprocessLegacyElements(elements: unknown[]): unknown[] {
         // Add frameId if missing (for all element types)
         if (!('frameId' in element)) {
             fixed.frameId = null;
+        }
+
+        // Arrow-specific fixes: convert old binding format to new format
+        if (element.type === 'arrow') {
+            // Convert startBinding from old format to new format
+            if (element.startBinding && !('mode' in (element.startBinding as Record<string, unknown>))) {
+                const oldBinding = element.startBinding as Record<string, unknown>;
+                fixed.startBinding = {
+                    mode: 'orbit',
+                    elementId: oldBinding.elementId,
+                    fixedPoint: [0.5, 0.5] // Default center point
+                };
+            }
+            // Convert endBinding from old format to new format
+            if (element.endBinding && !('mode' in (element.endBinding as Record<string, unknown>))) {
+                const oldBinding = element.endBinding as Record<string, unknown>;
+                fixed.endBinding = {
+                    mode: 'orbit',
+                    elementId: oldBinding.elementId,
+                    fixedPoint: [0.5, 0.5] // Default center point
+                };
+            }
         }
 
         // Text-specific fixes
@@ -248,25 +269,50 @@ class ExcalidrawApiBridge {
         switch (message.type) {
             case "update": {
                 const { elements } = message;
+                const bridge = this;
 
-                // Preprocess legacy elements to fix missing fields (lineHeight, boundElements, etc.)
-                const preprocessedElements = preprocessLegacyElements(elements || []);
+                // Disable continuous saving while updating
+                bridge.continuousSavingEnabled = false;
 
-                // Use restoreElements to properly restore with refreshed dimensions
-                const restoredElements = restoreElements(
-                    preprocessedElements as ExcalidrawElement[],
-                    null,
-                    { refreshDimensions: true }
-                );
+                (async () => {
+                    try {
+                        // Preprocess elements to fix legacy format issues
+                        const processedElements = preprocessLegacyElements(elements);
 
-                const updateSceneVersion = getSceneVersion(restoredElements);
-                if (this.currentSceneVersion !== updateSceneVersion) {
-                    this.currentSceneVersion = updateSceneVersion;
-                    this.updateApp({
-                        elements: restoredElements,
-                        appState: {} // TODO load appState ?
-                    });
-                }
+                        // Create a proper Excalidraw JSON structure and use loadFromBlob
+                        // to let Excalidraw handle all format normalization internally
+                        const excalidrawData = {
+                            type: "excalidraw",
+                            version: 2,
+                            source: "excalidraw-jetbrains-plugin",
+                            elements: processedElements,
+                            appState: {},
+                            files: {}
+                        };
+
+                        const jsonString = JSON.stringify(excalidrawData);
+                        const blob = new Blob([jsonString], { type: 'application/json' });
+                        const restoredData = await loadFromBlob(blob, null, null);
+
+                        const restoredElements = restoredData.elements || [];
+                        const updateSceneVersion = getSceneVersion(restoredElements);
+
+                        if (bridge.currentSceneVersion !== updateSceneVersion) {
+                            bridge.currentSceneVersion = updateSceneVersion;
+                            bridge.updateApp({
+                                elements: restoredElements,
+                                appState: restoredData.appState || {}
+                            });
+                        }
+                    } catch (error: unknown) {
+                        console.error("Error in update handler:", error);
+                        bridge.dispatchToPlugin({
+                            type: "excalidraw-error",
+                            errorMessage: "cannot load elements"
+                        });
+                    }
+                })();
+
                 break;
             }
 
@@ -274,54 +320,32 @@ class ExcalidrawApiBridge {
                 const { fileToFetch } = message;
                 const bridge = this;
 
-                console.log("=== LOAD-FROM-FILE: " + fileToFetch + " ===");
-
                 fetch('/vfs/' + fileToFetch)
-                    .then(r => {
-                        console.log("Fetch response status:", r.status);
-                        return r.text();
-                    })
+                    .then(r => r.text())
                     .then(async (jsonText) => {
                         // Disable continuous saving as the plugin uses IntelliJ's auto-saving mechanism
                         bridge.continuousSavingEnabled = false;
 
                         try {
-                            console.log("=== LOADING FILE ===");
-                            console.log("JSON text length:", jsonText.length);
-
                             // Parse the JSON first to preprocess legacy elements
                             const parsedData = JSON.parse(jsonText) as { elements?: unknown[]; appState?: Partial<AppState> };
-                            console.log(`Parsed elements: ${parsedData.elements?.length || 0}`);
 
                             // Preprocess elements BEFORE passing to loadFromBlob
                             if (parsedData.elements) {
                                 parsedData.elements = preprocessLegacyElements(parsedData.elements);
-                                console.log("=== AFTER PREPROCESSING ===");
-                                const textElements = parsedData.elements.filter((el: unknown) => (el as Record<string, unknown>).type === 'text');
-                                console.log(`Text elements: ${textElements.length}`);
-                                textElements.forEach((el: unknown) => {
-                                    const elem = el as Record<string, unknown>;
-                                    console.log(`  "${elem.id}": lineHeight=${elem.lineHeight}, height=${elem.height}`);
-                                });
                             }
 
-                            // Re-create blob with preprocessed data
+                            // Re-create blob with preprocessed data and use loadFromBlob
+                            // to let Excalidraw handle format normalization
                             const preprocessedJson = JSON.stringify(parsedData);
                             const blob = new Blob([preprocessedJson], { type: 'application/json' });
-                            console.log("Created blob with preprocessed data, size:", blob.size);
-
-                            // Use Excalidraw's official loadFromBlob utility
                             const restoredData = await loadFromBlob(blob, null, null);
-
-                            console.log("=== loadFromBlob RESULT ===");
-                            console.log(`Elements: ${restoredData.elements?.length || 0}`);
 
                             const elements = restoredData.elements || [];
                             const updateSceneVersion = getSceneVersion(elements);
 
                             if (bridge.currentSceneVersion !== updateSceneVersion) {
                                 bridge.currentSceneVersion = updateSceneVersion;
-                                console.log("=== UPDATING SCENE ===");
                                 bridge.updateApp({
                                     elements: elements,
                                     appState: restoredData.appState || {}
@@ -329,10 +353,7 @@ class ExcalidrawApiBridge {
                             }
 
                         } catch (error: unknown) {
-                            console.error("Error loading file with loadFromBlob:", error);
-                            if (error instanceof Error) {
-                                console.error("Stack:", error.stack);
-                            }
+                            console.error("Error loading file:", error);
                             bridge.dispatchToPlugin({
                                 type: "excalidraw-error",
                                 errorMessage: "cannot load file"
