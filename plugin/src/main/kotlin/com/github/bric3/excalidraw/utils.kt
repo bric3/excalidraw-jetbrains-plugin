@@ -109,8 +109,11 @@ suspend fun writePayloadToDocument(
  * instead of regular `excalidraw.com`.
  *
  * https://github.com/excalidraw/excalidraw/issues/7543
+ *
+ * Updated for Excalidraw 0.18.0 where font paths changed from
+ * dist/excalidraw-assets/ to fonts/
  */
-val wrongAssetRoot = "https://excalidraw-jetbrains-plugin//?dist/excalidraw-assets/".toRegex()
+val wrongAssetRoot = "https://excalidraw-jetbrains-plugin//?(dist/excalidraw-assets/|fonts/)".toRegex()
 fun patchSvgForExcalidraw7543(payload: String, type: ExcalidrawImageType = SVG) =
     when (type) {
         SVG -> payload.replace(wrongAssetRoot, "https://excalidraw.com/")

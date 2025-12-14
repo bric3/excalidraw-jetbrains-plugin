@@ -10,30 +10,19 @@ plugins {
 
 frontend {
     nodeVersion.set("20.9.0")
-    // DON'T use the `build` directory if it also the output of the `react-scripts`
-    // otherwise it causes 'Error: write EPIPE' because `node` location is also
-    // in the output folder of react-scripts.
-    // This projects set up the BUILD_PATH=./build/react-build/ for react-scripts
+    // DON'T use the `build` directory if it also the output of the Vite build
+    // otherwise it causes issues because `node` location is also
+    // in the output folder.
+    // This project sets up outDir in vite.config.ts to ./build/react-build/
     nodeInstallDirectory.set(project.layout.buildDirectory.dir("node"))
 
-    assembleScript.set("run build") // "build" script in package.json
-    // not implemented yet ?
-    //   checkScript.set("run check")
+    assembleScript.set("run build") // "build" script in package.json (vite build)
     verboseModeEnabled.set(true)
 }
 
 val port = providers.provider {
-    // PORT might be is in package.json "/scripts/start" value
-    // dumb solution to extract the port if possible
-    val defaultPort = 3000
-    file("package.json").useLines { lines ->
-        val startScriptRegex = Regex("\"start\"\\s?:\\s?\"[^\"]+\"")
-        lines
-            .filter { startScriptRegex.containsMatchIn(it) }
-            .map { Regex("\".*PORT=(\\d+).*\"").find(it)?.groups?.get(1)?.value }
-            .map { it?.toInt() }
-            .first() ?: defaultPort
-    }
+    // PORT is configured in vite.config.ts, defaulting to 3006
+    3006
 }
 val webappExcalidrawAssets by extra(project.layout.buildDirectory.dir("assets"))
 val webappExcalidrawAssetsPath by extra(project.layout.buildDirectory.dir("assets").map { it.asFile.absolutePath })
@@ -86,14 +75,15 @@ tasks {
         args = "install"
     }
 
+    // Excalidraw 0.18.0: fonts are now in dist/prod/fonts instead of excalidraw-assets folder
     val copyExcalidrawAssets by registering(Copy::class) {
         dependsOn(runYarnInstall, installFrontend)
         group = "frontend"
-        description = "copy necessary files to run the embedded app"
+        description = "copy necessary files to run the embedded app (fonts for self-hosting)"
 
-        val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist"
+        val excalidrawDist = "node_modules/@excalidraw/excalidraw/dist/prod"
         from(excalidrawDist)
-        include("excalidraw-assets/*")  // production assets
+        include("fonts/**")  // production fonts for self-hosting
         into(webappExcalidrawAssets)
 
         inputs.dir(excalidrawDist)
@@ -125,7 +115,7 @@ tasks {
 
     assembleFrontend {
         dependsOn(copyExcalidrawAssets)
-        inputs.files("package.json", "src", "public")
+        inputs.files("package.json", "src", "public", "index.html", "vite.config.ts", "tsconfig.json")
         outputs.dirs(webappFiles)
     }
 
@@ -144,7 +134,7 @@ tasks {
     register<RunYarnTaskType>("runYarnStart") {
         dependsOn(installFrontend, stopYarnServer)
         group = "frontend"
-        description = "Starts yarn, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :${port.get()})`)"
+        description = "Starts Vite dev server, you'll need to actively kill the server after (`kill ${'$'}(lsof -t -i :${port.get()})`)"
 
         args = "run start"
 

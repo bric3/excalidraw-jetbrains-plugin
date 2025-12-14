@@ -60,3 +60,6 @@ tags
 
 # Ignore project-fixture's workspace file
 ./project-fixture/.idea/workspace.xml
+
+# Claude Code
+CLAUDE.md

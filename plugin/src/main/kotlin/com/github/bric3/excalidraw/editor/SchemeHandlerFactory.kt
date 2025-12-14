@@ -41,6 +41,17 @@ class SchemeHandlerFactory(val getStream: (uri: URI) -> InputStream?) : CefSchem
                     uri.path.endsWith(".css") -> response.mimeType = "text/css"
                     uri.path.endsWith(".svg") -> response.mimeType = "image/svg+xml"
                     uri.path.endsWith(".png") -> response.mimeType = "image/png"
+                    uri.path.endsWith(".jpg") || uri.path.endsWith(".jpeg") -> response.mimeType = "image/jpeg"
+                    uri.path.endsWith(".gif") -> response.mimeType = "image/gif"
+                    uri.path.endsWith(".webp") -> response.mimeType = "image/webp"
+                    // Font MIME types for Excalidraw 0.18.0 self-hosted fonts
+                    uri.path.endsWith(".woff") -> response.mimeType = "font/woff"
+                    uri.path.endsWith(".woff2") -> response.mimeType = "font/woff2"
+                    uri.path.endsWith(".ttf") -> response.mimeType = "font/ttf"
+                    uri.path.endsWith(".otf") -> response.mimeType = "font/otf"
+                    uri.path.endsWith(".eot") -> response.mimeType = "application/vnd.ms-fontobject"
+                    // JSON for any config files
+                    uri.path.endsWith(".json") -> response.mimeType = "application/json"
                 }
 
                 if (myStream === null) {
