@@ -466,7 +466,7 @@ export const App = () => {
 
 
     return (
-        <div className="excalidraw-wrapper">
+        <div className={`excalidraw-wrapper theme--${theme}`}>
             <Excalidraw
                 excalidrawAPI={excalidrawRef}
                 // initialData={InitialData}
