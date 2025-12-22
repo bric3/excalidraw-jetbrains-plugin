@@ -19,7 +19,9 @@ import java.util.function.Supplier
 
 private val logger = Logger.getInstance("com.github.bric3.excalidraw.utils")
 
-val debugMode = false
+val debugMode = ProcessHandle.current().info().arguments().map {
+    it.any { arg -> arg.contains("-agentlib:jdwp") }
+}.orElse(false)!!
 
 
 /**
@@ -109,7 +111,7 @@ suspend fun writePayloadToDocument(
  * https://github.com/excalidraw/excalidraw/issues/7543
  *
  * Updated for Excalidraw 0.18.0 where font paths changed from
- * dist/excalidraw-assets/ to fonts/
+ * `dist/excalidraw-assets/` to `fonts/`
  */
 val wrongAssetRoot = "https://excalidraw-jetbrains-plugin//?(dist/excalidraw-assets/|fonts/)".toRegex()
 fun patchSvgForExcalidraw7543(payload: String, type: ExcalidrawImageType = SVG) =
