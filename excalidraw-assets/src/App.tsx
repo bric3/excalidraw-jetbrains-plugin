@@ -322,24 +322,45 @@ class ExcalidrawApiBridge {
 
                 fetch('/vfs/' + fileToFetch)
                     .then(r => r.text())
-                    .then(async (jsonText) => {
+                    .then(async (textContent) => {
                         // Disable continuous saving as the plugin uses IntelliJ's auto-saving mechanism
                         bridge.continuousSavingEnabled = false;
 
                         try {
-                            // Parse the JSON first to preprocess legacy elements
-                            const parsedData = JSON.parse(jsonText) as { elements?: unknown[]; appState?: Partial<AppState> };
+                            // Parse the content as JSON - this handles both:
+                            // 1. Regular Excalidraw files with {type: "excalidraw", elements: [...]}
+                            // 2. Embedded scene data from SVG/PNG with {version: "1", encoding: "bstring", ...}
+                            const parsedData = JSON.parse(textContent) as {
+                                type?: string;
+                                elements?: unknown[];
+                                appState?: Partial<AppState>;
+                                // Embedded scene format
+                                version?: string;
+                                encoding?: string;
+                                compressed?: boolean;
+                                encoded?: string;
+                            };
 
-                            // Preprocess elements BEFORE passing to loadFromBlob
-                            if (parsedData.elements) {
-                                parsedData.elements = preprocessLegacyElements(parsedData.elements);
+                            let restoredData;
+
+                            // Check if this is an encoded/compressed payload (from SVG/PNG embedded scene)
+                            if (parsedData.encoding && parsedData.encoded) {
+                                // This is compressed Excalidraw data from embedded SVG/PNG
+                                // loadFromBlob can handle this format directly
+                                const blob = new Blob([textContent], { type: 'application/json' });
+                                restoredData = await loadFromBlob(blob, null, null);
+                            } else {
+                                // Regular Excalidraw JSON file - preprocess legacy elements
+                                if (parsedData.elements) {
+                                    parsedData.elements = preprocessLegacyElements(parsedData.elements);
+                                }
+
+                                // Re-create blob with preprocessed data and use loadFromBlob
+                                // to let Excalidraw handle format normalization
+                                const preprocessedJson = JSON.stringify(parsedData);
+                                const blob = new Blob([preprocessedJson], { type: 'application/json' });
+                                restoredData = await loadFromBlob(blob, null, null);
                             }
-
-                            // Re-create blob with preprocessed data and use loadFromBlob
-                            // to let Excalidraw handle format normalization
-                            const preprocessedJson = JSON.stringify(parsedData);
-                            const blob = new Blob([preprocessedJson], { type: 'application/json' });
-                            const restoredData = await loadFromBlob(blob, null, null);
 
                             const elements = restoredData.elements || [];
                             const updateSceneVersion = getSceneVersion(elements);
