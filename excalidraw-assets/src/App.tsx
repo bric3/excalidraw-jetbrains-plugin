@@ -8,43 +8,139 @@ import {
     MainMenu,
     serializeAsJSON,
 } from "@excalidraw/excalidraw";
+// Import Excalidraw CSS - required in 0.18.0
+import "@excalidraw/excalidraw/index.css";
+import type { ExcalidrawImperativeAPI, AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
-import {RestoredDataState} from "@excalidraw/excalidraw/types/data/restore";
-import {Theme} from "@excalidraw/excalidraw/types/element/types";
-import {ExcalidrawImperativeAPI} from "@excalidraw/excalidraw/types/types";
+
+// Theme type from Excalidraw
+type Theme = "light" | "dark";
+
+// Set EXCALIDRAW_ASSET_PATH so Excalidraw knows where to load fonts from
+// This is critical for deprecated fonts like Virgil to be found
+// Must be set BEFORE Excalidraw component mounts
+(window as Window & { EXCALIDRAW_ASSET_PATH?: string }).EXCALIDRAW_ASSET_PATH = "/";
+
+// Font lineHeight values from Excalidraw's FONT_METADATA
+// Used to fix legacy files that don't have lineHeight stored
+const FONT_LINE_HEIGHTS: Record<number, number> = {
+    1: 1.25,   // Virgil (deprecated)
+    2: 1.15,   // Helvetica (deprecated)
+    3: 1.2,    // Cascadia (deprecated)
+    5: 1.25,   // Excalifont
+    6: 1.25,   // Nunito
+    7: 1.15,   // Lilita One
+    8: 1.25,   // Comic Shanns
+};
+
+// Pre-process legacy elements that are missing required fields
+// This fixes files created with old Excalidraw versions
+function preprocessLegacyElements(elements: unknown[]): unknown[] {
+    console.debug("Preprocessing legacy elements:", elements.length);
+
+    return elements.map(el => {
+        const element = el as Record<string, unknown>;
+        const fixed = { ...element };
+
+        // Fix boundElements: null -> [] (for all element types)
+        if (element.boundElements === null) {
+            fixed.boundElements = [];
+        }
+
+        // Add frameId if missing (for all element types)
+        if (!('frameId' in element)) {
+            fixed.frameId = null;
+        }
+
+        // Arrow-specific fixes: convert old binding format to new format
+        if (element.type === 'arrow') {
+            // Convert startBinding from old format to new format
+            if (element.startBinding && !('mode' in (element.startBinding as Record<string, unknown>))) {
+                const oldBinding = element.startBinding as Record<string, unknown>;
+                fixed.startBinding = {
+                    mode: 'orbit',
+                    elementId: oldBinding.elementId,
+                    fixedPoint: [0.5, 0.5] // Default center point
+                };
+            }
+            // Convert endBinding from old format to new format
+            if (element.endBinding && !('mode' in (element.endBinding as Record<string, unknown>))) {
+                const oldBinding = element.endBinding as Record<string, unknown>;
+                fixed.endBinding = {
+                    mode: 'orbit',
+                    elementId: oldBinding.elementId,
+                    fixedPoint: [0.5, 0.5] // Default center point
+                };
+            }
+        }
+
+        // Text-specific fixes
+        if (element.type === 'text') {
+            const fontFamily = (element.fontFamily as number) || 1;
+            const lineHeight = FONT_LINE_HEIGHTS[fontFamily] || 1.25;
+
+            // CRITICAL: lineHeight must be present for text to render
+            if (element.lineHeight == null) {
+                fixed.lineHeight = lineHeight;
+            }
+
+            // Add autoResize if missing
+            if (element.autoResize == null) {
+                fixed.autoResize = true;
+            }
+
+            // Height can be 0 or null - Excalidraw recalculates if lineHeight is present
+            // But set to 0 if null to avoid issues
+            if (element.height === null) {
+                fixed.height = 0;
+            }
+        }
+
+        return fixed;
+    });
+}
 
 // hack to access the non typed window object (any) to add old school javascript
-let anyWindow = (window as any);
+const anyWindow = window as Window & {
+    initialData?: typeof defaultInitialData;
+    cefQuery?: (params: {
+        request: string;
+        persistent: boolean;
+        onSuccess: (response: unknown) => void;
+        onFailure: (error_code: unknown, error_message: unknown) => void;
+    }) => void;
+};
 
 const defaultInitialData = {
     readOnly: false,
     gridMode: false,
     zenMode: false,
-    theme: "light",
+    theme: "light" as Theme,
     debounceAutoSaveInMs: 300
 }
 const initialData = anyWindow.initialData ?? defaultInitialData;
 
 class ExcalidrawApiBridge {
-    private readonly excalidrawRef: any;
+    private readonly excalidrawRef: React.MutableRefObject<ExcalidrawImperativeAPI | null>;
     private continuousSavingEnabled = true;
-    private _setTheme: React.Dispatch<Theme> | null = null;
-    set setTheme(value: React.Dispatch<Theme>) {
+    private _setTheme: React.Dispatch<React.SetStateAction<Theme>> | null = null;
+    set setTheme(value: React.Dispatch<React.SetStateAction<Theme>>) {
         this._setTheme = value;
     }
 
-    private _setViewModeEnabled: React.Dispatch<boolean> | null = null;
-    set setViewModeEnabled(value: React.Dispatch<boolean>) {
+    private _setViewModeEnabled: React.Dispatch<React.SetStateAction<boolean>> | null = null;
+    set setViewModeEnabled(value: React.Dispatch<React.SetStateAction<boolean>>) {
         this._setViewModeEnabled = value;
     }
 
-    private _setGridModeEnabled: React.Dispatch<boolean> | null = null;
-    set setGridModeEnabled(value: React.Dispatch<boolean>) {
+    private _setGridModeEnabled: React.Dispatch<React.SetStateAction<boolean>> | null = null;
+    set setGridModeEnabled(value: React.Dispatch<React.SetStateAction<boolean>>) {
         this._setGridModeEnabled = value;
     }
 
-    private _setZenModeEnabled: React.Dispatch<boolean> | null = null;
-    set setZenModeEnabled(value: React.Dispatch<boolean>) {
+    private _setZenModeEnabled: React.Dispatch<React.SetStateAction<boolean>> | null = null;
+    set setZenModeEnabled(value: React.Dispatch<React.SetStateAction<boolean>>) {
         this._setZenModeEnabled = value;
     }
 
@@ -57,18 +153,17 @@ class ExcalidrawApiBridge {
     }
 
     private excalidraw() {
-        return this.excalidrawRef.current;
+        return this.excalidrawRef.current!;
     }
 
-    // @ts-ignore
-    readonly updateApp = ({elements, appState}) => {
+    readonly updateApp = ({ elements, appState }: { elements: readonly ExcalidrawElement[]; appState: Partial<AppState> }) => {
         this.excalidraw().updateScene({
             elements: elements,
             appState: appState,
         });
     };
 
-    readonly updateAppState = (appState: object) => {
+    readonly updateAppState = (appState: Partial<AppState>) => {
         this.excalidraw().updateScene({
             elements: this.excalidraw().getSceneElements(),
             appState: {
@@ -79,7 +174,7 @@ class ExcalidrawApiBridge {
     };
 
     readonly saveAsJson = () => {
-        let binaryFiles = {};
+        const binaryFiles: BinaryFiles = {};
         return serializeAsJSON(
             this.excalidraw().getSceneElements(),
             this.excalidraw().getAppState(),
@@ -88,10 +183,10 @@ class ExcalidrawApiBridge {
         )
     };
 
-    readonly saveAsSvg = (exportParams: object) => {
+    readonly saveAsSvg = (exportParams: Partial<AppState>) => {
         console.debug("saveAsSvg export config", exportParams);
-        let sceneElements = this.excalidraw().getSceneElements();
-        let appState = this.excalidraw().getAppState();
+        const sceneElements = this.excalidraw().getSceneElements();
+        const appState = this.excalidraw().getAppState();
 
         // Doc: https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils/export#exporttosvg
         return exportToSvg({
@@ -105,12 +200,12 @@ class ExcalidrawApiBridge {
         });
     };
 
-    readonly saveAsBlob = (exportParams: object, mimeType: string) => {
+    readonly saveAsBlob = (exportParams: Partial<AppState>, mimeType: string) => {
         console.debug("saveAsPng export config", exportParams);
-        let sceneElements = this.excalidraw().getSceneElements();
-        let appState = this.excalidraw().getAppState();
+        const sceneElements = this.excalidraw().getSceneElements();
+        const appState = this.excalidraw().getAppState();
 
-        let binaryFiles = {};
+        const binaryFiles: BinaryFiles = {};
         // Doc: https://docs.excalidraw.com/docs/@excalidraw/excalidraw/api/utils/export#exporttoblob
         return exportToBlob({
             elements: sceneElements,
@@ -126,18 +221,17 @@ class ExcalidrawApiBridge {
 
     currentSceneVersion = getSceneVersion([]); // scene elements are empty on load
 
-    private _continuousSaving = (elements: object[], appState: object) => {
+    private _continuousSaving = (elements: readonly ExcalidrawElement[], _appState: AppState) => {
         if (!this.continuousSavingEnabled) {
             return;
         }
         console.debug("debounced scene changed")
-        // @ts-ignore
         const newSceneVersion = getSceneVersion(elements);
         // maybe check appState
         if (this.currentSceneVersion !== newSceneVersion) {
             this.currentSceneVersion = newSceneVersion;
 
-            let jsonContent = this.saveAsJson();
+            const jsonContent = this.saveAsJson();
 
             this.dispatchToPlugin({
                 type: "continuous-update",
@@ -154,16 +248,14 @@ class ExcalidrawApiBridge {
         console.debug("dispatchToPlugin: ", message);
 
         // `cefQuery` is only declared and available in the JCEF browser, which explains why it's not resolved here.
-        // noinspection JSUnresolvedReference
         if (anyWindow.cefQuery) {
-            // noinspection JSUnresolvedReference
             anyWindow.cefQuery({
                 request: JSON.stringify(message),
                 persistent: false,
-                onSuccess: function (response: any) {
+                onSuccess: function (response: unknown) {
                     console.debug("success for message", message, ", response", response);
                 },
-                onFailure: function (error_code: any, error_message: any) {
+                onFailure: function (error_code: unknown, error_message: unknown) {
                     console.debug("failure for message", message, ", error_code", error_code, ", error_message", error_message);
                 }
             });
@@ -176,53 +268,122 @@ class ExcalidrawApiBridge {
         console.debug("got event: " + message.type + ", message: ", message);
         switch (message.type) {
             case "update": {
-                const {elements} = message;
-                const updateSceneVersion = getSceneVersion(elements);
-                if (this.currentSceneVersion !== updateSceneVersion) {
-                    this.currentSceneVersion = updateSceneVersion;
-                    this.updateApp({
-                        elements: elements || [],
-                        appState: {} // TODO load appState ?
-                    });
-                }
+                const { elements } = message;
+                const bridge = this;
+
+                // Disable continuous saving while updating
+                bridge.continuousSavingEnabled = false;
+
+                (async () => {
+                    try {
+                        // Preprocess elements to fix legacy format issues
+                        const processedElements = preprocessLegacyElements(elements);
+
+                        // Create a proper Excalidraw JSON structure and use loadFromBlob
+                        // to let Excalidraw handle all format normalization internally
+                        const excalidrawData = {
+                            type: "excalidraw",
+                            version: 2,
+                            source: "excalidraw-jetbrains-plugin",
+                            elements: processedElements,
+                            appState: {},
+                            files: {}
+                        };
+
+                        const jsonString = JSON.stringify(excalidrawData);
+                        const blob = new Blob([jsonString], { type: 'application/json' });
+                        const restoredData = await loadFromBlob(blob, null, null);
+
+                        const restoredElements = restoredData.elements || [];
+                        const updateSceneVersion = getSceneVersion(restoredElements);
+
+                        if (bridge.currentSceneVersion !== updateSceneVersion) {
+                            bridge.currentSceneVersion = updateSceneVersion;
+                            bridge.updateApp({
+                                elements: restoredElements,
+                                appState: restoredData.appState || {}
+                            });
+                        }
+                    } catch (error: unknown) {
+                        console.error("Error in update handler:", error);
+                        bridge.dispatchToPlugin({
+                            type: "excalidraw-error",
+                            errorMessage: "cannot load elements"
+                        });
+                    }
+                })();
+
                 break;
             }
 
             case "load-from-file": {
-                const {fileToFetch} = message
+                const { fileToFetch } = message;
+                const bridge = this;
+
                 fetch('/vfs/' + fileToFetch)
-                    .then(response => response.blob())
-                    .then(async blob => {
-                        // as the plugin uses IntelliJ's auto-saving mechanism instead.
-                        this.continuousSavingEnabled = false
+                    .then(r => r.text())
+                    .then(async (textContent) => {
+                        // Disable continuous saving as the plugin uses IntelliJ's auto-saving mechanism
+                        bridge.continuousSavingEnabled = false;
 
                         try {
-                            return loadFromBlob(blob, null, null);
+                            // Parse the content as JSON - this handles both:
+                            // 1. Regular Excalidraw files with {type: "excalidraw", elements: [...]}
+                            // 2. Embedded scene data from SVG/PNG with {version: "1", encoding: "bstring", ...}
+                            const parsedData = JSON.parse(textContent) as {
+                                type?: string;
+                                elements?: unknown[];
+                                appState?: Partial<AppState>;
+                                // Embedded scene format
+                                version?: string;
+                                encoding?: string;
+                                compressed?: boolean;
+                                encoded?: string;
+                            };
+
+                            let restoredData;
+
+                            // Check if this is an encoded/compressed payload (from SVG/PNG embedded scene)
+                            if (parsedData.encoding && parsedData.encoded) {
+                                // This is compressed Excalidraw data from embedded SVG/PNG
+                                // loadFromBlob can handle this format directly
+                                const blob = new Blob([textContent], { type: 'application/json' });
+                                restoredData = await loadFromBlob(blob, null, null);
+                            } else {
+                                // Regular Excalidraw JSON file - preprocess legacy elements
+                                if (parsedData.elements) {
+                                    parsedData.elements = preprocessLegacyElements(parsedData.elements);
+                                }
+
+                                // Re-create blob with preprocessed data and use loadFromBlob
+                                // to let Excalidraw handle format normalization
+                                const preprocessedJson = JSON.stringify(parsedData);
+                                const blob = new Blob([preprocessedJson], { type: 'application/json' });
+                                restoredData = await loadFromBlob(blob, null, null);
+                            }
+
+                            const elements = restoredData.elements || [];
+                            const updateSceneVersion = getSceneVersion(elements);
+
+                            if (bridge.currentSceneVersion !== updateSceneVersion) {
+                                bridge.currentSceneVersion = updateSceneVersion;
+                                bridge.updateApp({
+                                    elements: elements,
+                                    appState: restoredData.appState || {}
+                                });
+                            }
+
                         } catch (error: unknown) {
-                            // Javascript/Typescript errors can be of any type really, even null.
-                            let errorStr = error instanceof Error ? error.toString() : JSON.stringify(error);
-                            console.error(errorStr)
-                            // Also, maybe error can be passed to the dispatcher?
-                            this.dispatchToPlugin({
+                            console.error("Error loading file:", error);
+                            bridge.dispatchToPlugin({
                                 type: "excalidraw-error",
-                                errorMessage: "cannot load image"
-                            })
-                        }
-                    })
-                    .then((restoredState: RestoredDataState | undefined) => {
-                        if (!restoredState) {
-                            return;
-                        }
-                        
-                        const updateSceneVersion = getSceneVersion(restoredState.elements);
-                        if (this.currentSceneVersion !== updateSceneVersion) {
-                            this.currentSceneVersion = updateSceneVersion;
-                            this.updateApp({
-                                elements: restoredState.elements || [],
-                                appState: {}  // TODO load appState ? (restoredState.appState)
+                                errorMessage: "cannot load file"
                             });
                         }
                     })
+                    .catch(fetchError => {
+                        console.error("Fetch error:", fetchError);
+                    });
 
                 break;
             }
@@ -273,7 +434,7 @@ class ExcalidrawApiBridge {
                     const reader = new FileReader();
                     reader.readAsDataURL(blob);
                     reader.onloadend = function () {
-                        let base64data = reader.result;
+                        const base64data = reader.result;
                         thisBridge.dispatchToPlugin({
                             type: "binary-image-base64-content",
                             base64Payload: base64data,
@@ -296,7 +457,16 @@ export const App = () => {
 
     const excalidrawRef = React.useCallback((excalidrawApi: ExcalidrawImperativeAPI) => {
         excalidrawApiRef.current = excalidrawApi;
-        apiBridge!.dispatchToPlugin({type: "ready"})
+        apiBridge!.dispatchToPlugin({ type: "ready" })
+
+        // Force refresh after fonts load to fix text rendering
+        // Fonts load asynchronously in 0.18.0, so we need to refresh once they're ready
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                console.debug("Fonts loaded, refreshing Excalidraw");
+                excalidrawApi.refresh();
+            });
+        }
     }, []);
 
     // React Hook "React.useState" cannot be called in a class component.
@@ -311,13 +481,13 @@ export const App = () => {
     // see https://codesandbox.io/s/excalidraw-forked-xsw0k?file=/src/App.js
 
 
-    let onDrawingChange = async (elements: any, state: object) => {
+    const onDrawingChange = async (elements: readonly ExcalidrawElement[], state: AppState) => {
         await apiBridge!.debouncedContinuousSaving(elements, state);
     };
 
 
     return (
-        <div className="excalidraw-wrapper">
+        <div className={`excalidraw-wrapper theme--${theme}`}>
             <Excalidraw
                 excalidrawAPI={excalidrawRef}
                 // initialData={InitialData}
@@ -329,9 +499,10 @@ export const App = () => {
                     }
                 }}
                 onChange={(elements, state) => {
-                    console.debug("scene changed")
-                    onDrawingChange(elements, state).then(ignored => {
-                    })
+                    console.debug("scene changed");
+                    onDrawingChange(elements, state).then(() => {
+                        // intentionally empty
+                    });
                 }}
                 viewModeEnabled={viewModeEnabled}
                 zenModeEnabled={zenModeEnabled}
@@ -348,10 +519,10 @@ export const App = () => {
             >
                 { /*
                 Customize main menu.
-                 * See list ogf available items
-                    https://github.com/excalidraw/excalidraw/blob/v0.17.0/src/components/main-menu/DefaultItems.tsx
+                 * See list of available items
+                    https://github.com/excalidraw/excalidraw/blob/v0.18.0/packages/excalidraw/components/main-menu/DefaultItems.tsx
                  * Default menu
-                    https://github.com/excalidraw/excalidraw/blob/v0.17.0/excalidraw-app/components/AppMainMenu.tsx
+                    https://github.com/excalidraw/excalidraw/blob/v0.18.0/excalidraw-app/components/AppMainMenu.tsx
                 */}
                 <MainMenu>
                     <MainMenu.DefaultItems.Help />

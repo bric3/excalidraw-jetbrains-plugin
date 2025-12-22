@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded Excalidraw to version 0.18.0
+- Migrated from create-react-app (Webpack) to Vite for faster builds
+- Font assets are now self-hosted (no CDN dependency)
+- Added support for legacy file format compatibility (boundElements, frameId, lineHeight fixes)
+
+### Fixed
+
+- Fixed IDE theme not being applied when opening Excalidraw files
+- Fixed loading of SVG and PNG files with embedded Excalidraw scenes
+- Fixed font loading for deprecated fonts (Virgil, Helvetica, Cascadia)
+
 ## 0.4.2 - 2024-11-12
 
 Same as 0.4.1, 2024.3 compatibility, disable off-screen rendering by default, Excalidraw 0.17.6 (website runs unreleased version).
