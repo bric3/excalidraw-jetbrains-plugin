@@ -8,6 +8,7 @@ import com.github.bric3.excalidraw.SaveOptions
 import com.github.bric3.excalidraw.SceneModes
 import com.github.bric3.excalidraw.debugMode
 import com.github.bric3.excalidraw.debuggingLogWithThread
+import com.github.bric3.excalidraw.files.ExcalidrawFiles
 import com.github.bric3.excalidraw.files.ExcalidrawImageType
 import com.github.bric3.excalidraw.files.ExcalidrawImageType.EXCALIDRAW
 import com.github.bric3.excalidraw.files.ExcalidrawImageType.JPG
@@ -43,6 +44,7 @@ import org.cef.handler.CefMessageRouterHandlerAdapter
 import org.cef.network.CefRequest
 import org.intellij.lang.annotations.Language
 import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -416,8 +418,16 @@ class ExcalidrawWebViewController(
                     val inputStream = when {
                         matchingFile != null -> {
                             fsMapping - matchingFile.key
+                            val file = matchingFile.value
 
-                            matchingFile.value.inputStream
+                            // Check if this is a SVG/PNG file with embedded Excalidraw scene
+                            // If so, serve the extracted scene data instead of raw file
+                            val embeddedScene = file.getUserData(ExcalidrawFiles.EXCALIDRAW_EMBEDDED_SCENE)
+                            if (embeddedScene != null) {
+                                ByteArrayInputStream(embeddedScene)
+                            } else {
+                                file.inputStream
+                            }
                         }
 
                         Files.exists(devWebappFile) -> Files.newInputStream(devWebappFile)

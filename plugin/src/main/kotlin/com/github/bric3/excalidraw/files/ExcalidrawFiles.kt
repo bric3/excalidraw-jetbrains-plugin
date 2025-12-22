@@ -16,6 +16,7 @@ import java.io.IOException
 import java.io.Reader
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Base64
 import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 import javax.xml.stream.XMLEventReader
@@ -94,20 +95,76 @@ object ExcalidrawFiles {
         false
     }
 
-    private fun pngHasEmbeddedScene(file: VirtualFile) = tryReadPngExcalidrawScene(file) != null
+    private fun pngHasEmbeddedScene(file: VirtualFile): Boolean {
+        val sceneData = tryReadPngExcalidrawScene(file)
+        if (sceneData != null) {
+            file.putUserData(EXCALIDRAW_EMBEDDED_SCENE, sceneData)
+            return true
+        }
+        return false
+    }
 
     private fun svgHasEmbeddedScene(file: VirtualFile): Boolean {
+        val sceneData = tryReadSvgExcalidrawScene(file)
+        if (sceneData != null) {
+            file.putUserData(EXCALIDRAW_EMBEDDED_SCENE, sceneData)
+            return true
+        }
+        return false
+    }
+
+    /**
+     * Extract embedded Excalidraw scene data from SVG file.
+     * The scene is stored in XML with the following format:
+     * <!-- payload-type:application/vnd.excalidraw+json -->
+     * <!-- payload-version:2 -->
+     * <!-- payload-start -->base64-encoded-data-here<!-- payload-end -->
+     *
+     * Note: The base64 data is NOT inside a comment - it's text between the start/end markers.
+     */
+    fun tryReadSvgExcalidrawScene(file: VirtualFile): ByteArray? {
         try {
-            file.inputStream.bufferedReader().use {
+            file.inputStream.bufferedReader().use { reader ->
                 val factory: XMLInputFactory = XMLInputFactory.newInstance()
-                val eventReader: XMLEventReader = factory.createXMLEventReader(it)
+                val eventReader: XMLEventReader = factory.createXMLEventReader(reader)
+
+                var hasPayloadType = false
+                var inPayload = false
+                val payloadBuilder = StringBuilder()
+
                 while (eventReader.hasNext()) {
                     val event: XMLEvent = eventReader.nextEvent()
 
-                    if (event.eventType == XMLStreamConstants.COMMENT) {
-                        val text: String = (event as Comment).text
-                        if (text.contains("payload-type:application/vnd.excalidraw+json")) {
-                            return true
+                    when (event.eventType) {
+                        XMLStreamConstants.COMMENT -> {
+                            val text: String = (event as Comment).text.trim()
+
+                            when {
+                                text.contains("payload-type:application/vnd.excalidraw+json") -> {
+                                    hasPayloadType = true
+                                }
+                                text == "payload-start" -> {
+                                    inPayload = true
+                                }
+                                text == "payload-end" -> {
+                                    inPayload = false
+                                    if (hasPayloadType && payloadBuilder.isNotEmpty()) {
+                                        // Decode the base64 payload to get the Excalidraw JSON
+                                        // The payload is a base64-encoded JSON with compressed scene data
+                                        return try {
+                                            Base64.getDecoder().decode(payloadBuilder.toString().trim())
+                                        } catch (e: IllegalArgumentException) {
+                                            logger.info("Failed to decode base64 payload from SVG")
+                                            null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        XMLStreamConstants.CHARACTERS -> {
+                            if (inPayload) {
+                                payloadBuilder.append(event.asCharacters().data)
+                            }
                         }
                     }
                 }
@@ -117,7 +174,7 @@ object ExcalidrawFiles {
         } catch (xse: XMLStreamException) {
             logger.info("Unable to read this SVG file, maybe it is malformed, file: '$file'", xse)
         }
-        return false
+        return null
     }
 
     private fun tryReadPngExcalidrawScene(
