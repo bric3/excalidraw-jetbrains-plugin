@@ -81,7 +81,7 @@ jobs:
         run: ./gradlew test buildPlugin
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "${{ steps.properties.outputs.name }} - ${{ steps.properties.outputs.version }}"
           path: ./plugin/build/distributions/*
@@ -127,7 +127,7 @@ jobs:
       # Collect Plugin Verifier Result
       - name: Collect Plugin Verifier Result
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pluginVerifier-result.zip
           path: ${{ github.workspace }}/build/reports/pluginVerifier
