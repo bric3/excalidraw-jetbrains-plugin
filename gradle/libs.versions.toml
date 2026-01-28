@@ -9,7 +9,7 @@ detekt = "1.21.0"
 # plugin versions
 kotlin = "1.9.22"
 changelog-plugin = "2.5.0"
-intellij-platform-plugin = "2.10.5"
+intellij-platform-plugin = "2.11.0"
 idea-ext = "1.4"
 
 [libraries]
