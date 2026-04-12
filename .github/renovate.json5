@@ -4,54 +4,63 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:base"
+        "config:recommended",
+        ":approveMajorUpdates",
+        ":semanticCommits",
+        "group:allNonMajor",
+        "schedule:earlyMondays"
     ],
     "labels": [
         "dependency-update"
     ],
-    // automerge minor deps
+    // Reduce low-risk update noise and keep majors explicit.
+    // Minor and patch updates are merged directly on the Renovate branch to avoid PR spam.
+    // If tests fail, Renovate will still raise a PR so the failure remains visible.
     "packageRules": [
         {
             "description": "Automatically merge minor and patch-level updates",
             "matchUpdateTypes": [
-                // where version is: major.minor.patch
                 "minor",
                 "patch"
             ],
             "automerge": true,
-            // Do not create a PR to avoid PR-related email spam, if tests succeed merge directly
-            // otherwise make a PR if tests fail
             "automergeType": "branch"
         },
         {
-            "description": "Excalidraw only update patch-level updates",
-            "packagePatterns": [
-                "^@excalidraw"
+            "description": "Automatically merge GitHub Action non-major updates",
+            "matchManagers": [
+                "github-actions"
             ],
             "matchUpdateTypes": [
-                // where version is: major.minor.patch
+                "minor",
+                "patch",
+                "digest"
+            ],
+            "automerge": true,
+            "automergeType": "branch"
+        },
+        {
+            "description": "Only automatically merge patch-level Excalidraw package updates",
+            "matchPackageNames": [
+                "/^@excalidraw/"
+            ],
+            "matchUpdateTypes": [
                 "patch"
             ],
             "automerge": true,
-            // Do not create a PR to avoid PR-related email spam, if tests succeed merge directly
-            // otherwise make a PR if tests fail
             "automergeType": "branch"
         }
     ],
+    // Wait a little before adopting a new release to avoid churn from quickly republished versions.
+    "minimumReleaseAge": "3 days",
     "vulnerabilityAlerts": {
         "description": "Automatically merge vulnerability fixes",
         "labels": [
             "vulnerability-fix"
         ],
-        "automerge": true,
+        "automerge": true
     },
     "dependencyDashboard": true,
     "prConcurrentLimit": 10,
-    "prHourlyLimit": 5,
-    // Schedule the bot to run before morning
-    "timezone": "UTC",
-    "schedule": [
-        "before 9am"
-        // "before 9am on monday" // once a week before monday morning
-    ]
+    "prHourlyLimit": 2
 }
