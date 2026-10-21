@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Excalidraw editor fails to open on 2026.2 with `ClassNotFoundException: com.intellij.ui.jcef.JBCefApp`, the plugin now declares a dependency on the bundled _Web Browser (JCEF)_ plugin ([#533](https://github.com/bric3/excalidraw-jetbrains-plugin/issues/533)).
+
+### Changed
+
+- Minimum supported IDE version is now 2025.3.1 (`com.intellij.modules.jcef` is not available before that).
+
 ## 0.4.2 - 2024-11-12
 
 Same as 0.4.1, 2024.3 compatibility, disable off-screen rendering by default, Excalidraw 0.17.6 (website runs unreleased version).

@@ -7,6 +7,9 @@
     <!-- https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.json</depends>
+    <!-- JCEF is a separate bundled plugin since 2026.2, the alias exists since 2025.3.1 -->
+    <!-- https://plugins.jetbrains.com/docs/intellij/embedded-browser-jcef.html -->
+    <depends>com.intellij.modules.jcef</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
